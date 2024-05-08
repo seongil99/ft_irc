@@ -8,6 +8,7 @@ UTILS_SRCS		= utils.cpp
 
 ROOT_SRCS		= main.cpp \
 					Server.cpp \
+					Client.cpp \
 					$(addprefix $(UTILS_DIR)/,$(UTILS_SRCS))
 
 SRCS_DIR		= ./srcs

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/08 14:07:40 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/08 19:06:20 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ void Server::EventRead(struct kevent *curr_event) {
                      NULL);
         ChangeEvents(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0,
                      NULL);
-        clients_[client_socket] = "";
+        clients_[client_socket] = Client(client_socket);
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[1024];
@@ -135,27 +135,28 @@ void Server::EventRead(struct kevent *curr_event) {
             CloseClient(curr_event->ident);
         } else {
             buf[n] = '\0';
-            clients_[curr_event->ident] += buf;
+            clients_[curr_event->ident].setMessage(
+                clients_[curr_event->ident].getMessage() + buf);
             std::cout << "received data from " << curr_event->ident << ": "
-                      << clients_[curr_event->ident] << std::endl;
+                      << clients_[curr_event->ident].getMessage() << std::endl;
         }
     }
 }
 
 void Server::EventWrite(struct kevent *curr_event) {
     /* send data to client */
-    std::map<int, std::string>::iterator it = clients_.find(curr_event->ident);
+    std::map<int, Client>::iterator it = clients_.find(curr_event->ident);
     if (it != clients_.end()) {
-        if (clients_[curr_event->ident] != "") {
+        if (clients_[curr_event->ident].getMessage() != "") {
             int n;
             std::string str_to_client =
-                "From server: " + clients_[curr_event->ident];
+                "From server: " + clients_[curr_event->ident].getMessage();
             if ((n = write(curr_event->ident, str_to_client.c_str(),
                            str_to_client.size()) == -1)) {
                 std::cerr << "client write error!" << std::endl;
                 CloseClient(curr_event->ident);
             } else
-                clients_[curr_event->ident].clear();
+                clients_[curr_event->ident].setMessage("");
         }
     }
 }

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/07 18:17:57 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:59:05 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "Client.hpp"
+
 // 보류 중인 연결 큐의 최대 길이
 #define BACKLOG_SIZE 5
 
@@ -28,7 +30,7 @@ class Server {
     int server_socket_;
     int kq_;
     struct sockaddr_in server_addr_;
-    std::map<int, std::string> clients_;
+    std::map<int, Client> clients_;
     std::vector<struct kevent> change_list_;
     struct kevent event_list_[8];
 
