@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/08 13:45:30 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/08 14:07:40 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,12 @@ void Server::EventWrite(struct kevent *curr_event) {
     }
 }
 
+/**
+ * change properties of the event
+ * @param ident client socket descriptor
+ * @param filter 어떤 이벤트를 설정할 것인지 READ, WRITE 등
+ * @param flags 필터를 설정하는 플래그 ADD, ENABLE, ONSHOT 등
+ */
 void Server::ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
                           uint32_t fflags, intptr_t data, void *udata) {
     struct kevent temp_event;
@@ -167,6 +173,10 @@ void Server::ChangeEvents(uintptr_t ident, int16_t filter, uint16_t flags,
     change_list_.push_back(temp_event);
 }
 
+/**
+ * Close connection of the client
+ * @param client_fd client socket descriptor
+ */
 void Server::CloseClient(int client_fd) {
     std::cout << "client disconnected: " << client_fd << std::endl;
     close(client_fd);
