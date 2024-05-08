@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/07 19:45:41 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/08 13:45:30 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,9 +148,10 @@ void Server::EventWrite(struct kevent *curr_event) {
     if (it != clients_.end()) {
         if (clients_[curr_event->ident] != "") {
             int n;
-            if ((n = write(curr_event->ident,
-                           clients_[curr_event->ident].c_str(),
-                           clients_[curr_event->ident].size()) == -1)) {
+            std::string str_to_client =
+                "From server: " + clients_[curr_event->ident];
+            if ((n = write(curr_event->ident, str_to_client.c_str(),
+                           str_to_client.size()) == -1)) {
                 std::cerr << "client write error!" << std::endl;
                 CloseClient(curr_event->ident);
             } else
