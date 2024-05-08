@@ -3,13 +3,17 @@ CXXFLAGS		= -Wall -Wextra -Werror -MMD -MP -std=c++98
 
 NAME			= ircserv
 
+NETSRV_DIR		= NetworkServices
+NETSRV_SRCS		= Channel.cpp \
+					Client.cpp \
+					Server.cpp \
+
 UTILS_DIR		= utils
 UTILS_SRCS		= utils.cpp
 
 ROOT_SRCS		= main.cpp \
-					Server.cpp \
-					Client.cpp \
-					$(addprefix $(UTILS_DIR)/,$(UTILS_SRCS))
+					$(addprefix $(UTILS_DIR)/,$(UTILS_SRCS)) \
+					$(addprefix $(NETSRV_DIR)/,$(NETSRV_SRCS)) \
 
 SRCS_DIR		= ./srcs
 SRCS			= $(addprefix $(SRCS_DIR)/,$(ROOT_SRCS))
@@ -20,7 +24,8 @@ DEP				= $(patsubst %.cpp,%.d,$(SRCS))
 -include $(DEP)
 
 INCLUDE_FLAGS	= -I$(SRCS_DIR) \
-					-I$(SRCS_DIR)/$(UTILS_DIR)
+					-I$(SRCS_DIR)/$(UTILS_DIR) \
+					-I$(SRCS_DIR)/$(NETSRV_DIR) \
 
 RM				= rm -f
 

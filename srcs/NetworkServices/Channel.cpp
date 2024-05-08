@@ -1,21 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.hpp                                        :+:      :+:    :+:   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/08 16:18:48 by seonyoon         ###   ########.fr       */
+/*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
+/*   Updated: 2024/05/08 20:25:57 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
+#include "Channel.hpp"
 
-class Channel {
-  private:
-  public:
-};
+Channel::Channel(void) {}
 
-#endif
+Channel::Channel(const Channel &ref) { (void)ref; }
+
+Channel::~Channel(void) {}
+
+Channel &Channel::operator=(const Channel &ref) {
+    (void)ref;
+    return *this;
+}
