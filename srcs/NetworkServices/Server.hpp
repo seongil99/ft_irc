@@ -23,6 +23,8 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
+#include "Command.hpp"
+
 // 보류 중인 연결 큐의 최대 길이
 #define BACKLOG_SIZE 5
 #define BUF_SIZE 1024
@@ -38,6 +40,7 @@ class Server {
 
     std::map<std::string, Channel> channels_;
     std::map<int, Client> clients_;
+	Command cmd;
 
     /* Events functions */
 

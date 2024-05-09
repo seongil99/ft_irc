@@ -26,7 +26,7 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
-Server::Server(void) {
+Server::Server(void) : cmd(this) {
     server_socket_ = 0;
     kq_ = 0;
     memset(&server_addr_, 0, sizeof(server_addr_));
@@ -163,15 +163,23 @@ void Server::EventWrite(struct kevent *curr_event) {
 
 void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
+	//메시지 받고
     clients_[client_socket].setMessage(std::string("") + buf);
-
-    std::cout << "received data from " << client_socket << ": "
+	
+	if (cmd.excute(client_socket, std::string(buf)) == false)
+	{
+		//일반 채팅문일 경우
+		//메시지 앞에 추가 문장 달고
+    	std::cout << "received data from " << client_socket << ": "
               << clients_[client_socket].getMessage() << std::endl;
 
-    channels_["default"].SendMessageToAllClients(
-        clients_[client_socket].getMessage());
+		//일단은 모든 클라이언트한테 쏴주기
+    	channels_["default"].SendMessageToAllClients(
+	        clients_[client_socket].getMessage());
+	}
+ 	//===================================================================================================
 
-    clients_[client_socket].setMessage("");
+    clients_[client_socket].setMessage("");//버퍼 초기화
 }
 
 /**
