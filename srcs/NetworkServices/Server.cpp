@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/08 14:07:40 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/09 15:35:54 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,9 @@ void Server::Init(int port) {
     if (fcntl_result == -1)
         irc_utils::ExitWithError("fcntl() error");
     std::cout << "server port " << port << std::endl;
+
+    /* Test Default Channel */
+    channels_["default"] = Channel("default");
 }
 
 /**
@@ -121,43 +124,54 @@ void Server::EventRead(struct kevent *curr_event) {
                      NULL);
         ChangeEvents(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0,
                      NULL);
-        clients_[client_socket] = "";
+        clients_[client_socket] = Client(client_socket);
+        /* Test add to default channel */
+        channels_["default"].AddClient(clients_[client_socket]);
+        channels_["default"].SendMessageToAllClients(
+            "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
-        char buf[1024];
+        char buf[BUF_SIZE];
         int n = read(curr_event->ident, buf, sizeof(buf));
 
         if (n <= 0) {
-            if (n < 0)
-                std::cerr << "client read error!" << std::endl;
-            else if (errno == EWOULDBLOCK || errno == EAGAIN)
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
                 return;
+            else if (n < 0)
+                std::cerr << "client read error!" << std::endl;
             CloseClient(curr_event->ident);
         } else {
             buf[n] = '\0';
-            clients_[curr_event->ident] += buf;
-            std::cout << "received data from " << curr_event->ident << ": "
-                      << clients_[curr_event->ident] << std::endl;
+            ProcessReceivedData(curr_event->ident, buf, n);
         }
     }
 }
 
 void Server::EventWrite(struct kevent *curr_event) {
     /* send data to client */
-    std::map<int, std::string>::iterator it = clients_.find(curr_event->ident);
-    if (it != clients_.end()) {
-        if (clients_[curr_event->ident] != "") {
-            int n;
-            std::string str_to_client =
-                "From server: " + clients_[curr_event->ident];
-            if ((n = write(curr_event->ident, str_to_client.c_str(),
-                           str_to_client.size()) == -1)) {
-                std::cerr << "client write error!" << std::endl;
-                CloseClient(curr_event->ident);
-            } else
-                clients_[curr_event->ident].clear();
+    std::map<int, Client>::iterator it = clients_.find(curr_event->ident);
+    if (it != clients_.end() && (*it).second.getSendQueueSize()) {
+        std::string str_to_client = (*it).second.PopSendQueue();
+        int n = write(curr_event->ident, str_to_client.c_str(),
+                      str_to_client.size());
+        if (n == -1) {
+            std::cerr << "client write error!" << std::endl;
+            CloseClient(curr_event->ident);
         }
     }
+}
+
+void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
+    (void)n;
+    clients_[client_socket].setMessage(std::string("") + buf);
+
+    std::cout << "received data from " << client_socket << ": "
+              << clients_[client_socket].getMessage() << std::endl;
+
+    channels_["default"].SendMessageToAllClients(
+        clients_[client_socket].getMessage());
+
+    clients_[client_socket].setMessage("");
 }
 
 /**
@@ -181,4 +195,17 @@ void Server::CloseClient(int client_fd) {
     std::cout << "client disconnected: " << client_fd << std::endl;
     close(client_fd);
     clients_.erase(client_fd);
+}
+
+void Server::CreateChannel(const std::string &channel_name) {
+    Channel new_channel(channel_name);
+    channels_[channel_name] = new_channel;
+}
+
+void Server::AddClientToChannel(Client &client,
+                                const std::string &channel_name) {
+    std::map<std::string, Channel>::iterator it;
+    it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.AddClient(client);
 }
