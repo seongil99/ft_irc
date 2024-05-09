@@ -1,18 +1,15 @@
 #ifndef COMMAND
 # define COMMAND
 
-// # include "reply.hpp"
+# include "reply.hpp"
 # include <iostream>
 # include <string>
 # include <vector>
-# include "reply.hpp"
 
 class Server;
 // class Protocol;
 // class Client;
 
-
-//명령어를 클리이언트당 하나로 처리시키는게 더 낫지 않나라는 생각이...
 class Command
 {
 private :
