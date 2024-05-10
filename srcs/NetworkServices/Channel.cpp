@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/09 18:17:42 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 15:41:29 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,10 @@ void Channel::RemoveClient(const Client &client) {
     clients_.erase(client.getClientSocket());
 }
 
-void Channel::RemoveClient(int client_socket) { clients_.erase(client_socket); }
+void Channel::RemoveClient(int client_socket) {
+    clients_[client_socket]->RemoveJoinedChannel(this->channel_name_);
+    clients_.erase(client_socket);
+}
 
 void Channel::SendMessageToAllClients(const std::string &message) {
     std::map<int, Client *>::iterator it = clients_.begin();
