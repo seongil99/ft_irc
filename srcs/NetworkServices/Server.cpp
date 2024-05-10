@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 15:02:24 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 16:52:34 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,8 +202,10 @@ void Server::CloseClient(int client_fd) {
 }
 
 void Server::CreateChannel(const std::string &channel_name) {
-    Channel new_channel(channel_name);
-    channels_[channel_name] = new_channel;
+    if (!IsChannelExists(channel_name)) {
+        Channel new_channel(channel_name);
+        channels_[channel_name] = new_channel;
+    }
 }
 
 void Server::AddClientToChannel(Client &client,
@@ -239,4 +241,23 @@ void Server::PushSendQueueClient(int client_socket,
     }
 }
 
-const std::string &Server::getPassword(void) const { return this->passwd_; }
+bool Server::CheckPassword(const std::string &password_input) {
+    return this->passwd_ == password_input;
+}
+
+bool Server::IsNicknameExists(const std::string &nickname) {
+    std::map<int, Client>::iterator it = clients_.begin();
+    for (; it != clients_.end(); it++) {
+        if ((*it).second.getNickname() == nickname)
+            return true;
+    }
+    return false;
+}
+
+bool Server::IsChannelExists(const std::string &channel_name) {
+    std::map<std::string, Channel>::iterator it;
+    it = channels_.find(channel_name);
+    if (it == channels_.end())
+        return false;
+    return true;
+}

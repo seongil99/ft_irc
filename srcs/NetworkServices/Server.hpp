@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 14:56:49 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 16:52:40 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,11 @@ class Server {
     Server(void);
     ~Server(void);
 
+    /* Server functions */
+
     void Init(int port, std::string passwd);
     void Listen(void);
+    bool CheckPassword(const std::string &password_input);
 
     /* Channel functions */
 
@@ -74,14 +77,14 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void SetChannelOwner(Client &client, const std::string &channel_name);
+    bool IsChannelExists(const std::string &channel_name);
 
     /* Client functions */
 
     void PushSendQueueClient(int client_socket, const std::string &message);
+    bool IsNicknameExists(const std::string &nickname);
 
     /* Getter */
-
-    const std::string &getPassword(void) const;
 };
 
 #endif
