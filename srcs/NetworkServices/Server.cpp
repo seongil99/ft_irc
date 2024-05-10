@@ -10,18 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <arpa/inet.h>
 #include <fcntl.h>
-#include <sys/event.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #include <iostream>
-#include <map>
-#include <string>
-#include <vector>
+#include <cstdlib>
 
 #include "Server.hpp"
 #include "utils.hpp"
@@ -29,7 +24,7 @@
 Server::Server(void) : cmd(this) {
     server_socket_ = 0;
     kq_ = 0;
-    memset(&server_addr_, 0, sizeof(server_addr_));
+    std::memset(&server_addr_, 0, sizeof(server_addr_));
 }
 
 Server::~Server(void) {}
