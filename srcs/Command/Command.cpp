@@ -75,7 +75,7 @@ bool	Command::excute(Client *client, std::string str)
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
 			(this->*cmd_ft[i])(client);
-			std::cout << "cmd" << std::endl;
+			// std::cout << "cmd" << std::endl;
 			ret = true;
 			break;
 		}
@@ -119,7 +119,7 @@ void	Command::nick(Client *client)
 		client->PushSendQueue(":irc.local 431 " + get_reply_str(ERR_NONICKNAMEGIVEN));
 		return ;
 	}
-	else if (cmd.size() == 2)
+	else
 	{
 		//닉네임 중복 여부 판단
 		if (nickname_check(cmd[1]))
@@ -131,10 +131,7 @@ void	Command::nick(Client *client)
 			client->setNickname(cmd[1]);
 		}
 	}
-	else//NICK 명령어 인자를 여러개 침
-	{//NICK (str1) (str2)... 이경우엔?
-
-	}
+	// NICK aaa bbb ccc ddd 이런 식으로 여러개 쳤을때는 닉네임이 aaa로 바뀌고 다른 반응 없음
 }
 
 void	Command::user(Client *client)
@@ -149,7 +146,7 @@ void	Command::user(Client *client)
 	client->setUsername(cmd[1]);
 	cmd[4].erase(0); //":" 제거
 	client->setRealname(cmd[4]);
-	client->PushSendQueue("Welcome Message");
+	client->PushSendQueue("Welcome Message"); //001~005랑 motd 메세지 나오게 하기
 	// std::cout << client->getUsername();
 }
 
