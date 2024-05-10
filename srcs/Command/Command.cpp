@@ -55,7 +55,7 @@ bool	Command::excute(Client *client, std::string str)
 	bool	ret = false;
 	//==========================================================
 	//step 1 : split string by ' '
-	for (int i = 0; str[i]; i++)
+	for (size_t i = 0; i < str.size(); i++)
 	{
 		if (str[i] == ' ')
 		{
@@ -64,17 +64,18 @@ bool	Command::excute(Client *client, std::string str)
 			temp.clear();
 		}
 		else
-			temp += cmd[i];
+			temp += str[i];                   
 	}
 	if (temp.empty() == false)
 		cmd.push_back(temp);
 	//==========================================================
 	//step 2 : figure it out is this cmd or not
-	for (int i = 0; i < cmd_list.size(); i++)
+	for (size_t i = 0; i < cmd_list.size(); i++)
 	{
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
 			(this->*cmd_ft[i])(client);
+			std::cout << "cmd" << std::endl;
 			ret = true;
 			break;
 		}
@@ -89,6 +90,7 @@ bool	Command::excute(Client *client, std::string str)
 
 void	Command::pass(Client *client)
 {//PASS <password>
+	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//pass 하나만 치면?
 
@@ -106,12 +108,14 @@ void	Command::pass(Client *client)
 //임시 함수
 bool	nickname_check(std::string nick)
 {
+	std::cout << nick;
 	return true;
 }
 //
 
 void	Command::nick(Client *client)
 {//NICK <nickname>
+	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
 
@@ -122,7 +126,7 @@ void	Command::nick(Client *client)
 		//닉네임 중복 여부 판단
 		if (nickname_check(cmd[1]))
 		{//닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
-			get_reply_str(ERR_NICKNAMEINUSE, cmd[1]);
+			// get_reply_str(ERR_NICKNAMEINUSE, cmd[1]);
 		}
 		else
 		{//닉네임 중복이 안되었으니 닉네임 변경
@@ -140,11 +144,13 @@ void	Command::user(Client *client)
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 // 중간의 인자 두개는 안쓴다는데 왜 있는거지?
+	std::cout << client->getUsername();
 }
 
 void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	//물론 채널이 존재하는지, 비번이 있는지 맞는지도 확인
+	std::cout << client->getUsername();
 	std::vector<std::string>	channel, pw;
 	std::string	temp("");
 	switch (cmd.size())
@@ -226,6 +232,7 @@ void	Command::join(Client *client)
 
 void	Command::part(Client *client)
 {//PART <channel>{,<channel>}
+	std::cout << client->getUsername();
 	std::vector<std::string>	channel;
 	std::string	temp("");
 	if (cmd[1].find(",") == std::string::npos)
@@ -251,6 +258,7 @@ void	Command::part(Client *client)
 
 void	Command::privmsg(Client *client)
 {//PRIVMSG (user1,user2,...,usern) <text to be sent>
+	std::cout << client->getUsername();
 	std::vector<std::string>	target;//귓말 받을 사람 모음
 	if (cmd.size() == 1)
 	{
@@ -296,6 +304,7 @@ void	Command::privmsg(Client *client)
 
 void	Command::oper(Client *client)
 {//OPER <user> <password>
+	std::cout << client->getUsername();
 	//발송한 클라이언트가 권한이 있는가?
 	//해당 유저가 존재하는가?
 	//비번은 뭘 기준으로 해야되나?
@@ -303,18 +312,21 @@ void	Command::oper(Client *client)
 
 void	Command::list(Client *client)
 {//LIST [<channel>{,<channel>} [<server>]]
+	std::cout << client->getUsername();
 // 하나만 입력하면 사용 가능한 모든 채널 열람
 // 두번째랑 세번째 인자는 왜 있는지 몰?루
 }
 
 void	Command::ping(Client *client)
 {//PING <server1> [<server2>]
+	std::cout << client->getUsername();
 //클라이어트가 서버로 PING 메시지를 보내면, 서버는 PONG 메시지로 응답해 연결이 활성 상태임을 알려줌
 
 }
 
 void	Command::quit(Client *client)
 {//QUIT [<Quit message>]
+	std::cout << client->getUsername();
 	//나갈때는 모두 다 보내면 되지 않나
 	if (cmd.size() == 1)
 	{//QUIT만 침
@@ -336,6 +348,7 @@ void	Command::quit(Client *client)
 
 void	Command::kick(Client *client)
 {//KICK <channel> <user> [<comment>]
+	std::cout << client->getUsername();
 	//물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
 	if (cmd.size() < 3)
 	{//채널 or 유저를 안침 물론 둘다 안쳤을수도
@@ -360,7 +373,8 @@ void	Command::kick(Client *client)
 }
 
 void	Command::invite(Client *client)
-{//INVITE <nickname> <channel>
+{//INVITE <nickname> <channel>	
+	std::cout << client->getUsername();
 	if (cmd.size() != 3)
 	{// 무언갈 더 쳤거나 덜 쳣음
 
@@ -371,6 +385,7 @@ void	Command::invite(Client *client)
 
 void	Command::topic(Client *client)
 {//TOPIC <channel> [<topic>]
+	std::cout << client->getUsername();
 	switch (cmd.size())
 	{
 	case 1://TOPIC만 입력하면?
@@ -388,6 +403,7 @@ void	Command::topic(Client *client)
 
 void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
+	std::cout << client->getUsername();
 	//물론 채널, 권한이 존재하는지 확인
 	if (cmd[1] == "i")
 	{
@@ -416,11 +432,11 @@ void	Command::mode(Client *client)
 }
 
 void	Command::notice(Client *client)
-{//이게 뭐하는 명령어인지 몰?루
-
+{//이게 뭐하는 명령어인지 몰?루	
+	std::cout << client->getUsername();
 }
 
 void	Command::pong(Client *client)
 {//PONG <server1> [<server2>]
-
+	std::cout << client->getUsername();
 }

@@ -1,5 +1,5 @@
 CXX				= c++
-CXXFLAGS		= -Wall -Wextra -Werror -MMD -MP -std=c++98
+CXXFLAGS		= -Wall -Wextra -Werror -MMD -MP -std=c++98 -g -fsanitize=address
 
 NAME			= ircserv
 
@@ -11,9 +11,13 @@ NETSRV_SRCS		= Channel.cpp \
 UTILS_DIR		= utils
 UTILS_SRCS		= utils.cpp
 
+CMD_DIR			= Command
+CMD_SRCS		= Command.cpp
+
 ROOT_SRCS		= main.cpp \
 					$(addprefix $(UTILS_DIR)/,$(UTILS_SRCS)) \
 					$(addprefix $(NETSRV_DIR)/,$(NETSRV_SRCS)) \
+					$(addprefix $(CMD_DIR)/,$(CMD_SRCS))
 
 SRCS_DIR		= ./srcs
 SRCS			= $(addprefix $(SRCS_DIR)/,$(ROOT_SRCS))
@@ -26,6 +30,7 @@ DEP				= $(patsubst %.cpp,%.d,$(SRCS))
 INCLUDE_FLAGS	= -I$(SRCS_DIR) \
 					-I$(SRCS_DIR)/$(UTILS_DIR) \
 					-I$(SRCS_DIR)/$(NETSRV_DIR) \
+					-I$(SRCS_DIR)/$(CMD_DIR)
 
 RM				= rm -f
 
