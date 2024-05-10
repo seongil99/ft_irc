@@ -1,7 +1,7 @@
 #ifndef COMMAND_HPP
 # define COMMAND_HPP
 
-// # include "reply.hpp"
+# include "reply.hpp"
 # include <iostream>
 # include <string>
 # include <vector>

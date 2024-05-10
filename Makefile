@@ -12,7 +12,7 @@ UTILS_DIR		= utils
 UTILS_SRCS		= utils.cpp
 
 CMD_DIR			= Command
-CMD_SRCS		= Command.cpp
+CMD_SRCS		= Command.cpp reply.cpp
 
 ROOT_SRCS		= main.cpp \
 					$(addprefix $(UTILS_DIR)/,$(UTILS_SRCS)) \
