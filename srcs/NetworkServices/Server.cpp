@@ -166,7 +166,7 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 	//메시지 받고
     clients_[client_socket].setMessage(std::string("") + buf);
 	
-	if (cmd.excute(client_socket, std::string(buf)) == false)
+	if (cmd.excute(&clients_[client_socket], std::string(buf)) == false)
 	{
 		//일반 채팅문일 경우
 		//메시지 앞에 추가 문장 달고

@@ -6,6 +6,7 @@
 # include <string>
 # include <vector>
 
+class Client;
 class Server;
 // class Protocol;
 // class Client;
@@ -21,35 +22,35 @@ private :
 	std::vector<std::string>	cmd_list;
 	std::vector<std::string>	cmd;
 	std::string	private_msg;
-	typedef void (Command::*cmd_ft_arr)(int);
+	typedef void (Command::*cmd_ft_arr)(Client*);
 	cmd_ft_arr cmd_ft[15];
 	void	clean_cmd();
 	Server *serv;
 	//cmd=======================================
-	void	pass(int client_socket);
-	void	nick(int client_socket);
-	void	user(int client_socket);
-	void	join(int client_socket);
-	void	part(int client_socket);
-	void	privmsg(int client_socket);
-	void	oper(int client_socket);
-	void	list(int client_socket);
-	void	ping(int client_socket);
-	void	quit(int client_socket);
-	void	kick(int client_socket);
-	void	invite(int client_socket);
-	void	topic(int client_socket);
-	void	mode(int client_socket);
-	void	notice(int client_socket);
+	void	pass(Client *client);
+	void	nick(Client *client);
+	void	user(Client *client);
+	void	join(Client *client);
+	void	part(Client *client);
+	void	privmsg(Client *client);
+	void	oper(Client *client);
+	void	list(Client *client);
+	void	ping(Client *client);
+	void	quit(Client *client);
+	void	kick(Client *client);
+	void	invite(Client *client);
+	void	topic(Client *client);
+	void	mode(Client *client);
+	void	notice(Client *client);
 	//cmd=======================================
 
 public :
 	Command(Server *server);
 	~Command();
-	bool	excute(int client_socket, std::string str);
+	bool	excute(Client *client, std::string str);
 
 	//cmd=======================================
-	void	pong(int client_socket);
+	void	pong(Client *client);
 	//cmd=======================================
 };
 

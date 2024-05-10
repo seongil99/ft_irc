@@ -70,6 +70,7 @@ class Server {
 
     void Init(int port);
     void Listen(void);
+	Client *getClient(int);
 };
 
 #endif

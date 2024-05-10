@@ -1,7 +1,7 @@
 #include "Command.hpp"
 #include "Server.hpp"
+#include "Client.hpp"
 // #include "Protocol.hpp"
-// #include "Client.hpp"
 
 Command::Command(Server *server) : serv(server)
 {
@@ -47,7 +47,7 @@ void	Command::clean_cmd()
 //return = true : user typed cmd
 //return = false : user typed just chat str
 //USER asdf
-bool	Command::excute(int client_socket, std::string str)
+bool	Command::excute(Client *client, std::string str)
 {
 	//set default=============================
 	std::string temp("");
@@ -74,7 +74,7 @@ bool	Command::excute(int client_socket, std::string str)
 	{
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
-			(this->*cmd_ft[i])(client_socket);
+			(this->*cmd_ft[i])(client);
 			ret = true;
 			break;
 		}
@@ -87,7 +87,7 @@ bool	Command::excute(int client_socket, std::string str)
 	return ret;
 }
 
-void	Command::pass(int client_socket)
+void	Command::pass(Client *client)
 {//PASS <password>
 	if (cmd.size() == 1)
 	{//pass 하나만 치면?
@@ -110,7 +110,7 @@ bool	nickname_check(std::string nick)
 }
 //
 
-void	Command::nick(int client_socket)
+void	Command::nick(Client *client)
 {//NICK <nickname>
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
@@ -135,14 +135,14 @@ void	Command::nick(int client_socket)
 	}
 }
 
-void	Command::user(int client_socket)
+void	Command::user(Client *client)
 {//USER <username> * * :<realname>
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 // 중간의 인자 두개는 안쓴다는데 왜 있는거지?
 }
 
-void	Command::join(int client_socket)
+void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	//물론 채널이 존재하는지, 비번이 있는지 맞는지도 확인
 	std::vector<std::string>	channel, pw;
@@ -224,7 +224,7 @@ void	Command::join(int client_socket)
 	}
 }
 
-void	Command::part(int client_socket)
+void	Command::part(Client *client)
 {//PART <channel>{,<channel>}
 	std::vector<std::string>	channel;
 	std::string	temp("");
@@ -249,7 +249,7 @@ void	Command::part(int client_socket)
 	//물론 채널이 존재하는지, 들어가 있었는지 확인
 }
 
-void	Command::privmsg(int client_socket)
+void	Command::privmsg(Client *client)
 {//PRIVMSG (user1,user2,...,usern) <text to be sent>
 	std::vector<std::string>	target;//귓말 받을 사람 모음
 	if (cmd.size() == 1)
@@ -294,31 +294,31 @@ void	Command::privmsg(int client_socket)
 	}
 }
 
-void	Command::oper(int client_socket)
+void	Command::oper(Client *client)
 {//OPER <user> <password>
 	//발송한 클라이언트가 권한이 있는가?
 	//해당 유저가 존재하는가?
 	//비번은 뭘 기준으로 해야되나?
 }
 
-void	Command::list(int client_socket)
+void	Command::list(Client *client)
 {//LIST [<channel>{,<channel>} [<server>]]
 // 하나만 입력하면 사용 가능한 모든 채널 열람
 // 두번째랑 세번째 인자는 왜 있는지 몰?루
 }
 
-void	Command::ping(int client_socket)
+void	Command::ping(Client *client)
 {//PING <server1> [<server2>]
 //클라이어트가 서버로 PING 메시지를 보내면, 서버는 PONG 메시지로 응답해 연결이 활성 상태임을 알려줌
 
 }
 
-void	Command::quit(int client_socket)
+void	Command::quit(Client *client)
 {//QUIT [<Quit message>]
 	//나갈때는 모두 다 보내면 되지 않나
 	if (cmd.size() == 1)
 	{//QUIT만 침
-
+		
 	}
 	else
 	{//내보낼때 메시지도 같이 침
@@ -334,7 +334,7 @@ void	Command::quit(int client_socket)
 	}
 }
 
-void	Command::kick(int client_socket)
+void	Command::kick(Client *client)
 {//KICK <channel> <user> [<comment>]
 	//물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
 	if (cmd.size() < 3)
@@ -359,7 +359,7 @@ void	Command::kick(int client_socket)
 	}
 }
 
-void	Command::invite(int client_socket)
+void	Command::invite(Client *client)
 {//INVITE <nickname> <channel>
 	if (cmd.size() != 3)
 	{// 무언갈 더 쳤거나 덜 쳣음
@@ -369,7 +369,7 @@ void	Command::invite(int client_socket)
 	//초대하는 코드
 }
 
-void	Command::topic(int client_socket)
+void	Command::topic(Client *client)
 {//TOPIC <channel> [<topic>]
 	switch (cmd.size())
 	{
@@ -386,12 +386,12 @@ void	Command::topic(int client_socket)
 	}
 }
 
-void	Command::mode(int client_socket)
+void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 	//물론 채널, 권한이 존재하는지 확인
 	if (cmd[1] == "i")
 	{
-
+		
 	}
 	else if (cmd[1] == "t")
 	{
@@ -415,12 +415,12 @@ void	Command::mode(int client_socket)
 	}
 }
 
-void	Command::notice(int client_socket)
+void	Command::notice(Client *client)
 {//이게 뭐하는 명령어인지 몰?루
 
 }
 
-void	Command::pong(int client_socket)
+void	Command::pong(Client *client)
 {//PONG <server1> [<server2>]
 
 }
