@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/09 14:58:12 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 15:39:34 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,12 @@ Client &Client::operator=(const Client &ref) {
 
 void Client::AddJoinedChannel(const std::string &channel_name) {
     this->joind_chanels_.push_back(channel_name);
+}
+void Client::RemoveJoinedChannel(const std::string &channel_name) {
+    std::vector<std::string>::iterator it;
+    it = std::find(joind_chanels_.begin(), joind_chanels_.end(), channel_name);
+    if (it != joind_chanels_.end())
+        joind_chanels_.erase(it);
 }
 
 void Client::PushSendQueue(const std::string &message) {
