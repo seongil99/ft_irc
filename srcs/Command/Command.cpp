@@ -140,7 +140,7 @@ void	Command::user(Client *client)
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 // 중간의 인자 두개는 안쓴다는데 왜 있는거지?
 	if (cmd.size() < 5)
-		client->PushSendQueue(":irc.local 461 " + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
 	if (client->getRealname().size() != 0)
 		client->PushSendQueue(":irc.local 462 " + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
 	client->setUsername(cmd[1]);
