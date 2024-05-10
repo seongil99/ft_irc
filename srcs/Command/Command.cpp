@@ -118,7 +118,7 @@ void	Command::nick(Client *client)
 	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
-
+		
 		return ;
 	}
 	else if (cmd.size() == 2)
