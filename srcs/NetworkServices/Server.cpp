@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/09 15:35:54 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 15:02:24 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@ Server::~Server(void) {}
  * Init Server
  * @param port port number
  */
-void Server::Init(int port) {
+void Server::Init(int port, std::string passwd) {
+    passwd_ = passwd;
     server_socket_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (server_socket_ == -1)
         irc_utils::ExitWithError("socket() error");
@@ -209,3 +210,30 @@ void Server::AddClientToChannel(Client &client,
     if (it != channels_.end())
         (*it).second.AddClient(client);
 }
+
+void Server::RemoveClientFromChannel(int client_socket,
+                                     const std::string &channel_name) {
+    std::map<std::string, Channel>::iterator it;
+    it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        (*it).second.RemoveClient(client_socket);
+    }
+}
+void Server::SetChannelOwner(Client &client, const std::string &channel_name) {
+    std::map<std::string, Channel>::iterator it;
+    it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        (*it).second.setOwner(&client);
+    }
+}
+
+void Server::PushSendQueueClient(int client_socket,
+                                 const std::string &message) {
+    std::map<int, Client>::iterator it;
+    it = clients_.find(client_socket);
+    if (it != clients_.end()) {
+        (*it).second.PushSendQueue(message);
+    }
+}
+
+const std::string &Server::getPassword(void) const { return this->passwd_; }
