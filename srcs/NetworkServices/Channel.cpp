@@ -65,3 +65,37 @@ void Channel::setChannelName(const std::string &channel_name) {
     this->channel_name_ = channel_name;
 }
 void Channel::setOwner(Client *client) { this->owner_ = client; }
+
+//return : true = that client joined this channel
+//return : false = that client didn't join this channe
+bool	Channel::DidJoinClient(int client_socket)
+{
+	std::map<int, Client *>::iterator it = clients_.find(client_socket);
+	return it != clients_.end();
+}
+
+bool	Channel::DidJoinClient(const std::string &nickname)
+{
+	std::map<int, Client *>::iterator it = clients_.begin();
+	while (it != clients_.end())
+	{
+		if (it->second->getNickname() == nickname)
+			return true;
+		it++;
+	}
+	return false;
+}
+
+Client	*Channel::getJoinedClient(const std::string &nickname)
+{
+	if (DidJoinClient(nickname))
+	{
+		std::map<int, Client *>::iterator it = clients_.begin();
+		while (it != clients_.end())
+		{
+			if (it->second->getNickname() == nickname)
+				return it->second;
+		}
+	}
+	return 0;
+}

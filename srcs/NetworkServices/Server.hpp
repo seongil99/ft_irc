@@ -70,6 +70,8 @@ class Server {
     void Listen(void);
     bool CheckPassword(const std::string &password_input);
 
+	void RemoveClientFromServer(int client_socket);
+
     /* Channel functions */
 
     void CreateChannel(const std::string &channel_name);
@@ -78,6 +80,9 @@ class Server {
                                  const std::string &channel_name);
     void SetChannelOwner(Client &client, const std::string &channel_name);
     bool IsChannelExists(const std::string &channel_name);
+
+	const std::string &getAllChannelName();
+	Channel	*getChannel(const std::string &channel_name);
 
     /* Client functions */
 

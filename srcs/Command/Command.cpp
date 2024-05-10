@@ -1,7 +1,7 @@
 #include "Command.hpp"
 #include "Server.hpp"
 #include "Client.hpp"
-// #include "Protocol.hpp"
+#include "Channel.hpp"
 
 Command::Command(Server *server) : serv(server)
 {
@@ -105,14 +105,6 @@ void	Command::pass(Client *client)
 	}
 }
 
-//임시 함수
-bool	nickname_check(std::string nick)
-{
-	std::cout << nick;
-	return true;
-}
-//
-
 void	Command::nick(Client *client)
 {//NICK <nickname>
 	std::cout << client->getUsername();
@@ -124,9 +116,9 @@ void	Command::nick(Client *client)
 	else if (cmd.size() == 2)
 	{
 		//닉네임 중복 여부 판단
-		if (nickname_check(cmd[1]))
+		if (serv->IsNicknameExists(cmd[1]))
 		{//닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
-			// get_reply_str(ERR_NICKNAMEINUSE, cmd[1]);
+			serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NICKNAMEINUSE) + get_reply_str(ERR_NICKNAMEINUSE, cmd[1]));
 		}
 		else
 		{//닉네임 중복이 안되었으니 닉네임 변경
@@ -235,25 +227,55 @@ void	Command::part(Client *client)
 	std::cout << client->getUsername();
 	std::vector<std::string>	channel;
 	std::string	temp("");
-	if (cmd[1].find(",") == std::string::npos)
-		channel.push_back(cmd[1]);//하나만 입력함
-	else//,가 있음 두개 이상 입력했을 가능성
+	if (cmd.size() == 1)
+	{//PART 하나만 입력함
+
+	}
+	else if (cmd.size() == 2)
 	{
-		for (int i = 0; cmd[1][i]; i++)
+		if (cmd[1].find(",") == std::string::npos)
+			channel.push_back(cmd[1]);//하나만 입력함
+		else//,가 있음 두개 이상 입력했을 가능성
 		{
-			if (cmd[1][i] == ',')
+			for (int i = 0; cmd[1][i]; i++)
 			{
-				if (temp.empty() == false)
-					channel.push_back(temp);
-			temp.clear();
+				if (cmd[1][i] == ',')
+				{
+					if (temp.empty() == false)
+						channel.push_back(temp);
+				temp.clear();
+				}
+				else
+					temp += cmd[1][i];
+			}
+			if (temp.empty() == false)
+				channel.push_back(temp);
+		}
+		//물론 채널이 존재하는지, 들어가 있었는지 확인
+		//근데 하나는 그렇다 치더라도 2개 이상 입력했으면 어떻게 처리하지?
+		for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
+		{
+			if (serv->IsChannelExists(*it) == false)
+			{// 없는 채널 입력함
+				//없는 채널 입력 했다는 메시지
+				continue;
+			}
+			Channel	*joined_channel = serv->getChannel(*it);
+			if (joined_channel->DidJoinClient(client->getClientSocket()) == false)
+			{//채널은 있는데 참가안한 채널을 입력함
+				//참가안한 채널이라는 메시지
 			}
 			else
-				temp += cmd[1][i];
+			{//있는 채널에 참가해 있음
+				joined_channel->RemoveClient(client->getClientSocket());
+				//해당 채널에서 나갔다는 메시지
+			}
 		}
-		if (temp.empty() == false)
-			channel.push_back(temp);
 	}
-	//물론 채널이 존재하는지, 들어가 있었는지 확인
+	else// 무언갈 더 입력함
+	{
+
+	}
 }
 
 void	Command::privmsg(Client *client)
@@ -304,15 +326,52 @@ void	Command::privmsg(Client *client)
 void	Command::oper(Client *client)
 {//OPER <user> <password>
 	std::cout << client->getUsername();
-	//발송한 클라이언트가 권한이 있는가?
-	//해당 유저가 존재하는가?
-	//비번은 뭘 기준으로 해야되나?
+	if (cmd.size() < 3)
+	{//뭔갈 덜 입력함
+
+	}
+	else
+	{
+		//발송한 클라이언트가 해당 채널에서 권한이 있는가?
+		//그럼 이 클라이언트가 어느 채널에서 메시지를 보냈는지 어떻게 알지?
+		//해당 유저가 존재하는가?
+		//비번은 뭘 기준으로 해야되나?
+	}
 }
 
 void	Command::list(Client *client)
 {//LIST [<channel>{,<channel>} [<server>]]
-	std::cout << client->getUsername();
-// 하나만 입력하면 사용 가능한 모든 채널 열람
+	// std::cout << client->getUsername();
+	std::vector<std::string>	target;
+	if (cmd.size() == 1)
+	{// 하나만 입력하면 사용 가능한 모든 채널 열람
+		std::string ret = serv->getAllChannelName();
+		if (ret.size() == 0)//채널이 없음
+			ret = "There is no channel";// 채널이 없다는 메시지
+		serv->PushSendQueueClient(client->getClientSocket(), ret);
+	}
+	else
+	{
+		if (cmd[1].find(",") == std::string::npos)
+			target.push_back(cmd[1]);//하나만 입력함
+		else//,가 있음 두개 이상 입력했을 가능성
+		{
+			std::string	temp("");
+			for (int i = 0; cmd[1][i]; i++)
+			{
+				if (cmd[1][i] == ',')
+				{
+					if (temp.empty() == false)
+						target.push_back(temp);
+					temp.clear();
+				}
+				else
+					temp += cmd[1][i];
+			}
+			if (temp.empty() == false)
+				target.push_back(temp);
+		}
+	}
 // 두번째랑 세번째 인자는 왜 있는지 몰?루
 }
 
@@ -325,11 +384,15 @@ void	Command::ping(Client *client)
 
 void	Command::quit(Client *client)
 {//QUIT [<Quit message>]
+	//근데 이거 유저가 치면 본인이 나간다는 말 아닌가?
 	std::cout << client->getUsername();
 	//나갈때는 모두 다 보내면 되지 않나
 	if (cmd.size() == 1)
 	{//QUIT만 침
-		
+		//해당 유저가 나간다는 메시지
+
+		//아래는 할 것 다하고 호출!
+		serv->RemoveClientFromServer(client->getClientSocket());
 	}
 	else
 	{//내보낼때 메시지도 같이 침
@@ -349,15 +412,13 @@ void	Command::kick(Client *client)
 {//KICK <channel> <user> [<comment>]
 	std::cout << client->getUsername();
 	//물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
+	//권한이 있는가?
+	std::string msg(""/*강퇴 기본 메시지*/);
 	if (cmd.size() < 3)
 	{//채널 or 유저를 안침 물론 둘다 안쳤을수도
 
 	}
-	else if (cmd.size() == 3)
-	{//마지막에 강퇴 메시지를 안넣음
-
-	}
-	else 
+	else if (cmd.size() > 3)
 	{//마지막에 강퇴 메시지를 넣었음
 		size_t msg_start = cmd[0].size();
 		while (private_msg[msg_start] == ' ')
@@ -365,9 +426,36 @@ void	Command::kick(Client *client)
 		msg_start += cmd[1].size();
 		while (private_msg[msg_start] == ' ')
 			msg_start++;
-		std::string msg = private_msg.substr(msg_start);
+		msg = private_msg.substr(msg_start);
 		//보낼 메시지 완성 -> msg
 	}
+	//채널이 존재 하는가
+	if (serv->IsChannelExists(cmd[1]) == false)
+	{//채널 음슴
+		return;
+	}//유저가 존재하는가
+	else if (serv->IsNicknameExists(cmd[2]) == false)
+	{//유저 음슴
+		return;
+	}
+	Channel	*channel = serv->getChannel(cmd[1]);
+	//유저가 해당 채널에 존재 하는가?
+	if (channel->DidJoinClient(cmd[2]) == false)
+	{
+		//채널에 해당 유저가 음슴
+		return;
+	}
+	Client	*kicked_client = channel->getJoinedClient(cmd[2]);
+
+	/*
+	강퇴당했다는 메시지를 보내야함
+	당연히 명령어 친 사람과 강퇴 당한 사람에게 보내야겠지? 그보다 해당 채널에 있는 모든 사람에게 보내면 더 좋지 않나?
+	
+	강퇴 메시지 가공
+	*/
+	channel->SendMessageToAllClients(msg);
+	//해당 채널에서 강퇴
+	channel->RemoveClient(kicked_client->getClientSocket());
 }
 
 void	Command::invite(Client *client)
@@ -378,24 +466,42 @@ void	Command::invite(Client *client)
 
 	}
 	//물론 채널, 권한, 대상 유저가 존재하는지 확인
+	if (serv->IsNicknameExists(cmd[1]) == false)
+	{//해당 닉네임 없음 = 해당 유저 없음
+		
+	}
+	else if (serv->IsChannelExists(cmd[2]) == false)
+	{//해당 채널이 없음.
+
+	}
+	//이미 있는 사람 초대했으면??
 	//초대하는 코드
 }
 
 void	Command::topic(Client *client)
 {//TOPIC <channel> [<topic>]
 	std::cout << client->getUsername();
-	switch (cmd.size())
+	if (cmd.size() == 1)
+	{//TOPIC만 입력하면?
+		return;
+	}
+	// 채널 존재하는지 확인
+	if (serv->IsChannelExists(cmd[1]) == false)
+	{//채널 음슴
+		return;
+	}
+	Channel *channel = serv->getChannel(cmd[2]);
+	if (cmd.size() == 2)//해당 채널의 토픽을 확인하는 명령어
 	{
-	case 1://TOPIC만 입력하면?
-		break;
-	case 2://해당 채널의 토픽을 확인하는 명령어
-		//물론 채널이 존재하는지 확인
-		break;
-	case 3://해당 채널의 토픽을 설정하는 명령어
-		//물론 채널이 존재하는지 확인
-		break;
-	default:// 그 이외로 무언가를 더 치면?
-		break;
+		
+	}
+	else if (cmd.size() == 3)//해당 채널의 토픽을 설정하는 명령어
+	{
+
+	}
+	else
+	{// 그 이외로 무언가를 더 치면?
+		return;
 	}
 }
 

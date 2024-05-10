@@ -17,7 +17,7 @@ std::string get_reply_number(const Reply n)
 	return ret + temp + " ";
 }
 
-//4 RPL_MYINFO : servername, version, available user mode, available channel mode
+//004 RPL_MYINFO : servername, version, available user mode, available channel mode
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3, std::string s4)
 {
 	std::string	ret;
@@ -33,7 +33,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 	}
 	return ret;
 }
-//1 RPL_WELCOME : nick, user, host
+//001 RPL_WELCOME : nick, user, host
 //324 RPL_CHANNELMODEIS : channel, mode, mode parameter
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3)
 {
@@ -53,7 +53,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 	return ret;
 }
 
-//2 RPL_YOURHOST : server name, version
+//002 RPL_YOURHOST : server name, version
 //301 RPL_AWAY : nickname, away message
 //332 RPL_TOPIC : channel, topic
 //341 RPL_INVITING : channel, nick
@@ -86,7 +86,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 }
 
 /*
-3 RPL_CREATED:  data
+003 RPL_CREATED:  data
 331 RPL_NOTOPIC: channel name
 401 ERR_NOSUCHNICK: nickname
 403 ERR_NOSUCHCHANNEL: channel name

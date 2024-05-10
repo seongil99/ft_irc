@@ -45,6 +45,10 @@ class Channel {
 
     void setChannelName(const std::string &channel_name);
     void setOwner(Client *client);
+
+	bool	DidJoinClient(int client_socket);
+	bool	DidJoinClient(const std::string &nickname);
+	Client	*getJoinedClient(const std::string &nickname);
 };
 
 #endif

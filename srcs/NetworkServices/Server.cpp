@@ -162,6 +162,7 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 	//메시지 받고
     clients_[client_socket].setMessage(std::string("") + buf);
 	
+ 	//===================================================================================================
 	if (cmd.excute(&clients_[client_socket], std::string(buf)) == false)
 	{
 		//일반 채팅문일 경우
@@ -260,4 +261,57 @@ bool Server::IsChannelExists(const std::string &channel_name) {
     if (it == channels_.end())
         return false;
     return true;
+}
+
+const std::string &Server::getAllChannelName()
+{
+	std::string ret("");
+	std::map<std::string, Channel>::iterator it = channels_.begin();
+	if (it == channels_.end())
+		return ret;
+	while (true)
+	{
+		ret += it->second.getChannelName();
+		it++;
+		if (it == channels_.end())
+			break;
+		else
+			ret += ",";
+	}
+	return ret;
+}
+
+//return 0 = there is no channel in this server
+Channel	*Server::getChannel(const std::string &channel_name)
+{
+	if (IsChannelExists(channel_name))
+	{
+		std::map<std::string, Channel>::iterator it = channels_.find(channel_name);
+		return &(it->second);
+	}
+	return 0;
+}
+
+//클라이언트가 서버에서 나갔을떄
+//서버에서 제발로 나갔거나, 강퇴당했거나등등
+//서버 및 모든 곳에서 지우니, 최대한 마지막에 호출 할 것!
+void Server::RemoveClientFromServer(int client_socket)
+{//들어가있는 모든 채널에서 없애야한다.
+	std::map<std::string, Channel>::iterator it = channels_.begin();
+	while (it != channels_.end())
+	{
+		if (it->second.DidJoinClient(client_socket))
+		{//클라이언트가 여기에 참가했었음
+			if (it->second.getOwner()->getClientSocket() == client_socket)
+			{//소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
+				//혼자 있었으면 채널도 없어져야됨
+				//두명이상 있으면 채널은 계속 있어야하는데, 새로운 관리자는 어떻게 허쉴??
+			}
+			it->second.RemoveClient(client_socket);
+		}
+		else
+			it++;
+	}
+	//서버에서도 지우자
+	clients_.erase(clients_.find(client_socket));
 }
