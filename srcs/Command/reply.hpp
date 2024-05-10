@@ -43,6 +43,7 @@ enum Reply
 	ERR_NOOPERHOST = 491
 };
 
+std::string get_reply_number(const Reply n);
 std::string	get_reply_str(const Reply n);
 std::string	get_reply_str(const Reply n, std::string s1);
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2);
