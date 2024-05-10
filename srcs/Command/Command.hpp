@@ -41,7 +41,6 @@ private :
 	void	topic(int client_socket);
 	void	mode(int client_socket);
 	void	notice(int client_socket);
-	void	pong(int client_socket);
 	//cmd=======================================
 
 public :
@@ -49,6 +48,9 @@ public :
 	~Command();
 	bool	excute(int client_socket, std::string str);
 
+	//cmd=======================================
+	void	pong(int client_socket);
+	//cmd=======================================
 };
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef REPLY
 # define REPLY
 
+# include <string>
+
 enum Reply
 {
 	RPL_WELCOME = 1,

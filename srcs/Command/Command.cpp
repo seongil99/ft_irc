@@ -121,7 +121,7 @@ void	Command::nick(int client_socket)
 	{
 		//닉네임 중복 여부 판단
 		if (nickname_check(cmd[1]))
-		{//닉네임 중복으니 그 사람 한테만 아래를 던져주면 됨
+		{//닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
 			get_reply_str(ERR_NICKNAMEINUSE, cmd[1]);
 		}
 		else
@@ -171,6 +171,7 @@ void	Command::join(int client_socket)
 				channel.push_back(temp);
 		}
 		//채널이 존재하는지 확인하는 작업이 필요함
+		//해당 채널이 비번이 있었으면?
 		break;
 	case 3://잘 입력한 경우
 		if (cmd[1].find(",") == std::string::npos)
@@ -212,6 +213,7 @@ void	Command::join(int client_socket)
 		}
 		if (pw.size() != channel.size())
 		{//채널 입력 개수랑 비번 입력 개수가 다르면?
+		//비번 없는 채널과 있는 채널 스까서 입력했으면?
 
 		}
 		//channel안에 있는 채널이 존재하는지 확인해야함
@@ -244,19 +246,22 @@ void	Command::part(int client_socket)
 		if (temp.empty() == false)
 			channel.push_back(temp);
 	}
-	//물론 채널이 존재하는지 들어가 있었는지 확인
+	//물론 채널이 존재하는지, 들어가 있었는지 확인
 }
 
 void	Command::privmsg(int client_socket)
 {//PRIVMSG (user1,user2,...,usern) <text to be sent>
-	std::vector<std::string>	target;
-	switch (cmd.size())
+	std::vector<std::string>	target;//귓말 받을 사람 모음
+	if (cmd.size() == 1)
 	{
-	case 1://PRIVMSG만 입력하면?
-		break;
-	case 2://무언갈 덜 입력함
-		break;
-	case 3://잘 입력한 경우
+		//PRIVMSG만 입력하면?
+	}
+	else if (cmd.size() == 2)
+	{
+		//무언갈 덜 입력함
+	}
+	else
+	{
 		if (cmd[1].find(",") == std::string::npos)
 			target.push_back(cmd[1]);//한명만 입력함
 		else//,가 있음 두명 이상 입력했을 가능성
@@ -277,15 +282,23 @@ void	Command::privmsg(int client_socket)
 				target.push_back(temp);
 		}
 		//target안에 있는 대상이 존재하는지 확인해야함
-		break;
-	default:// 그 이외로 무언가를 더 치면?
-		break;
+		std::string msg = private_msg.substr(8 + cmd[1].size());
+		if (msg[0] == ' ')
+		{
+			int space = 0;
+			while (msg[space] == ' ')
+				space++;
+			msg = msg.substr(space);
+		}
+		//보낼 메시지 완성 -> msg
 	}
 }
 
 void	Command::oper(int client_socket)
 {//OPER <user> <password>
-
+	//발송한 클라이언트가 권한이 있는가?
+	//해당 유저가 존재하는가?
+	//비번은 뭘 기준으로 해야되나?
 }
 
 void	Command::list(int client_socket)
@@ -303,6 +316,22 @@ void	Command::ping(int client_socket)
 void	Command::quit(int client_socket)
 {//QUIT [<Quit message>]
 	//나갈때는 모두 다 보내면 되지 않나
+	if (cmd.size() == 1)
+	{//QUIT만 침
+
+	}
+	else
+	{//내보낼때 메시지도 같이 침
+		std::string msg = private_msg.substr(5);
+		if (msg[0] == ' ')
+		{
+			int space = 0;
+			while (msg[space] == ' ')
+				space++;
+			msg = msg.substr(space);
+		}
+		//보낼 메시지 완성 -> msg
+	}
 }
 
 void	Command::kick(int client_socket)
@@ -312,27 +341,31 @@ void	Command::kick(int client_socket)
 	{//채널 or 유저를 안침 물론 둘다 안쳤을수도
 
 	}
-	else if (cmd.size() == 4)
-	{//마지막에 강퇴 메시지를 넣었음
-
-	}
 	else if (cmd.size() == 3)
 	{//마지막에 강퇴 메시지를 안넣음
 
 	}
-	else// 그 이외로 무언가를 더 치면?
-	{
-
+	else 
+	{//마지막에 강퇴 메시지를 넣었음
+		std::string msg = private_msg.substr(5);
+		if (msg[0] == ' ')
+		{
+			int space = 0;
+			while (msg[space] == ' ')
+				space++;
+			msg = msg.substr(space);
+		}
+		//보낼 메시지 완성 -> msg
 	}
 }
 
 void	Command::invite(int client_socket)
 {//INVITE <nickname> <channel>
-	//물론 채널, 권한, 대상 유저가 존재하는지 확인
 	if (cmd.size() != 3)
 	{// 무언갈 더 쳤거나 덜 쳣음
 
 	}
+	//물론 채널, 권한, 대상 유저가 존재하는지 확인
 	//초대하는 코드
 }
 
@@ -383,7 +416,7 @@ void	Command::mode(int client_socket)
 }
 
 void	Command::notice(int client_socket)
-{
+{//이게 뭐하는 명령어인지 몰?루
 
 }
 
