@@ -43,6 +43,12 @@ enum Reply
 	ERR_NOOPERHOST = 491
 };
 
+std::string	get_reply_str(const Reply n);
+std::string	get_reply_str(const Reply n, std::string s1);
+std::string	get_reply_str(const Reply n, std::string s1, std::string s2);
+std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3);
+std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3, std::string s4);
+
 /*
 추가 안한 번호
 471, 473, 475 뒤에 있는건 뭐지?
