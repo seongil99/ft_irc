@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 16:30:11 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 16:52:40 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,12 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void SetChannelOwner(Client &client, const std::string &channel_name);
+    bool IsChannelExists(const std::string &channel_name);
 
     /* Client functions */
 
     void PushSendQueueClient(int client_socket, const std::string &message);
-    bool IsNicknameAlreadyExists(const std::string &nickname);
+    bool IsNicknameExists(const std::string &nickname);
 
     /* Getter */
 };
