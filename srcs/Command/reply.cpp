@@ -1,4 +1,21 @@
 #include "reply.hpp"
+#include <sstream>
+
+//if Reply number is 1 then return would be ":irc.local 001 "
+//if Reply number is 10 then return would be ":irc.local 010 "
+//if Reply number is 100 then return would be ":irc.local 100 "
+std::string get_reply_number(const Reply n)
+{
+	std::string ret(":irc.local ");
+	std::stringstream	iss;
+	iss << n;
+	std::string temp = iss.str();
+	if (temp.size() == 1)
+		ret += "00";
+	else if (temp.size() == 2)
+		ret += "0";
+	return ret + temp + " ";
+}
 
 //4 RPL_MYINFO : servername, version, available user mode, available channel mode
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3, std::string s4)

@@ -293,14 +293,13 @@ void	Command::privmsg(Client *client)
 				target.push_back(temp);
 		}
 		//target안에 있는 대상이 존재하는지 확인해야함
-		std::string msg = private_msg.substr(8 + cmd[1].size());
-		if (msg[0] == ' ')
-		{
-			int space = 0;
-			while (msg[space] == ' ')
-				space++;
-			msg = msg.substr(space);
-		}
+		size_t msg_start = cmd[0].size();
+		while (private_msg[msg_start] == ' ')
+			msg_start++;
+		msg_start += cmd[1].size();
+		while (private_msg[msg_start] == ' ')
+			msg_start++;
+		std::string msg = private_msg.substr(msg_start);
 		//보낼 메시지 완성 -> msg
 	}
 }
@@ -363,14 +362,13 @@ void	Command::kick(Client *client)
 	}
 	else 
 	{//마지막에 강퇴 메시지를 넣었음
-		std::string msg = private_msg.substr(5);
-		if (msg[0] == ' ')
-		{
-			int space = 0;
-			while (msg[space] == ' ')
-				space++;
-			msg = msg.substr(space);
-		}
+		size_t msg_start = cmd[0].size();
+		while (private_msg[msg_start] == ' ')
+			msg_start++;
+		msg_start += cmd[1].size();
+		while (private_msg[msg_start] == ' ')
+			msg_start++;
+		std::string msg = private_msg.substr(msg_start);
 		//보낼 메시지 완성 -> msg
 	}
 }
