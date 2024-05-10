@@ -114,10 +114,9 @@ bool	nickname_check(std::string nick)
 
 void	Command::nick(Client *client)
 {//NICK <nickname>
-	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
-		client->PushSendQueue(":irc.local 431" + get_reply(ERR_NONICKNAMEGIVEN));
+		client->PushSendQueue(":irc.local 431 " + get_reply_str(ERR_NONICKNAMEGIVEN));
 		return ;
 	}
 	else if (cmd.size() == 2)
@@ -125,11 +124,11 @@ void	Command::nick(Client *client)
 		//닉네임 중복 여부 판단
 		if (nickname_check(cmd[1]))
 		{//닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
-			// get_reply_str(ERR_NICKNAMEINUSE, cmd[1]);
+			client->PushSendQueue(":irc.local 433 " + get_reply_str(ERR_NICKNAMEINUSE, cmd[1]));
 		}
 		else
 		{//닉네임 중복이 안되었으니 닉네임 변경
-
+			client->setNickname(cmd[1]);
 		}
 	}
 	else//NICK 명령어 인자를 여러개 침
@@ -143,7 +142,15 @@ void	Command::user(Client *client)
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 // 중간의 인자 두개는 안쓴다는데 왜 있는거지?
-	std::cout << client->getUsername();
+	if (cmd.size() < 5)
+		client->PushSendQueue(":irc.local 461 " + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
+	if (client->getRealname().size() != 0)
+		client->PushSendQueue(":irc.local 462 " + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
+	client->setUsername(cmd[1]);
+	cmd[4].erase(0); //":" 제거
+	client->setRealname(cmd[4]);
+	client->PushSendQueue("Welcome Message");
+	// std::cout << client->getUsername();
 }
 
 void	Command::join(Client *client)
