@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 15:02:24 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 16:30:06 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,4 +236,15 @@ void Server::PushSendQueueClient(int client_socket,
     }
 }
 
-const std::string &Server::getPassword(void) const { return this->passwd_; }
+bool Server::CheckPassword(const std::string &password_input) {
+    return this->passwd_ == password_input;
+}
+
+bool Server::IsNicknameAlreadyExists(const std::string &nickname) {
+    std::map<int, Client>::iterator it = clients_.begin();
+    for (; it != clients_.end(); it++) {
+        if ((*it).second.getNickname() == nickname)
+            return true;
+    }
+    return false;
+}
