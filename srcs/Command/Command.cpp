@@ -111,14 +111,13 @@ bool	nickname_check(std::string nick)
 	std::cout << nick;
 	return true;
 }
-//
 
 void	Command::nick(Client *client)
 {//NICK <nickname>
 	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
-		
+		client->PushSendQueue(":irc.local 431" + get_reply(ERR_NONICKNAMEGIVEN));
 		return ;
 	}
 	else if (cmd.size() == 2)
