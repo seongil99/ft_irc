@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/09 14:34:54 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 15:33:26 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Client {
     Client &operator=(const Client &ref);
 
     void AddJoinedChannel(const std::string &channel_name);
+    void RemoveJoinedChannel(const std::string &channel_name);
 
     void PushSendQueue(const std::string &message);
     std::string PopSendQueue(void);

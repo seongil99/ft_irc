@@ -6,9 +6,11 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/09 15:01:35 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/10 15:41:29 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "Client.hpp"
 
 #include "Channel.hpp"
 
@@ -44,7 +46,10 @@ void Channel::RemoveClient(const Client &client) {
     clients_.erase(client.getClientSocket());
 }
 
-void Channel::RemoveClient(int client_socket) { clients_.erase(client_socket); }
+void Channel::RemoveClient(int client_socket) {
+    clients_[client_socket]->RemoveJoinedChannel(this->channel_name_);
+    clients_.erase(client_socket);
+}
 
 void Channel::SendMessageToAllClients(const std::string &message) {
     std::map<int, Client *>::iterator it = clients_.begin();
@@ -54,7 +59,9 @@ void Channel::SendMessageToAllClients(const std::string &message) {
 }
 
 const std::string &Channel::getChannelName(void) const { return channel_name_; }
+Client *Channel::getOwner(void) const { return owner_; }
 
 void Channel::setChannelName(const std::string &channel_name) {
     this->channel_name_ = channel_name;
 }
+void Channel::setOwner(Client *client) { this->owner_ = client; }
