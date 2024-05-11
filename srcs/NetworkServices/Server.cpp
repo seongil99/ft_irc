@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:01:00 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/11 18:22:27 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,6 +292,24 @@ void Server::SendMessageToOthersInChannel(int client_socket,
     if (it != channels_.end()) {
         (*it).second.SendMessageToOthers(client_socket, message);
     }
+}
+
+void Server::SendMessageToOtherClient(int sender_socket,
+                                      const std::string &receiver_nickname,
+                                      const std::string &message) {
+    clients_iter it = FindClientByNickname(receiver_nickname);
+    if (it != clients_.end()) {
+        (*it).second.PushSendQueue(message);
+    }
+}
+
+clients_iter Server::FindClientByNickname(const std::string &nickname) {
+    clients_iter it = clients_.begin();
+    for (; it != clients_.end(); it++) {
+        if ((*it).second.getNickname() == nickname)
+            return it;
+    }
+    return clients_.end();
 }
 
 /**

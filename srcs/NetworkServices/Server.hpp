@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:10:16 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/11 18:21:25 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,11 @@
 #define BACKLOG_SIZE 5
 #define BUF_SIZE 1024
 
+/* typedefs */
+
+typedef std::map<int, Client>::iterator clients_iter;
+typedef std::map<std::string, Channel>::iterator channels_iter;
+
 class Server {
   private:
     int server_socket_;
@@ -42,11 +47,6 @@ class Server {
     std::map<std::string, Channel> channels_;
     std::map<int, Client> clients_;
     Command cmd;
-
-    /* typedefs */
-
-    typedef std::map<int, Client>::iterator clients_iter;
-    typedef std::map<std::string, Channel>::iterator channels_iter;
 
     /* Events functions */
 
@@ -62,6 +62,10 @@ class Server {
     void RemoveClientFromChannel(
         int client_socket,
         std::map<std::string, Channel>::iterator channel_iter);
+
+    /* Client functions */
+
+    clients_iter FindClientByNickname(const std::string &nickname);
 
     /* Process Data received from tcp */
     void ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n);
@@ -97,6 +101,9 @@ class Server {
     void SendMessageToOthersInChannel(int client_socket,
                                       const std::string &channel_name,
                                       const std::string &message);
+    void SendMessageToOtherClient(int sender_socket,
+                                  const std::string &receiver_nickname,
+                                  const std::string &message);
 
     const std::string getAllChannelName();
     /**
