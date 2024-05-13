@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:22:27 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 13:16:32 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,8 +123,8 @@ void Server::EventRead(struct kevent *curr_event) {
         clients_[client_socket] = Client(client_socket);
         /* Test add to default channel */
         AddClientToChannel(clients_[client_socket], "default");
-        SendMessageToAllClientsInChannel("default",
-                                         "new client to default channel!");
+        // SendMessageToAllClientsInChannel("default",
+        //                                  "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -298,6 +298,8 @@ void Server::SendMessageToOtherClient(int sender_socket,
                                       const std::string &receiver_nickname,
                                       const std::string &message) {
     clients_iter it = FindClientByNickname(receiver_nickname);
+    if (sender_socket == (*it).second.getClientSocket())
+        return;
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
