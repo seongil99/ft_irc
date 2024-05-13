@@ -146,91 +146,93 @@ void	Command::user(Client *client)
 	client->setUsername(cmd[1]);
 	cmd[4].erase(0); //":" 제거
 	client->setRealname(cmd[4]);
-	client->PushSendQueue("Welcome Message"); //001~005랑 motd 메세지 나오게 하기
+	// client->PushSendQueue(":irc.local 001 " + client->getNickname() + ); //001~005랑 motd 메세지 나오게 하기
 	// std::cout << client->getUsername();
 }
 
 void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	//물론 채널이 존재하는지, 비번이 있는지 맞는지도 확인
-	std::cout << client->getUsername();
-	std::vector<std::string>	channel, pw;
-	std::string	temp("");
-	switch (cmd.size())
-	{
-	case 1://JOIN만 입력하면?
-		break;
-	case 2://JOIN 채널만 입력
-		if (cmd[1].find(",") == std::string::npos)
-			channel.push_back(cmd[1]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						channel.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				channel.push_back(temp);
-		}
-		//채널이 존재하는지 확인하는 작업이 필요함
-		//해당 채널이 비번이 있었으면?
-		break;
-	case 3://잘 입력한 경우
-		if (cmd[1].find(",") == std::string::npos)
-			channel.push_back(cmd[1]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						channel.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				channel.push_back(temp);
-		}
-		temp.clear();
-		if (cmd[2].find(",") == std::string::npos)
-			pw.push_back(cmd[2]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[2][i]; i++)
-			{
-				if (cmd[2][i] == ',')
-				{
-					if (temp.empty() == false)
-						pw.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[2][i];
-			}
-			if (temp.empty() == false)
-				pw.push_back(temp);
-		}
-		if (pw.size() != channel.size())
-		{//채널 입력 개수랑 비번 입력 개수가 다르면?
-		//비번 없는 채널과 있는 채널 스까서 입력했으면?
+	// std::cout << client->getUsername();
+	// std::vector<std::string>	channel, pw;
+	// std::string	temp("");
+	if (cmd.size() == 2 && cmd[1] == ":")
+		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
+	// switch (cmd.size())
+	// {
+	// case 1://JOIN만 입력하면?
+	// 	break;
+	// case 2://JOIN 채널만 입력
+	// 	if (cmd[1].find(",") == std::string::npos)
+	// 		channel.push_back(cmd[1]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[1][i]; i++)
+	// 		{
+	// 			if (cmd[1][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					channel.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[1][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			channel.push_back(temp);
+	// 	}
+	// 	//채널이 존재하는지 확인하는 작업이 필요함
+	// 	//해당 채널이 비번이 있었으면?
+	// 	break;
+	// case 3://잘 입력한 경우
+	// 	if (cmd[1].find(",") == std::string::npos)
+	// 		channel.push_back(cmd[1]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[1][i]; i++)
+	// 		{
+	// 			if (cmd[1][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					channel.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[1][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			channel.push_back(temp);
+	// 	}
+	// 	temp.clear();
+	// 	if (cmd[2].find(",") == std::string::npos)
+	// 		pw.push_back(cmd[2]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[2][i]; i++)
+	// 		{
+	// 			if (cmd[2][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					pw.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[2][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			pw.push_back(temp);
+	// 	}
+	// 	if (pw.size() != channel.size())
+	// 	{//채널 입력 개수랑 비번 입력 개수가 다르면?
+	// 	//비번 없는 채널과 있는 채널 스까서 입력했으면?
 
-		}
-		//channel안에 있는 채널이 존재하는지 확인해야함
-		//그에 대비하는 비번도 맞는지 확인해야함.
-		break;
-	default:// 그 이외로 무언가를 더 치면?
-		break;
-	}
+	// 	}
+	// 	//channel안에 있는 채널이 존재하는지 확인해야함
+	// 	//그에 대비하는 비번도 맞는지 확인해야함.
+	// 	break;
+	// default:// 그 이외로 무언가를 더 치면?
+	// 	break;
+	// }
 }
 
 void	Command::part(Client *client)
