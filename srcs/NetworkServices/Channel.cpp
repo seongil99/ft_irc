@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 15:46:26 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:09:05 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,6 +121,10 @@ const std::string Channel::getModes(void) const {
 }
 
 int Channel::getClientCount(void) const { return clients_.size(); }
+
+void Channel::setTopic(const std::string &topic) { topic_ = topic; }
+
+const std::string &Channel::getTopic(void) const { return topic_; }
 
 Client *Channel::getJoinedClient(const std::string &nickname) {
     std::map<int, Client *>::iterator it = clients_.begin();

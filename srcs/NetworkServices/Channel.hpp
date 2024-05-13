@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 15:46:12 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:08:00 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ class Channel {
     std::map<int, Client *> clients_;
     Client *owner_;
     std::set<char> mode_;
+    std::string topic_;
 
   public:
     Channel(void);
@@ -57,11 +58,13 @@ class Channel {
     Client *getOwner(void) const;
     int getClientCount(void) const;
     const std::string getModes(void) const;
+    const std::string &getTopic(void) const;
 
     /* Setter */
 
     void setChannelName(const std::string &channel_name);
     void setOwner(Client *client);
+    void setTopic(const std::string &topic);
 
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
