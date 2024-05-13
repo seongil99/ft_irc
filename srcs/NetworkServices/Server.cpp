@@ -214,7 +214,7 @@ void Server::AddClientToChannel(Client &client,
                                 const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
-        (*it).second.AddClient(client);
+		(*it).second.AddClient(client);
 }
 
 void Server::RemoveClientFromChannel(int client_socket,
@@ -307,6 +307,33 @@ void Server::SendMessageToOtherClient(int sender_socket,
 	if (sender_socket)
 		return;
 }
+
+//채널 password, invite only 관련 함수 추가
+bool Server::HasChannelPassword(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+	if (it != channels_.end()) {
+		if (!(*it).second.getPassword().empty())
+			return true;
+	}
+	return false;
+}
+
+bool Server::CheckChannelPassword(const std::string &password_input, 
+							  const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+	if (it != channels_.end() && HasChannelPassword(channel_name))
+		return password_input == (*it).second.getPassword();
+	return true;
+}
+
+bool Server::IsInvitedChannel(int client_socket,
+					  const std::string &channel_name) {
+	clients_iter client = clients_.find(client_socket);
+	channels_iter it = channels_.find(channel_name);
+	if (it != channels_.end() && (*it).second.IsInviteOnly())
+		return (*it).second.IsInvited((*client).second.getClientSocket());
+	return true;
+}				
 
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
     clients_iter it = clients_.begin();

@@ -104,6 +104,12 @@ class Server {
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);
+	//채널 password, invite only 관련 함수 추가
+	bool HasChannelPassword(const std::string &channel_name);
+	bool CheckChannelPassword(const std::string &password_input, 
+							  const std::string &channel_name);
+	bool IsInvitedChannel(int client_socket,
+						  const std::string &channel_name);
 
     const std::string getAllChannelName();
     /**

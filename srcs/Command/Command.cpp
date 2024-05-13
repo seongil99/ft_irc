@@ -2,6 +2,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "utils.hpp"
 
 Command::Command(Server *server) : serv(server)
 {
@@ -63,7 +64,7 @@ bool	Command::excute(Client *client, std::string str)
 				cmd.push_back(temp);
 			temp.clear();
 		}
-		else if (str[i] != '\n')
+		else if (str[i] != '\r' && str[i] != '\n')
 			temp += str[i];
 	}
 	if (temp.empty() == false)
@@ -145,7 +146,7 @@ void	Command::user(Client *client)
 		":irc.local 002 " + client->getNickname() + " :Your host is irc.local, running version ft_irc\n" + \
 		":irc.local 003 " + client->getNickname() + " :This server was created " + buffer + "\n" + \
 		":irc.local 004 " + client->getNickname() + " irc.local OUR FT_IRC\n" + \
-		":irc.local 005 " + client->getNickname() + "MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n"); //서버에서 지원하는 기능
+		":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n"); //서버에서 지원하는 기능
 	// :irc.local NOTICE seonyoon :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.
 	// :irc.local 001 seonyoon :Welcome to the Localnet IRC Network seonyoon!root@127.0.0.1
 	// :irc.local 002 seonyoon :Your host is irc.local, running version InspIRCd-3
@@ -156,89 +157,43 @@ void	Command::user(Client *client)
 	// :irc.local 251 seonyoon :There are 0 users and 0 invisible on 1 servers
 }
 
+// - 'i': 초대 전용 채널로 설정 및 해제
+// - `t`: 채널 관리자가 TOPIC 명령어 제한 설정 및 해제 -> TOPIC 명령어를 운영자만 사용할 수 있는지 여부
+// - `k`: 채널 비밀번호 설정 및 해제
+// - `o`: 채널 관리자 특권 부여 및 제거
+// - `l`: 채널에서 유저 제한 설정 및 해제
+//ch1 - pw1 짝이 맞아야만 들어갈 수 있음
+//채널 운영자가 여러명일 수 있다
+//비번이 있는 초대 전용 채널일 때 -> 초대를 받고 들어가면 비번 없어도 입장 가능
+//						-> 초대를 못 받고 비번만 맞으면 473 error
 void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
-	//물론 채널이 존재하는지, 비번이 있는지 맞는지도 확인
-	// std::vector<std::string>	channel, pw;
-	// std::string	temp("");
-	if (cmd.size() == 2)
-		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
-	// serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 451 * JOIN :You have not registered.\r\n");
-	// switch (cmd.size())
-	// {
-	// case 1://JOIN만 입력하면?
-	// 	break;
-	// case 2://JOIN 채널만 입력
-	// 	if (cmd[1].find(",") == std::string::npos)
-	// 		channel.push_back(cmd[1]);//하나만 입력함
-	// 	else//,가 있음 두개 이상 입력했을 가능성
-	// 	{
-	// 		for (int i = 0; cmd[1][i]; i++)
-	// 		{
-	// 			if (cmd[1][i] == ',')
-	// 			{
-	// 				if (temp.empty() == false)
-	// 					channel.push_back(temp);
-	// 				temp.clear();
-	// 			}
-	// 			else
-	// 				temp += cmd[1][i];
-	// 		}
-	// 		if (temp.empty() == false)
-	// 			channel.push_back(temp);
-	// 	}
-	// 	//채널이 존재하는지 확인하는 작업이 필요함
-	// 	//해당 채널이 비번이 있었으면?
-	// 	break;
-	// case 3://잘 입력한 경우
-	// 	if (cmd[1].find(",") == std::string::npos)
-	// 		channel.push_back(cmd[1]);//하나만 입력함
-	// 	else//,가 있음 두개 이상 입력했을 가능성
-	// 	{
-	// 		for (int i = 0; cmd[1][i]; i++)
-	// 		{
-	// 			if (cmd[1][i] == ',')
-	// 			{
-	// 				if (temp.empty() == false)
-	// 					channel.push_back(temp);
-	// 				temp.clear();
-	// 			}
-	// 			else
-	// 				temp += cmd[1][i];
-	// 		}
-	// 		if (temp.empty() == false)
-	// 			channel.push_back(temp);
-	// 	}
-	// 	temp.clear();
-	// 	if (cmd[2].find(",") == std::string::npos)
-	// 		pw.push_back(cmd[2]);//하나만 입력함
-	// 	else//,가 있음 두개 이상 입력했을 가능성
-	// 	{
-	// 		for (int i = 0; cmd[2][i]; i++)
-	// 		{
-	// 			if (cmd[2][i] == ',')
-	// 			{
-	// 				if (temp.empty() == false)
-	// 					pw.push_back(temp);
-	// 				temp.clear();
-	// 			}
-	// 			else
-	// 				temp += cmd[2][i];
-	// 		}
-	// 		if (temp.empty() == false)
-	// 			pw.push_back(temp);
-	// 	}
-	// 	if (pw.size() != channel.size())
-	// 	{//채널 입력 개수랑 비번 입력 개수가 다르면?
-	// 	//비번 없는 채널과 있는 채널 스까서 입력했으면?
+	std::vector<std::string>	channel, pw;
 
-	// 	}
-	// 	//channel안에 있는 채널이 존재하는지 확인해야함
-	// 	//그에 대비하는 비번도 맞는지 확인해야함.
-	// 	break;
-	// default:// 그 이외로 무언가를 더 치면?
-	// 	break;
-	// }
+	if (cmd.size() == 2 && cmd[1] == ":") 
+	{
+		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
+		return ;
+	}
+
+	channel = irc_utils::Split(cmd[1], ',');
+	pw = irc_utils::Split(cmd[2], ',');
+
+	for (size_t i = 0; i < channel.size(); i++) {
+		//채널이 없으면 채널을 만든다
+		if (!serv->HasChannel(channel[i]))
+			serv->CreateChannel(channel[i]);
+		else { //채널이 있는 상태 -> 권한, 비밀번호 확인
+			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
+				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + \
+									  " :Cannot join channel (invite only)\r\n");
+			if (serv->HasChannelPassword(channel[i])) {
+				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
+					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
+									  " :Cannot join channel (incorrect channel key)");
+			}
+		}
+	}
 }
 
 void	Command::part(Client *client)

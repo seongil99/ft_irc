@@ -13,9 +13,12 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <vector>
+
 namespace irc_utils {
 
 void ExitWithError(const char *msg);
+std::vector<std::string> Split(std::string str, char delim);
 
 };
 

@@ -14,13 +14,23 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(void) { owner_ = NULL; }
+Channel::Channel(void) { 
+	owner_ = NULL;
+	invite_only_ = false;
+	topic_limit_ = false;
+	passwd_ = "";
+	users_limit_ = -1;
+}
 
 Channel::Channel(const Channel &ref) { *this = ref; }
 
 Channel::Channel(const std::string &channel_name) {
     this->channel_name_ = channel_name;
     owner_ = NULL;
+	invite_only_ = false;
+	topic_limit_ = false;
+	passwd_ = "";
+	users_limit_ = -1;
 }
 
 Channel::~Channel(void) {}
@@ -114,4 +124,14 @@ Client *Channel::getJoinedClient(const std::string &nickname) {
         it++;
     }
     return NULL;
+}
+
+
+bool Channel::IsInviteOnly() { return invite_only_; };
+bool Channel::HasTopicLimit() { return topic_limit_; };
+std::string Channel::getPassword() { return passwd_; };
+int	Channel::getUsersLimit() { return users_limit_; };
+bool Channel::IsInvited(int client_socket) {
+	std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);
+    return it != clients_.end();
 }
