@@ -435,10 +435,3 @@ const std::string &Server::getStartedTime() const { return started_time_; }
 
 size_t	Server::HowManyChannelsAre() const {return channels_.size();}
 size_t	Server::HowManyClientsAre() const {return clients_.size();}
-
-/* Getter*/
-
-/**
- * @return 서버 시작한 시간
-*/
-const std::string	&Server::getStartedTime() const {return started_time;}
