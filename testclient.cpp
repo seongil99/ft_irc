@@ -38,6 +38,7 @@ int main() {
     // sending data
     std::string s;
     while (getline(std::cin, s)) {
+        s += " \r\n";
         send(clientSocket, s.c_str(), s.size(), 0);
     }
 

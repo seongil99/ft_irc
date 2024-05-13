@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:22:27 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 13:26:46 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,8 +123,8 @@ void Server::EventRead(struct kevent *curr_event) {
         clients_[client_socket] = Client(client_socket);
         /* Test add to default channel */
         AddClientToChannel(clients_[client_socket], "default");
-        SendMessageToAllClientsInChannel("default",
-                                         "new client to default channel!");
+        // SendMessageToAllClientsInChannel("default",
+        //                                  "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -166,15 +166,16 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     if (cmd.excute(&clients_[client_socket], std::string(buf)) == false) {
         // 일반 채팅문일 경우
         // 메시지 앞에 추가 문장 달고
-        // 서버 콘솔에 출력
-        std::cout << "received data from " << client_socket << ": "
-                  << clients_[client_socket].getMessage() << std::endl;
 
         // 일단은 자신을 제외한 모든 클라이언트한테 쏴주기
         channels_["default"].SendMessageToOthers(
             client_socket, clients_[client_socket].getMessage());
     }
     //===================================================================================================
+
+    // 서버 콘솔에 출력
+    std::cout << "received data from " << client_socket << ": "
+              << clients_[client_socket].getMessage() << std::endl;
 
     clients_[client_socket].setMessage(""); // 버퍼 초기화
 }
@@ -298,6 +299,8 @@ void Server::SendMessageToOtherClient(int sender_socket,
                                       const std::string &receiver_nickname,
                                       const std::string &message) {
     clients_iter it = FindClientByNickname(receiver_nickname);
+    if (sender_socket == (*it).second.getClientSocket())
+        return;
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
