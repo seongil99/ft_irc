@@ -75,7 +75,6 @@ bool	Command::excute(Client *client, std::string str)
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
 			(this->*cmd_ft[i])(client);
-			// std::cout << "cmd" << std::endl;
 			ret = true;
 			break;
 		}
@@ -149,8 +148,11 @@ void	Command::join(Client *client)
 	// std::cout << client->getUsername();
 	// std::vector<std::string>	channel, pw;
 	// std::string	temp("");
-	if (cmd.size() == 2 && cmd[1] == ":")
-		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
+	// if (cmd.size() == 2 && cmd[1] == ":") {
+		// std::cout << "gdgsdg" << std::endl;
+	// }
+		// client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
+	serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 451 * JOIN :You have not registered.\r\n");
 	// switch (cmd.size())
 	// {
 	// case 1://JOIN만 입력하면?

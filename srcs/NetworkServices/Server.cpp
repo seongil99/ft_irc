@@ -123,8 +123,8 @@ void Server::EventRead(struct kevent *curr_event) {
         clients_[client_socket] = Client(client_socket);
         /* Test add to default channel */
         AddClientToChannel(clients_[client_socket], "default");
-        SendMessageToAllClientsInChannel("default",
-                                         "new client to default channel!");
+        // SendMessageToAllClientsInChannel("default",
+        //                                  "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -301,6 +301,8 @@ void Server::SendMessageToOtherClient(int sender_socket,
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
+	if (sender_socket)
+		return;
 }
 
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
