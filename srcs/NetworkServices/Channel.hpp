@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:08:00 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:57:37 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ class Channel {
     bool HasClient(const std::string &nickname);
     bool HasMode(char mode);
 
-    void AddMode(char c);
-    void RemoveMode(char c);
+    void AddMode(char mode);
+    void RemoveMode(char mode);
 
     /* Getter */
 

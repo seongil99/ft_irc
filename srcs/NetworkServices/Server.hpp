@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:21:25 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:58:16 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,10 @@ class Server {
     void SendMessageToOthersInChannel(int client_socket,
                                       const std::string &channel_name,
                                       const std::string &message);
-    void SendMessageToOtherClient(int sender_socket,
-                                  const std::string &receiver_nickname,
-                                  const std::string &message);
+    bool HasModeInChannel(const char mode, const std::string &channel_name);
+    void SetModeToChannel(const char mode, const std::string &channel_name);
+    void RemoveModeFromChannel(const char mode,
+                               const std::string &channel_name);
 
     const std::string getAllChannelName();
     /**
@@ -116,6 +117,9 @@ class Server {
 
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname);
+    void SendMessageToOtherClient(int sender_socket,
+                                  const std::string &receiver_nickname,
+                                  const std::string &message);
 
     /* Getter */
 };

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:18:10 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:57:30 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,13 +107,13 @@ bool Channel::HasClient(const std::string &nickname) {
 
 bool Channel::HasMode(char mode) { return mode_.find(mode) != mode_.end(); }
 
-void Channel::AddMode(char c) {
-    if (kChannelModes.find(c) != std::string::npos)
-        mode_.insert(c);
+void Channel::AddMode(char mode) {
+    if (kChannelModes.find(mode) != std::string::npos)
+        mode_.insert(mode);
 }
-void Channel::RemoveMode(char c) {
-    if (mode_.find(c) != mode_.end())
-        mode_.erase(c);
+void Channel::RemoveMode(char mode) {
+    if (mode_.find(mode) != mode_.end())
+        mode_.erase(mode);
 }
 
 const std::string Channel::getModes(void) const {

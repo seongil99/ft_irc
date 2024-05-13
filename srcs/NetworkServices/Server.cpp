@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 13:26:46 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:59:15 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -313,6 +313,26 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
             return it;
     }
     return clients_.end();
+}
+
+bool Server::HasModeInChannel(const char mode,
+                              const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.HasMode(mode);
+}
+void Server::SetModeToChannel(const char mode,
+                              const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.AddMode(mode);
+}
+
+void Server::RemoveModeFromChannel(const char mode,
+                                   const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.RemoveMode(mode);
 }
 
 /**
