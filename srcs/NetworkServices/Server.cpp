@@ -376,6 +376,9 @@ void Server::RemoveClientFromServer(int client_socket) {
     CloseClient(client_socket);
 }
 
+size_t	Server::HowManyChannelsAre() const {return channels_.size();}
+size_t	Server::HowManyClientsAre() const {return clients_.size();}
+
 /* Getter*/
 
 /**

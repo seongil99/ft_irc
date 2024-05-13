@@ -106,6 +106,7 @@ class Server {
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);
+	size_t	HowManyChannelsAre() const;
 
     const std::string getAllChannelName();
     /**
@@ -118,9 +119,10 @@ class Server {
 
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname);
+	size_t	HowManyClientsAre() const;
 
     /* Getter */
-	
+
 	const std::string	&getStartedTime() const;
 };
 
