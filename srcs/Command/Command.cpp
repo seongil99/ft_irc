@@ -67,7 +67,7 @@ bool	Command::excute(Client *client, std::string str)
 				cmd.push_back(temp);
 			temp.clear();
 		}
-		else
+		else if (str[i] != '\n')
 			temp += str[i];
 	}
 	if (temp.empty() == false)
@@ -79,7 +79,6 @@ bool	Command::excute(Client *client, std::string str)
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
 			(this->*cmd_ft[i])(client);
-			std::cout << "cmd" << std::endl;
 			ret = true;
 			break;
 		}
@@ -94,30 +93,23 @@ bool	Command::excute(Client *client, std::string str)
 
 void	Command::pass(Client *client)
 {//PASS <password>
-	std::cout << client->getUsername();
+	// std::cout << client->getUsername();
 	if (cmd.size() == 1)
-	{//pass 하나만 치면?
-
-	}
-	else if (cmd.size() == 2)
-	{
-
-	}
-	else
-	{//무언가를 더 침
-
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 461 " + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
+	else {
+		if (!serv->CheckPassword(cmd[1])) //패스워드 틀렸을때 어떻게 해야할지 모르겠음 수정필요
+			serv->PushSendQueueClient(client->getClientSocket(), ":irc.local Incorrect PASSWORD");
 	}
 }
 
 void	Command::nick(Client *client)
 {//NICK <nickname>
-	std::cout << client->getUsername();
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
-
+		client->PushSendQueue(":irc.local 431 " + get_reply_str(ERR_NONICKNAMEGIVEN));
 		return ;
 	}
-	else if (cmd.size() == 2)
+	else
 	{
 		//닉네임 중복 여부 판단
 		if (serv->HasDuplicateNickname(cmd[1]))
@@ -126,13 +118,10 @@ void	Command::nick(Client *client)
 		}
 		else
 		{//닉네임 중복이 안되었으니 닉네임 변경
-
+			client->setNickname(cmd[1]);
 		}
 	}
-	else//NICK 명령어 인자를 여러개 침
-	{//NICK (str1) (str2)... 이경우엔?
-
-	}
+	// NICK aaa bbb ccc ddd 이런 식으로 여러개 쳤을때는 닉네임이 aaa로 바뀌고 다른 반응 없음
 }
 
 void	Command::user(Client *client)
@@ -140,90 +129,120 @@ void	Command::user(Client *client)
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 // 중간의 인자 두개는 안쓴다는데 왜 있는거지?
-	std::cout << client->getUsername();
+	if (cmd.size() < 5)
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
+	if (client->getRealname().size() != 0)
+		client->PushSendQueue(":irc.local 462 " + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
+	client->setUsername(cmd[1]);
+	cmd[4].erase(0); //":" 제거
+	client->setRealname(cmd[4]);
+	
+	//시간표현하는부분 gpt코드 가져다 쓴거라 과제 규칙에 맞게 수정필요
+	std::time_t now = std::time(nullptr);
+	std::tm* localTime = std::localtime(&now);
+	char buffer[80];
+    std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
+
+	//001~005 메세지 나오게 하기 -> 대강넣은거라 수정필요 tcpflow에서 뭔가 이상하게 나옴..
+	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + ":*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\n" + \
+		":irc.local 001 " + client->getNickname() + " :Welcome to the Localnet IRC Network " + client->getNickname() + "!" + client->getRealname() + "@127.0.0.1\n" + \
+		":irc.local 002 " + client->getNickname() + " :Your host is irc.local, running version ft_irc\n" + \
+		":irc.local 003 " + client->getNickname() + " :This server was created " + buffer + "\n" + \
+		":irc.local 004 " + client->getNickname() + " irc.local OUR FT_IRC\n" + \
+		":irc.local 005 " + client->getNickname() + "MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n"); //서버에서 지원하는 기능
+	// :irc.local NOTICE seonyoon :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.
+	// :irc.local 001 seonyoon :Welcome to the Localnet IRC Network seonyoon!root@127.0.0.1
+	// :irc.local 002 seonyoon :Your host is irc.local, running version InspIRCd-3
+	// :irc.local 003 seonyoon :This server was created 09:25:18 May 09 2024
+	// :irc.local 004 seonyoon irc.local InspIRCd-3 iosw biklmnopstv :bklov
+	// :irc.local 005 seonyoon AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
+	// :irc.local 005 seonyoon MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
+	// :irc.local 251 seonyoon :There are 0 users and 0 invisible on 1 servers
 }
 
 void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	//물론 채널이 존재하는지, 비번이 있는지 맞는지도 확인
-	std::cout << client->getUsername();
-	std::vector<std::string>	channel, pw;
-	std::string	temp("");
-	switch (cmd.size())
-	{
-	case 1://JOIN만 입력하면?
-		break;
-	case 2://JOIN 채널만 입력
-		if (cmd[1].find(",") == std::string::npos)
-			channel.push_back(cmd[1]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						channel.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				channel.push_back(temp);
-		}
-		//채널이 존재하는지 확인하는 작업이 필요함
-		//해당 채널이 비번이 있었으면?
-		break;
-	case 3://잘 입력한 경우
-		if (cmd[1].find(",") == std::string::npos)
-			channel.push_back(cmd[1]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						channel.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				channel.push_back(temp);
-		}
-		temp.clear();
-		if (cmd[2].find(",") == std::string::npos)
-			pw.push_back(cmd[2]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[2][i]; i++)
-			{
-				if (cmd[2][i] == ',')
-				{
-					if (temp.empty() == false)
-						pw.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[2][i];
-			}
-			if (temp.empty() == false)
-				pw.push_back(temp);
-		}
-		if (pw.size() != channel.size())
-		{//채널 입력 개수랑 비번 입력 개수가 다르면?
-		//비번 없는 채널과 있는 채널 스까서 입력했으면?
+	// std::vector<std::string>	channel, pw;
+	// std::string	temp("");
+	if (cmd.size() == 2)
+		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
+	// serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 451 * JOIN :You have not registered.\r\n");
+	// switch (cmd.size())
+	// {
+	// case 1://JOIN만 입력하면?
+	// 	break;
+	// case 2://JOIN 채널만 입력
+	// 	if (cmd[1].find(",") == std::string::npos)
+	// 		channel.push_back(cmd[1]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[1][i]; i++)
+	// 		{
+	// 			if (cmd[1][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					channel.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[1][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			channel.push_back(temp);
+	// 	}
+	// 	//채널이 존재하는지 확인하는 작업이 필요함
+	// 	//해당 채널이 비번이 있었으면?
+	// 	break;
+	// case 3://잘 입력한 경우
+	// 	if (cmd[1].find(",") == std::string::npos)
+	// 		channel.push_back(cmd[1]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[1][i]; i++)
+	// 		{
+	// 			if (cmd[1][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					channel.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[1][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			channel.push_back(temp);
+	// 	}
+	// 	temp.clear();
+	// 	if (cmd[2].find(",") == std::string::npos)
+	// 		pw.push_back(cmd[2]);//하나만 입력함
+	// 	else//,가 있음 두개 이상 입력했을 가능성
+	// 	{
+	// 		for (int i = 0; cmd[2][i]; i++)
+	// 		{
+	// 			if (cmd[2][i] == ',')
+	// 			{
+	// 				if (temp.empty() == false)
+	// 					pw.push_back(temp);
+	// 				temp.clear();
+	// 			}
+	// 			else
+	// 				temp += cmd[2][i];
+	// 		}
+	// 		if (temp.empty() == false)
+	// 			pw.push_back(temp);
+	// 	}
+	// 	if (pw.size() != channel.size())
+	// 	{//채널 입력 개수랑 비번 입력 개수가 다르면?
+	// 	//비번 없는 채널과 있는 채널 스까서 입력했으면?
 
-		}
-		//channel안에 있는 채널이 존재하는지 확인해야함
-		//그에 대비하는 비번도 맞는지 확인해야함.
-		break;
-	default:// 그 이외로 무언가를 더 치면?
-		break;
-	}
+	// 	}
+	// 	//channel안에 있는 채널이 존재하는지 확인해야함
+	// 	//그에 대비하는 비번도 맞는지 확인해야함.
+	// 	break;
+	// default:// 그 이외로 무언가를 더 치면?
+	// 	break;
+	// }
 }
 
 void	Command::part(Client *client)
@@ -379,11 +398,10 @@ void	Command::list(Client *client)
 // 두번째랑 세번째 인자는 왜 있는지 몰?루
 }
 
-void	Command::ping(Client *client)
+void	Command::ping(Client *client) //ping을 받은 상황
 {//PING <server1> [<server2>]
-	std::cout << client->getUsername();
+	client->PushSendQueue(":irc.local PONG irc.local :irc.local\r\n");
 //클라이어트가 서버로 PING 메시지를 보내면, 서버는 PONG 메시지로 응답해 연결이 활성 상태임을 알려줌
-
 }
 
 void	Command::quit(Client *client)

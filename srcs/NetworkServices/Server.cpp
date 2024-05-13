@@ -304,6 +304,8 @@ void Server::SendMessageToOtherClient(int sender_socket,
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
+	if (sender_socket)
+		return;
 }
 
 clients_iter Server::FindClientByNickname(const std::string &nickname) {

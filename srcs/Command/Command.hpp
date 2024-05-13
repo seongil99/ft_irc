@@ -5,6 +5,7 @@
 # include <iostream>
 # include <string>
 # include <vector>
+# include <ctime>
 
 class Client;
 class Server;
