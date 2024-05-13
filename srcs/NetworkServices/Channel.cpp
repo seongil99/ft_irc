@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:09:05 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:18:10 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,9 @@ Channel &Channel::operator=(const Channel &ref) {
         return *this;
     this->channel_name_ = ref.channel_name_;
     this->clients_ = ref.clients_;
+    this->mode_ = ref.mode_;
+    this->owner_ = ref.owner_;
+    this->topic_ = ref.topic_;
     return *this;
 }
 
