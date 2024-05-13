@@ -9,3 +9,4 @@ testclass.cpp
 testclass.hpp
 test.cpp
 *.out
+client

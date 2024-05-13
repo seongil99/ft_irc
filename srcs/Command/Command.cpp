@@ -44,9 +44,13 @@ void	Command::clean_cmd()
 	cmd.clear();
 }
 
-//return = true : user typed cmd
-//return = false : user typed just chat str
-//USER asdf
+/**
+ * @param clinet 클라이언트 포인터
+ * @param str 클라이언트가 입력한 글
+ * @returns
+ * return true : user typed cmd. //////
+ * return false : user typed just chat str
+*/
 bool	Command::excute(Client *client, std::string str)
 {
 	//set default=============================
