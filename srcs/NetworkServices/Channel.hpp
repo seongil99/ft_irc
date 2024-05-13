@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 14:02:02 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 15:46:12 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,21 @@
 #define CHANNEL_HPP
 
 #include <map>
+#include <set>
 #include <string>
 
 #include <iostream>
 
 class Client;
 
+const std::string kChannelModes = "itkol";
+
 class Channel {
   private:
     std::string channel_name_;
     std::map<int, Client *> clients_;
     Client *owner_;
+    std::set<char> mode_;
 
   public:
     Channel(void);
@@ -42,12 +46,17 @@ class Channel {
 
     bool HasClient(int client_socket);
     bool HasClient(const std::string &nickname);
+    bool HasMode(char mode);
+
+    void AddMode(char c);
+    void RemoveMode(char c);
 
     /* Getter */
 
     const std::string &getChannelName(void) const;
     Client *getOwner(void) const;
     int getClientCount(void) const;
+    const std::string getModes(void) const;
 
     /* Setter */
 
