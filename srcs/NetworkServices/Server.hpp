@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 16:52:40 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/11 18:21:25 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,11 @@
 #define BACKLOG_SIZE 5
 #define BUF_SIZE 1024
 
+/* typedefs */
+
+typedef std::map<int, Client>::iterator clients_iter;
+typedef std::map<std::string, Channel>::iterator channels_iter;
+
 class Server {
   private:
     int server_socket_;
@@ -41,7 +46,7 @@ class Server {
 
     std::map<std::string, Channel> channels_;
     std::map<int, Client> clients_;
-	Command cmd;
+    Command cmd;
 
     /* Events functions */
 
@@ -51,6 +56,16 @@ class Server {
     void EventRead(struct kevent *cur_event);
     void EventWrite(struct kevent *cur_event);
     void EventError(struct kevent *cur_event);
+
+    /* Channel functions */
+
+    void RemoveClientFromChannel(
+        int client_socket,
+        std::map<std::string, Channel>::iterator channel_iter);
+
+    /* Client functions */
+
+    clients_iter FindClientByNickname(const std::string &nickname);
 
     /* Process Data received from tcp */
     void ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n);
@@ -70,6 +85,8 @@ class Server {
     void Listen(void);
     bool CheckPassword(const std::string &password_input);
 
+    void RemoveClientFromServer(int client_socket);
+
     /* Channel functions */
 
     void CreateChannel(const std::string &channel_name);
@@ -77,12 +94,28 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void SetChannelOwner(Client &client, const std::string &channel_name);
-    bool IsChannelExists(const std::string &channel_name);
+    bool HasChannel(const std::string &channel_name);
+    bool HasClientInChannel(int client_socket, const std::string &channel_name);
+    void SendMessageToAllClientsInChannel(const std::string &channel_name,
+                                          const std::string &message);
+    void SendMessageToOthersInChannel(int client_socket,
+                                      const std::string &channel_name,
+                                      const std::string &message);
+    void SendMessageToOtherClient(int sender_socket,
+                                  const std::string &receiver_nickname,
+                                  const std::string &message);
+
+    const std::string getAllChannelName();
+    /**
+     * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
+     * 이걸 사용해야 하는 로직이 있다면 Server 메소드로 추가할 예정.
+     */
+    Channel *getChannel(const std::string &channel_name);
 
     /* Client functions */
 
     void PushSendQueueClient(int client_socket, const std::string &message);
-    bool IsNicknameExists(const std::string &nickname);
+    bool HasDuplicateNickname(const std::string &nickname);
 
     /* Getter */
 };

@@ -6,22 +6,17 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/10 16:52:34 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/11 18:22:27 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <arpa/inet.h>
+#include <cstdlib>
 #include <fcntl.h>
-#include <sys/event.h>
+#include <iostream>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
 
 #include "Server.hpp"
 #include "utils.hpp"
@@ -29,7 +24,7 @@
 Server::Server(void) : cmd(this) {
     server_socket_ = 0;
     kq_ = 0;
-    memset(&server_addr_, 0, sizeof(server_addr_));
+    std::memset(&server_addr_, 0, sizeof(server_addr_));
 }
 
 Server::~Server(void) {}
@@ -59,7 +54,7 @@ void Server::Init(int port, std::string passwd) {
     std::cout << "server port " << port << std::endl;
 
     /* Test Default Channel */
-    channels_["default"] = Channel("default");
+    CreateChannel("default");
 }
 
 /**
@@ -107,7 +102,7 @@ void Server::EventError(struct kevent *curr_event) {
         irc_utils::ExitWithError("server socket error");
     else {
         std::cerr << "client socket error" << std::endl;
-        CloseClient(curr_event->ident);
+        RemoveClientFromServer(curr_event->ident);
     }
 }
 
@@ -127,9 +122,9 @@ void Server::EventRead(struct kevent *curr_event) {
                      NULL);
         clients_[client_socket] = Client(client_socket);
         /* Test add to default channel */
-        channels_["default"].AddClient(clients_[client_socket]);
-        channels_["default"].SendMessageToAllClients(
-            "new client to default channel!");
+        AddClientToChannel(clients_[client_socket], "default");
+        SendMessageToAllClientsInChannel("default",
+                                         "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -140,7 +135,7 @@ void Server::EventRead(struct kevent *curr_event) {
                 return;
             else if (n < 0)
                 std::cerr << "client read error!" << std::endl;
-            CloseClient(curr_event->ident);
+            RemoveClientFromServer(curr_event->ident);
         } else {
             buf[n] = '\0';
             ProcessReceivedData(curr_event->ident, buf, n);
@@ -150,37 +145,38 @@ void Server::EventRead(struct kevent *curr_event) {
 
 void Server::EventWrite(struct kevent *curr_event) {
     /* send data to client */
-    std::map<int, Client>::iterator it = clients_.find(curr_event->ident);
+    clients_iter it = clients_.find(curr_event->ident);
     if (it != clients_.end() && (*it).second.getSendQueueSize()) {
         std::string str_to_client = (*it).second.PopSendQueue();
         int n = write(curr_event->ident, str_to_client.c_str(),
                       str_to_client.size());
         if (n == -1) {
             std::cerr << "client write error!" << std::endl;
-            CloseClient(curr_event->ident);
+            RemoveClientFromServer(curr_event->ident);
         }
     }
 }
 
 void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
-	//메시지 받고
+    // 메시지 받고
     clients_[client_socket].setMessage(std::string("") + buf);
-	
-	if (cmd.excute(&clients_[client_socket], std::string(buf)) == false)
-	{
-		//일반 채팅문일 경우
-		//메시지 앞에 추가 문장 달고
-    	std::cout << "received data from " << client_socket << ": "
-              << clients_[client_socket].getMessage() << std::endl;
 
-		//일단은 모든 클라이언트한테 쏴주기
-    	channels_["default"].SendMessageToAllClients(
-	        clients_[client_socket].getMessage());
-	}
- 	//===================================================================================================
+    //===================================================================================================
+    if (cmd.excute(&clients_[client_socket], std::string(buf)) == false) {
+        // 일반 채팅문일 경우
+        // 메시지 앞에 추가 문장 달고
+        // 서버 콘솔에 출력
+        std::cout << "received data from " << client_socket << ": "
+                  << clients_[client_socket].getMessage() << std::endl;
 
-    clients_[client_socket].setMessage("");//버퍼 초기화
+        // 일단은 자신을 제외한 모든 클라이언트한테 쏴주기
+        channels_["default"].SendMessageToOthers(
+            client_socket, clients_[client_socket].getMessage());
+    }
+    //===================================================================================================
+
+    clients_[client_socket].setMessage(""); // 버퍼 초기화
 }
 
 /**
@@ -207,7 +203,7 @@ void Server::CloseClient(int client_fd) {
 }
 
 void Server::CreateChannel(const std::string &channel_name) {
-    if (!IsChannelExists(channel_name)) {
+    if (!HasChannel(channel_name)) {
         Channel new_channel(channel_name);
         channels_[channel_name] = new_channel;
     }
@@ -215,20 +211,24 @@ void Server::CreateChannel(const std::string &channel_name) {
 
 void Server::AddClientToChannel(Client &client,
                                 const std::string &channel_name) {
-    std::map<std::string, Channel>::iterator it;
-    it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         (*it).second.AddClient(client);
 }
 
 void Server::RemoveClientFromChannel(int client_socket,
                                      const std::string &channel_name) {
-    std::map<std::string, Channel>::iterator it;
-    it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
         (*it).second.RemoveClient(client_socket);
     }
 }
+
+void Server::RemoveClientFromChannel(
+    int client_socket, std::map<std::string, Channel>::iterator channel_iter) {
+    (*channel_iter).second.RemoveClient(client_socket);
+}
+
 void Server::SetChannelOwner(Client &client, const std::string &channel_name) {
     std::map<std::string, Channel>::iterator it;
     it = channels_.find(channel_name);
@@ -239,19 +239,21 @@ void Server::SetChannelOwner(Client &client, const std::string &channel_name) {
 
 void Server::PushSendQueueClient(int client_socket,
                                  const std::string &message) {
-    std::map<int, Client>::iterator it;
-    it = clients_.find(client_socket);
+    clients_iter it = clients_.find(client_socket);
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
 }
 
+/**
+ * 서버에 password가 설정 되어있지 않은 경우 "" 와 비교
+ */
 bool Server::CheckPassword(const std::string &password_input) {
     return this->passwd_ == password_input;
 }
 
-bool Server::IsNicknameExists(const std::string &nickname) {
-    std::map<int, Client>::iterator it = clients_.begin();
+bool Server::HasDuplicateNickname(const std::string &nickname) {
+    clients_iter it = clients_.begin();
     for (; it != clients_.end(); it++) {
         if ((*it).second.getNickname() == nickname)
             return true;
@@ -259,10 +261,103 @@ bool Server::IsNicknameExists(const std::string &nickname) {
     return false;
 }
 
-bool Server::IsChannelExists(const std::string &channel_name) {
-    std::map<std::string, Channel>::iterator it;
-    it = channels_.find(channel_name);
+bool Server::HasChannel(const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it == channels_.end())
         return false;
     return true;
+}
+
+bool Server::HasClientInChannel(int client_socket,
+                                const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        return (*it).second.HasClient(client_socket);
+    }
+    return false;
+}
+
+void Server::SendMessageToAllClientsInChannel(const std::string &channel_name,
+                                              const std::string &message) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        (*it).second.SendMessageToAllClients(message);
+    }
+}
+
+void Server::SendMessageToOthersInChannel(int client_socket,
+                                          const std::string &channel_name,
+                                          const std::string &message) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        (*it).second.SendMessageToOthers(client_socket, message);
+    }
+}
+
+void Server::SendMessageToOtherClient(int sender_socket,
+                                      const std::string &receiver_nickname,
+                                      const std::string &message) {
+    clients_iter it = FindClientByNickname(receiver_nickname);
+    if (it != clients_.end()) {
+        (*it).second.PushSendQueue(message);
+    }
+}
+
+clients_iter Server::FindClientByNickname(const std::string &nickname) {
+    clients_iter it = clients_.begin();
+    for (; it != clients_.end(); it++) {
+        if ((*it).second.getNickname() == nickname)
+            return it;
+    }
+    return clients_.end();
+}
+
+/**
+ * @return All channel name delimited by comma ','
+ */
+const std::string Server::getAllChannelName() {
+    std::string ret("");
+    std::map<std::string, Channel>::iterator it = channels_.begin();
+    if (it == channels_.end())
+        return ret;
+    while (true) {
+        ret += it->second.getChannelName();
+        it++;
+        if (it == channels_.end())
+            break;
+        else
+            ret += ",";
+    }
+    return ret;
+}
+
+// return 0 = there is no channel in this server
+Channel *Server::getChannel(const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it == channels_.end())
+        return NULL;
+    return &(it->second);
+}
+
+/**
+ * 클라이언트가 서버에서 나갔을떄
+ * 서버에서 제발로 나갔거나, 강퇴당했거나등등
+ * 서버 및 모든 곳에서 지우니, 최대한 마지막에 호출 할 것!
+ */
+void Server::RemoveClientFromServer(int client_socket) {
+    channels_iter channel_iter = channels_.begin();
+    // 들어가있는 모든 채널에서 없애야한다.
+    while (channel_iter != channels_.end()) {
+        // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
+
+        // 혼자 있었으면 채널도 없어져야됨 -> todo
+
+        // 새로운 관리자 -> 일단 Channel::clients_.begin()
+        RemoveClientFromChannel(client_socket, channel_iter);
+        channel_iter++;
+    }
+    // 서버에서도 지우자
+    clients_.erase(client_socket);
+    // disconnect tcp connection
+    CloseClient(client_socket);
 }
