@@ -201,13 +201,26 @@ void	Command::join(Client *client)
 			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
 				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (invite only)\r\n");
-			if (serv->HasChannelPassword(channel[i])) {
+			else if (serv->HasChannelPassword(channel[i])) {
 				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (incorrect channel key)");
 			}
 		}
+		serv->AddClientToChannel(*client, channel[i]);
+		client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
+							  "@127.0.0.1 JOIN : " + channel[i] + "\r\n");
+		client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
+							  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
+		client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
 	}
+	// 127.000.000.001.06667-127.000.000.001.40258: :test!root@127.0.0.1 JOIN :#abc
+	// :irc.local 353 test = #abc :@test
+	// :irc.local 366 test #abc :End of /NAMES list.
+
+	// 127.000.000.001.06667-127.000.000.001.40260: :user!root@127.0.0.1 JOIN :#abc
+	// :irc.local 353 user = #abc :@test user
+	// :irc.local 366 user #abc :End of /NAMES list.
 }
 
 void	Command::part(Client *client)
@@ -498,31 +511,32 @@ void	Command::topic(Client *client)
 void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 	//물론 채널, 권한이 존재하는지 확인
-	if (cmd[2] == "i")
-	{
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
+	// if (cmd[2] == "i")
+	// {
 
-	}
-	else if (cmd[2] == "t")
-	{
+	// }
+	// else if (cmd[2] == "t")
+	// {
 
-	}
-	else if (cmd[2] == "k")
-	{
+	// }
+	// else if (cmd[2] == "k")
+	// {
 
-	}
-	else if (cmd[2] == "o")
-	{
+	// }
+	// else if (cmd[2] == "o")
+	// {
 
-	}
-	else if (cmd[2] == "l")
-	{
+	// }
+	// else if (cmd[2] == "l")
+	// {
 
-	}
-	else//플래그를 무조건 넣어야하나?
-	{//그 이외의 플래그?
-		std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
+	// }
+	// else//플래그를 무조건 넣어야하나?
+	// {//그 이외의 플래그?
+	// 	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 
-	}
+	// }
 }
 
 void	Command::notice(Client *client)

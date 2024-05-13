@@ -116,6 +116,9 @@ class Server {
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
+	bool IsChannelOwner(int client_socket,
+						const std::string &channel_name);
+
 
     const std::string getAllChannelName();
     /**
@@ -130,6 +133,8 @@ class Server {
     bool HasDuplicateNickname(const std::string &nickname);
 	size_t	HowManyChannelsAre() const;
 	size_t	HowManyClientsAre() const;
+	size_t	HowManyClientsAreInChannel(const std::string &channel_name);
+	const std::string ClientsInChannelList(const std::string &channel_name);
 
     /* Getter */
 

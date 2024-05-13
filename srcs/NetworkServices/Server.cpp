@@ -340,7 +340,7 @@ bool Server::IsInvitedChannel(int client_socket,
 					  const std::string &channel_name) {
 	clients_iter client = clients_.find(client_socket);
 	channels_iter it = channels_.find(channel_name);
-	if (it != channels_.end() && (*it).second.IsInviteOnly())
+	if (it != channels_.end() && (*it).second.HasMode('i'))
 		return (*it).second.IsInvited((*client).second.getClientSocket());
 	return true;
 }				
@@ -375,6 +375,16 @@ void Server::RemoveModeFromChannel(const char mode,
     if (it != channels_.end())
         (*it).second.RemoveMode(mode);
 }
+
+bool Server::IsChannelOwner(int client_socket,
+					const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.IsOwner(client_socket);
+	return false;
+}
+
+
 
 /**
  * @return All channel name delimited by comma ','
@@ -435,3 +445,15 @@ const std::string &Server::getStartedTime() const { return started_time_; }
 
 size_t	Server::HowManyChannelsAre() const {return channels_.size();}
 size_t	Server::HowManyClientsAre() const {return clients_.size();}
+size_t	Server::HowManyClientsAreInChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.getClientCount();
+	return 0;
+}
+const std::string Server::ClientsInChannelList(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+		return (*it).second.ClientsList();
+	return NULL;
+}

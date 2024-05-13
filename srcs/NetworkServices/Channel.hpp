@@ -29,12 +29,10 @@ class Channel {
     std::map<int, Client *> clients_;
     Client *owner_;
 	std::map<int, Client *> owners_; //한 채널에 운영자가 여러명 있을 수 있어 map으로 바꿔야 할 듯
-	bool invite_only_;
 	std::map<int, Client *> invited_clients_; //운영자가 초대 -> 초대받은 사람이 join으로 가입
-	bool topic_limit_;
 	std::string passwd_;
-	int users_limit_;
-    std::set<char> mode_;
+	size_t users_limit_;
+    std::set<char> mode_; //i t k o l
     std::string topic_;
 
   public:
@@ -79,11 +77,12 @@ class Channel {
     Client *getJoinedClient(const std::string &nickname);
 
 	//channel mode 확인 관련 함수
-	bool IsInviteOnly();
-	bool HasTopicLimit();
 	std::string getPassword();
 	int	getUsersLimit();
 	bool IsInvited(int client_socket);
+
+	bool IsOwner(int client_socket);
+	const std::string ClientsList(void);
 };
 
 #endif
