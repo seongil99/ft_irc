@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 13:41:25 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 14:02:02 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,24 +35,24 @@ class Channel {
     Channel &operator=(const Channel &ref);
 
     void AddClient(Client &client);
-    void RemoveClient(const Client &client);
     void RemoveClient(int client_socket);
 
     void SendMessageToAllClients(const std::string &message);
     void SendMessageToOthers(int sender_socket, const std::string &message);
-
-    const std::string &getChannelName(void) const;
-    Client *getOwner(void) const;
-
-    void setChannelName(const std::string &channel_name);
-    void setOwner(Client *client);
 
     bool HasClient(int client_socket);
     bool HasClient(const std::string &nickname);
 
     /* Getter */
 
+    const std::string &getChannelName(void) const;
+    Client *getOwner(void) const;
     int getClientCount(void) const;
+
+    /* Setter */
+
+    void setChannelName(const std::string &channel_name);
+    void setOwner(Client *client);
 
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.

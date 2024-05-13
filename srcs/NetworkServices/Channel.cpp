@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 13:43:16 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 14:01:56 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,6 @@ void Channel::AddClient(Client &client) {
         client.AddJoinedChannel(this->channel_name_);
         clients_[client_socket] = &client;
     }
-}
-
-void Channel::RemoveClient(const Client &client) {
-    clients_.erase(client.getClientSocket());
 }
 
 /**
