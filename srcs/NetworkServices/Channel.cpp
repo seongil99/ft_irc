@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 17:13:45 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 16:57:30 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,9 @@ Channel &Channel::operator=(const Channel &ref) {
         return *this;
     this->channel_name_ = ref.channel_name_;
     this->clients_ = ref.clients_;
+    this->mode_ = ref.mode_;
+    this->owner_ = ref.owner_;
+    this->topic_ = ref.topic_;
     return *this;
 }
 
@@ -53,10 +56,6 @@ void Channel::AddClient(Client &client) {
         client.AddJoinedChannel(this->channel_name_);
         clients_[client_socket] = &client;
     }
-}
-
-void Channel::RemoveClient(const Client &client) {
-    clients_.erase(client.getClientSocket());
 }
 
 /**
@@ -115,6 +114,30 @@ bool Channel::HasClient(const std::string &nickname) {
     }
     return false;
 }
+
+bool Channel::HasMode(char mode) { return mode_.find(mode) != mode_.end(); }
+
+void Channel::AddMode(char mode) {
+    if (kChannelModes.find(mode) != std::string::npos)
+        mode_.insert(mode);
+}
+void Channel::RemoveMode(char mode) {
+    if (mode_.find(mode) != mode_.end())
+        mode_.erase(mode);
+}
+
+const std::string Channel::getModes(void) const {
+    std::string ret = "";
+    for (std::set<char>::iterator it = mode_.begin(); it != mode_.end(); it++)
+        ret += (*it);
+    return ret;
+}
+
+int Channel::getClientCount(void) const { return clients_.size(); }
+
+void Channel::setTopic(const std::string &topic) { topic_ = topic; }
+
+const std::string &Channel::getTopic(void) const { return topic_; }
 
 Client *Channel::getJoinedClient(const std::string &nickname) {
     std::map<int, Client *>::iterator it = clients_.begin();

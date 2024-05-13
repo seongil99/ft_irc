@@ -6,11 +6,12 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 13:26:46 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 18:32:27 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstdlib>
+#include <ctime>
 #include <fcntl.h>
 #include <iostream>
 #include <sys/socket.h>
@@ -25,6 +26,14 @@ Server::Server(void) : cmd(this) {
     server_socket_ = 0;
     kq_ = 0;
     std::memset(&server_addr_, 0, sizeof(server_addr_));
+
+    // 서버 시작한 시작 기록=========================================
+    std::time_t now = std::time(0);
+    std::tm *localTime = std::localtime(&now);
+    char buffer[80];
+    std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
+    //==========================================================
+    started_time_ = buffer; // 서버 시작한 시간.
 }
 
 Server::~Server(void) {}
@@ -249,7 +258,7 @@ void Server::PushSendQueueClient(int client_socket,
 /**
  * 서버에 password가 설정 되어있지 않은 경우 "" 와 비교
  */
-bool Server::CheckPassword(const std::string &password_input) {
+bool Server::CheckPassword(const std::string &password_input) const {
     return this->passwd_ == password_input;
 }
 
@@ -344,6 +353,28 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
     return clients_.end();
 }
 
+bool Server::HasModeInChannel(const char mode,
+                              const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.HasMode(mode);
+    return false;
+}
+
+void Server::SetModeToChannel(const char mode,
+                              const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.AddMode(mode);
+}
+
+void Server::RemoveModeFromChannel(const char mode,
+                                   const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.RemoveMode(mode);
+}
+
 /**
  * @return All channel name delimited by comma ','
  */
@@ -393,3 +424,10 @@ void Server::RemoveClientFromServer(int client_socket) {
     // disconnect tcp connection
     CloseClient(client_socket);
 }
+
+/* Getter*/
+
+/**
+ * @return 서버 시작한 시간
+ */
+const std::string &Server::getStartedTime() const { return started_time_; }
