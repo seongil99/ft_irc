@@ -128,6 +128,7 @@ class Server {
 
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname);
+	size_t	HowManyClientsAre() const;
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);

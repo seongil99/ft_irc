@@ -31,7 +31,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 //001 RPL_WELCOME : nick, user, host
 //324 RPL_CHANNELMODEIS : channel, mode, mode parameter
@@ -41,7 +41,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 	switch (n)
 	{
 	case RPL_WELCOME://
-		ret = "Welcome to the Internet Relay Network " + s1 + "!" + s2 + "@" + s3;
+		ret = " :Welcome to our ft_irc project s.t. Internet Relay Network " + s1 + "!" + s2 + "@" + s3;
 		break;
 	case RPL_CHANNELMODEIS://s1 is channel s2 is mode s3 is mode parameter
 		ret = s1 + " " + s2 + " " + s3;
@@ -50,7 +50,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
 //002 RPL_YOURHOST : server name, version
@@ -64,7 +64,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 	switch (n)
 	{
 	case RPL_YOURHOST://s1 is servername, s2 is version
-		ret = "Your host is " + s1 + ", running version " + s2;
+		ret = " :Your host is " + s1 + ", running version " + s2;
 		break;
 	case RPL_AWAY://si is nickname s2 is away message
 		ret = s1 + " :" + s2;
@@ -82,7 +82,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
 /*
@@ -110,7 +110,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 	switch (n)
 	{
 	case RPL_CREATED://s1 is data
-		ret = "This server was created " + s1;
+		ret = " :This server was created " + s1;
 		break;
 	case RPL_NOTOPIC://s1 is channel name
 		ret = s1 + " :No topic is set";
@@ -163,7 +163,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 	default:
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
 //381 RPL_YOUREOPER
@@ -198,5 +198,5 @@ std::string	get_reply_str(const Reply n)
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }

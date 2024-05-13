@@ -45,14 +45,18 @@ void	Command::clean_cmd()
 	cmd.clear();
 }
 
-//return = true : user typed cmd
-//return = false : user typed just chat str
-//USER asdf
+/**
+ * @param clinet 클라이언트 포인터
+ * @param str 클라이언트가 입력한 글
+ * @returns
+ * return true : user typed cmd. //////
+ * return false : user typed just chat str
+*/
 bool	Command::excute(Client *client, std::string str)
 {
 	//set default=============================
 	std::string temp("");
-	private_msg = str;
+	private_msg = str;//여기 뒤에 \r\n을 빼야 하나?
 	bool	ret = false;
 	//==========================================================
 	//step 1 : split string by ' '
@@ -75,6 +79,15 @@ bool	Command::excute(Client *client, std::string str)
 	{
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
+			//step 3 : get rid of "\r\n"
+			// temp = *cmd.rbegin();
+			// size_t last_index = temp.size() - 1;
+			// if (temp.size() > 1 && temp[last_index] == '\n' && temp[last_index - 1] == '\r')
+			// {
+			// 	cmd.pop_back();
+			// 	temp = temp.substr(0, last_index - 2);
+			// 	cmd.push_back(temp);
+			// }
 			(this->*cmd_ft[i])(client);
 			ret = true;
 			break;
@@ -103,7 +116,7 @@ void	Command::nick(Client *client)
 {//NICK <nickname>
 	if (cmd.size() == 1)
 	{//NICK 명령어만 입력했을 경우
-		client->PushSendQueue(":irc.local 431 " + get_reply_str(ERR_NONICKNAMEGIVEN));
+		client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN));
 		return ;
 	}
 	else
@@ -122,39 +135,40 @@ void	Command::nick(Client *client)
 }
 
 void	Command::user(Client *client)
-{//USER <username> * * :<realname>
+{//USER <username> <hostname> <servername> :<realname>
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
-// 중간의 인자 두개는 안쓴다는데 왜 있는거지?
 	if (cmd.size() < 5)
+	{
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
-	if (client->getRealname().size() != 0)
-		client->PushSendQueue(":irc.local 462 " + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
-	client->setUsername(cmd[1]);
-	cmd[4].erase(0); //":" 제거
-	client->setRealname(cmd[4]);
+		return;
+	}
+	if (client->getRealname().size() != 0)//사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
+		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
+	//username 만들기 
+	std::string	temp = cmd[1];
+	if (temp[temp.size() - 1] == '\n')
+		temp = temp.substr(0, temp.size());
+	client->setUsername(temp);
+	temp.clear();
+	//realname 만들기 
+	for (size_t i = 4; i < cmd.size(); i++)
+	{
+		temp += cmd[i];
+		if (i != cmd.size() - 1)
+			temp += " ";
+	}
+	client->setRealname(temp.substr(1, temp.size() - 1));
+	//이거 이렇게 하면 유저가 USER명령어를 치면 넣는대로 되지 않나?
 	
-	//시간표현하는부분 gpt코드 가져다 쓴거라 과제 규칙에 맞게 수정필요
-	std::time_t now = std::time(nullptr);
-	std::tm* localTime = std::localtime(&now);
-	char buffer[80];
-    std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
-
-	//001~005 메세지 나오게 하기 -> 대강넣은거라 수정필요 tcpflow에서 뭔가 이상하게 나옴..
-	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + ":*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\n" + \
-		":irc.local 001 " + client->getNickname() + " :Welcome to the Localnet IRC Network " + client->getNickname() + "!" + client->getRealname() + "@127.0.0.1\n" + \
-		":irc.local 002 " + client->getNickname() + " :Your host is irc.local, running version ft_irc\n" + \
-		":irc.local 003 " + client->getNickname() + " :This server was created " + buffer + "\n" + \
-		":irc.local 004 " + client->getNickname() + " irc.local OUR FT_IRC\n" + \
-		":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n"); //서버에서 지원하는 기능
-	// :irc.local NOTICE seonyoon :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.
-	// :irc.local 001 seonyoon :Welcome to the Localnet IRC Network seonyoon!root@127.0.0.1
-	// :irc.local 002 seonyoon :Your host is irc.local, running version InspIRCd-3
-	// :irc.local 003 seonyoon :This server was created 09:25:18 May 09 2024
-	// :irc.local 004 seonyoon irc.local InspIRCd-3 iosw biklmnopstv :bklov
-	// :irc.local 005 seonyoon AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
-	// :irc.local 005 seonyoon MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
-	// :irc.local 251 seonyoon :There are 0 users and 0 invisible on 1 servers
+	//이거 한번에 해야 되는게 맞나 아니면 이렇게 말고 나눠서 보내는게 맞나?
+	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
+	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
+	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
+	client->PushSendQueue(get_reply_number(RPL_CREATED) + client->getNickname() + get_reply_str(RPL_CREATED, serv->getStartedTime()));
+	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
+	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
+	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
 }
 
 // - i: 초대 전용 채널로 설정 및 해제
@@ -358,7 +372,6 @@ void	Command::ping(Client *client) //ping을 받은 상황
 void	Command::quit(Client *client)
 {//QUIT [<Quit message>]
 	//근데 이거 유저가 치면 본인이 나간다는 말 아닌가?
-	std::cout << client->getUsername();
 	//나갈때는 모두 다 보내면 되지 않나
 	if (cmd.size() == 1)
 	{//QUIT만 침
@@ -383,7 +396,7 @@ void	Command::quit(Client *client)
 
 void	Command::kick(Client *client)
 {//KICK <channel> <user> [<comment>]
-	std::cout << client->getUsername();
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 	//물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
 	//권한이 있는가?
 	std::string msg(""/*강퇴 기본 메시지*/);
@@ -436,7 +449,7 @@ void	Command::kick(Client *client)
 
 void	Command::invite(Client *client)
 {//INVITE <nickname> <channel>
-	std::cout << client->getUsername();
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 	if (cmd.size() != 3)
 	{// 무언갈 더 쳤거나 덜 쳣음
 
@@ -456,7 +469,7 @@ void	Command::invite(Client *client)
 
 void	Command::topic(Client *client)
 {//TOPIC <channel> [<topic>]
-	std::cout << client->getUsername();
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 	if (cmd.size() == 1)
 	{//TOPIC만 입력하면?
 		return;
@@ -484,40 +497,40 @@ void	Command::topic(Client *client)
 
 void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
-	std::cout << client->getUsername();
 	//물론 채널, 권한이 존재하는지 확인
-	if (cmd[1] == "i")
+	if (cmd[2] == "i")
 	{
 
 	}
-	else if (cmd[1] == "t")
+	else if (cmd[2] == "t")
 	{
 
 	}
-	else if (cmd[1] == "k")
+	else if (cmd[2] == "k")
 	{
 
 	}
-	else if (cmd[1] == "o")
+	else if (cmd[2] == "o")
 	{
 
 	}
-	else if (cmd[1] == "l")
+	else if (cmd[2] == "l")
 	{
 
 	}
 	else//플래그를 무조건 넣어야하나?
 	{//그 이외의 플래그?
+		std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 
 	}
 }
 
 void	Command::notice(Client *client)
 {//이게 뭐하는 명령어인지 몰?루
-	std::cout << client->getUsername();
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 }
 
 void	Command::pong(Client *client)
 {//PONG <server1> [<server2>]
-	std::cout << client->getUsername();
+	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 }

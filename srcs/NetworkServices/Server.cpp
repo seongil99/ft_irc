@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <ctime>
 
 #include "Server.hpp"
 #include "utils.hpp"
@@ -431,3 +432,13 @@ void Server::RemoveClientFromServer(int client_socket) {
  * @return 서버 시작한 시간
  */
 const std::string &Server::getStartedTime() const { return started_time_; }
+
+size_t	Server::HowManyChannelsAre() const {return channels_.size();}
+size_t	Server::HowManyClientsAre() const {return clients_.size();}
+
+/* Getter*/
+
+/**
+ * @return 서버 시작한 시간
+*/
+const std::string	&Server::getStartedTime() const {return started_time;}
