@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/11 18:10:41 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 13:41:25 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,11 @@ class Channel {
 
     bool HasClient(int client_socket);
     bool HasClient(const std::string &nickname);
+
+    /* Getter */
+
+    int getClientCount(void) const;
+
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
      * 이걸 사용해야 하는 로직이 있다면 Server 메소드로 추가할 예정.
