@@ -28,13 +28,11 @@ Server::Server(void) : cmd(this) {
     kq_ = 0;
     std::memset(&server_addr_, 0, sizeof(server_addr_));
 
-    // 서버 시작한 시작 기록=========================================
     std::time_t now = std::time(0);
     std::tm *localTime = std::localtime(&now);
     char buffer[80];
     std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
-    //==========================================================
-    started_time_ = buffer; // 서버 시작한 시간.
+    started_time_ = buffer;
 }
 
 Server::~Server(void) {}
@@ -428,10 +426,11 @@ void Server::RemoveClientFromServer(int client_socket) {
 
 /* Getter*/
 
-/**
- * @return 서버 시작한 시간
- */
+/** @return 서버 시작한 시간*/
 const std::string &Server::getStartedTime() const { return started_time_; }
 
+/** @return 채널의 개수 */
 size_t	Server::HowManyChannelsAre() const {return channels_.size();}
+
+/** @return 클라이언트 개수 */
 size_t	Server::HowManyClientsAre() const {return clients_.size();}

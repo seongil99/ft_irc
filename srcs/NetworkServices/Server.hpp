@@ -48,7 +48,7 @@ class Server {
     std::map<int, Client> clients_;
 
     Command cmd;
-    std::string started_time_; // 서버 시작한 시간
+    std::string started_time_;
 
     /* Events functions */
 
