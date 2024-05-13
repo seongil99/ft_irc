@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <ctime>
 
 #include "Server.hpp"
 #include "utils.hpp"
@@ -25,6 +26,14 @@ Server::Server(void) : cmd(this) {
     server_socket_ = 0;
     kq_ = 0;
     std::memset(&server_addr_, 0, sizeof(server_addr_));
+
+	//서버 시작한 시작 기록=========================================
+	std::time_t now = std::time(0);
+	std::tm* localTime = std::localtime(&now);
+	char buffer[80];
+	std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
+	//==========================================================
+	started_time = buffer;// 서버 시작한 시간.
 }
 
 Server::~Server(void) {}
@@ -384,3 +393,10 @@ void Server::RemoveClientFromServer(int client_socket) {
     // disconnect tcp connection
     CloseClient(client_socket);
 }
+
+/* Getter*/
+
+/**
+ * @return 서버 시작한 시간
+*/
+const std::string	&Server::getStartedTime() const {return started_time;}
