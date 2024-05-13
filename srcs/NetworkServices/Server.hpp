@@ -46,7 +46,9 @@ class Server {
 
     std::map<std::string, Channel> channels_;
     std::map<int, Client> clients_;
+
     Command cmd;
+	std::string started_time; // 서버 시작한 시간
 
     /* Events functions */
 
@@ -118,6 +120,8 @@ class Server {
     bool HasDuplicateNickname(const std::string &nickname);
 
     /* Getter */
+	
+	const std::string	&getStartedTime() const;
 };
 
 #endif
