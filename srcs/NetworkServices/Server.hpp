@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:58:16 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/13 18:21:35 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ class Server {
     std::map<int, Client> clients_;
 
     Command cmd;
-	std::string started_time; // 서버 시작한 시간
+    std::string started_time_; // 서버 시작한 시간
 
     /* Events functions */
 
@@ -85,7 +85,7 @@ class Server {
 
     void Init(int port, std::string passwd);
     void Listen(void);
-    bool CheckPassword(const std::string &password_input);
+    bool CheckPassword(const std::string &password_input) const;
 
     void RemoveClientFromServer(int client_socket);
 
@@ -124,8 +124,8 @@ class Server {
                                   const std::string &message);
 
     /* Getter */
-	
-	const std::string	&getStartedTime() const;
+
+    const std::string &getStartedTime() const;
 };
 
 #endif
