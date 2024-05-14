@@ -57,8 +57,6 @@ class Channel {
     void AddMode(char mode);
     void RemoveMode(char mode);
 
-    bool CheckPassword(const std::string &passwd) const;
-
     void AddOwner(Client *client);
     void RemoveOwner(int client_socket);
 
@@ -76,7 +74,9 @@ class Channel {
 
     void setChannelName(const std::string &channel_name);
     void setTopic(const std::string &topic);
+	void setUsersLimit(size_t limit);
     void setPassword(const std::string &passwd);
+	bool CheckPassword(const std::string &passwd) const;
 
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
@@ -85,7 +85,7 @@ class Channel {
     Client *getJoinedClient(const std::string &nickname);
 
     // channel mode 확인 관련 함수
-    int getUsersLimit();
+    size_t getUsersLimit();
     bool IsInvited(int client_socket);
 
     bool IsOwner(int client_socket);

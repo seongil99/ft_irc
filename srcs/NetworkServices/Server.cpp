@@ -244,6 +244,16 @@ void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
     }
 }
 
+void Server::AddChannelOwner(const std::string &client_name, 
+							 const std::string &channel_name) {
+    clients_iter client = FindClientByNickname(client_name);
+	channels_iter it = channels_.find(channel_name);
+	if (client != clients_.end() && it != channels_.end()) {
+		(*it).second.AddOwner(&(*client).second);
+	}
+}
+
+
 void Server::RemoveChannelOwner(Client &client,
                                 const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
@@ -340,15 +350,6 @@ bool Server::CheckChannelPassword(const std::string &password_input,
     return true;
 }
 
-bool Server::IsInvitedChannel(int client_socket,
-                              const std::string &channel_name) {
-    clients_iter client = clients_.find(client_socket);
-    channels_iter it = channels_.find(channel_name);
-    if (it != channels_.end() && (*it).second.HasMode('i'))
-        return (*it).second.IsInvited((*client).second.getClientSocket());
-    return true;
-}
-
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
     clients_iter it = clients_.begin();
     for (; it != clients_.end(); it++) {
@@ -356,6 +357,22 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
             return it;
     }
     return clients_.end();
+}
+
+bool Server::IsInvitedChannel(int client_socket,
+                              const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && (*it).second.HasMode('i'))
+        return (*it).second.IsInvited(client_socket);
+    return true;
+}
+
+bool Server::IsOverUsersLimitChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+	if (it != channels_.end() && (*it).second.HasMode('l'))
+		return HowManyClientsAreInChannel((*it).second.getChannelName()) \
+				>= GetUsersLimitInChannel((*it).second.getChannelName());
+	return false;
 }
 
 bool Server::HasModeInChannel(const char mode,
@@ -378,6 +395,20 @@ void Server::RemoveModeFromChannel(const char mode,
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         (*it).second.RemoveMode(mode);
+}
+
+void Server::SetPasswordInChannel(const std::string &passwd, 
+							    const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.setPassword(passwd);
+}
+
+void Server::SetUsersLimitInChannel(size_t limit, 
+									const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        (*it).second.setUsersLimit(limit);
 }
 
 bool Server::IsChannelOwner(int client_socket,
@@ -445,6 +476,12 @@ const std::string &Server::getStartedTime() const { return started_time_; }
 
 /** @return 채널의 개수 */
 size_t Server::HowManyChannelsAre() const { return channels_.size(); }
+size_t Server::HowManyChannelsJoined(int client_socket) {
+	clients_iter it = clients_.find(client_socket);
+    if (it != clients_.end())
+        return (*it).second.getJoinedChannelsCount();
+	return 0;
+}
 
 /** @return 클라이언트 개수 */
 size_t Server::HowManyClientsAre() const { return clients_.size(); }
@@ -454,8 +491,15 @@ size_t Server::HowManyClientsAreInChannel(const std::string &channel_name) {
         return (*it).second.getClientCount();
     return 0;
 }
-const std::string
-Server::ClientsInChannelList(const std::string &channel_name) {
+
+size_t Server::GetUsersLimitInChannel(const std::string &channel_name) { 
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.getUsersLimit();
+    return 0;
+}
+
+const std::string Server::ClientsInChannelList(const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.ClientsList();

@@ -193,15 +193,23 @@ void	Command::join(Client *client)
 			else if (serv->HasChannelPassword(channel[i])) {
 				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
-									  " :Cannot join channel (incorrect channel key)\r\n");
+									  	  " :Cannot join channel (incorrect channel key)\r\n");
 			}
+			else if (serv->IsOverUsersLimitChannel(channel[i]))
+					client->PushSendQueue(":irc.local 471 " + client->getNickname() + " " + channel[i] + \
+										  " :Cannot join channel (+l)\r\n");
+			return ;
 		}
-		serv->AddClientToChannel(*client, channel[i]);
-		client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
-							  "@127.0.0.1 JOIN : " + channel[i] + "\r\n");
-		client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
-							  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
-		client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
+		if (serv->HowManyChannelsJoined(client->getClientSocket()) >= 10) //채널 10개 이상 속했을 때
+			client->PushSendQueue("irc.local 405 " + client->getNickname() + " " + get_reply_str(ERR_TOOMANYCHANNELS, channel[i]) + "\r\n");
+		else {
+			serv->AddClientToChannel(*client, channel[i]);
+			client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
+								"@127.0.0.1 JOIN : " + channel[i] + "\r\n");
+			client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
+								channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
+			client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
+		}
 	}
 }
 
@@ -508,40 +516,41 @@ void	Command::mode(Client *client)
 	std::string channel = cmd[1];
 	
 	//사용자가 처음 서버에 진입할때 사용자 모드를 +i로 바꿔줌
-	if (cmd[1][0] != '#' && cmd[2] == "+i") {
+	if (cmd[1][0] != '#' && cmd[2] == "+i") 
 		client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@127.0.0.1 MODE " + client->getNickname() + " :+i\r\n");
-		return ;
-	}
-	if (cmd.size() == 2) {
+	else if (cmd.size() == 2) {
 		client->PushSendQueue(":irc.local 324 " + client->getNickname() + " " + channel + " :+nt\r\n");
 		client->PushSendQueue(":irc.local 329 " + client->getNickname() + " " + channel + "\r\n"); //시간 스탬프 값 필요
-		return ;
 	}
-	if (cmd[2][0] == 'b') {
+	else if (cmd[2][0] == 'b')
 		client->PushSendQueue(":irc.local 368 " + client->getNickname() + " " + channel + " :End of channel ban list\r\n");
-		return ;
-	}
-	if (cmd[2][0] == '+') {
+	else if (cmd[2][0] == '+') {
 		for (size_t i = 1; i < cmd[2].size(); i++) {
 			if (cmd[2][i] == 'i') {
 				serv->SetModeToChannel('i', channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+i\r\n");
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+i \r\n");
 			}
 			if (cmd[2][i] == 't') {
 				serv->SetModeToChannel('t', channel);
 				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+t\r\n");
 			}
 			if (cmd[2][i] == 'k') {
+				// if(cmd.size() < 4)
 				serv->SetModeToChannel('k', channel);
+				serv->SetPasswordInChannel(cmd[3], channel);
 				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+k\r\n");
 			}
 			if (cmd[2][i] == 'o') {
 				serv->SetModeToChannel('o', channel);
+				serv->AddChannelOwner(cmd[3], channel);
 				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+o\r\n");
 			}
 			if (cmd[2][i] == 'l') {
+				// if(cmd.size() < 4)
 				serv->SetModeToChannel('l', channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+l\r\n");
+				int limit = std::stoi(cmd[3]);
+				serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " +l :" + cmd[3] + "\r\n");
 			}
 		}
 	}

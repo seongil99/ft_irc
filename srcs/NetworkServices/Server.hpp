@@ -96,6 +96,8 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void AddChannelOwner(Client &client, const std::string &channel_name);
+	void AddChannelOwner(const std::string &client_name, 
+						 const std::string &channel_name);
     void RemoveChannelOwner(Client &client, const std::string &channel_name);
     bool HasChannel(const std::string &channel_name);
     bool HasClientInChannel(int client_socket, const std::string &channel_name);
@@ -112,10 +114,15 @@ class Server {
     bool CheckChannelPassword(const std::string &password_input,
                               const std::string &channel_name);
     bool IsInvitedChannel(int client_socket, const std::string &channel_name);
-    bool HasModeInChannel(const char mode, const std::string &channel_name);
+    bool IsOverUsersLimitChannel(const std::string &channel_name);
+	bool HasModeInChannel(const char mode, const std::string &channel_name);
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
+	void SetPasswordInChannel(const std::string &passwd, 
+							const std::string &channel_name);
+	void SetUsersLimitInChannel(size_t limit, 
+								const std::string &channel_name);
     bool IsChannelOwner(int client_socket, const std::string &channel_name);
 
     const std::string getAllChannelName();
@@ -130,9 +137,11 @@ class Server {
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname);
     size_t HowManyChannelsAre() const;
+	size_t HowManyChannelsJoined(int client_socket);
     size_t HowManyClientsAre() const;
     size_t HowManyClientsAreInChannel(const std::string &channel_name);
-    const std::string ClientsInChannelList(const std::string &channel_name);
+    size_t GetUsersLimitInChannel(const std::string &channel_name);
+	const std::string ClientsInChannelList(const std::string &channel_name);
 
     /* Getter */
 

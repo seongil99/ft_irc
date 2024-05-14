@@ -61,6 +61,7 @@ const std::string &Client::getRealname(void) const { return realname_; }
 const std::string &Client::getNickname(void) const { return nickname_; }
 const std::string &Client::getMessage(void) const { return message_; }
 size_t Client::getSendQueueSize(void) const { return send_q_.size(); }
+size_t Client::getJoinedChannelsCount(void) const { return joined_chanels_.size(); };
 
 void Client::setNickname(const std::string &str) { this->nickname_ = str; }
 void Client::setRealname(const std::string &str) { this->realname_ = str; }

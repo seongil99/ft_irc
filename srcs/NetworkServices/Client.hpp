@@ -48,6 +48,7 @@ class Client {
     const std::string &getNickname(void) const;
     const std::string &getMessage(void) const;
     size_t getSendQueueSize(void) const;
+	size_t getJoinedChannelsCount(void) const;
 
     void setUsername(const std::string &str);
     void setRealname(const std::string &str);

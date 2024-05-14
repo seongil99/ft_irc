@@ -166,16 +166,17 @@ Client *Channel::getJoinedClient(const std::string &nickname) {
     return NULL;
 }
 
+void Channel::setUsersLimit(size_t limit) { this->users_limit_ = limit; };
+
 void Channel::setPassword(const std::string &passwd) { this->passwd_ = passwd; }
 
 bool Channel::CheckPassword(const std::string &passwd) const {
     return this->passwd_ == passwd;
 }
 
-int Channel::getUsersLimit() { return users_limit_; };
+size_t Channel::getUsersLimit() { return users_limit_; };
 bool Channel::IsInvited(int client_socket) {
-    std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);
-    return it != clients_.end();
+    return invited_clients_.find(client_socket) != invited_clients_.end();
 }
 
 bool Channel::IsOwner(int client_socket) {
