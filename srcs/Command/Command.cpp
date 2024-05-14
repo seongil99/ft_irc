@@ -189,18 +189,22 @@ void	Command::join(Client *client)
 		if (!serv->HasChannel(channel[i]))
 			serv->CreateChannel(channel[i]);
 		else { //채널이 있는 상태 -> 권한, 비밀번호 확인
-			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
-				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + \
-									  " :Cannot join channel (invite only)\r\n");
+			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i])) {
+				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + " :Cannot join channel (invite only)\r\n");
+				return ;
+			}
 			else if (serv->HasChannelPassword(channel[i])) {
-				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
+				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i])) {
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
 									  	  " :Cannot join channel (incorrect channel key)\r\n");
+					return ;
+				}
 			}
-			else if (serv->IsOverUsersLimitChannel(channel[i]))
+			else if (serv->IsOverUsersLimitChannel(channel[i])) {
 					client->PushSendQueue(":irc.local 471 " + client->getNickname() + " " + channel[i] + \
 										  " :Cannot join channel (+l)\r\n");
-			return ;
+					return ;
+			}
 		}
 		if (serv->HowManyChannelsJoined(client->getClientSocket()) >= 10) //채널 10개 이상 속했을 때
 			client->PushSendQueue("irc.local 405 " + client->getNickname() + " " + get_reply_str(ERR_TOOMANYCHANNELS, channel[i]) + "\r\n");
@@ -464,16 +468,17 @@ void	Command::topic(Client *client)
 }
 
 //없는 옵션 빼려고 할때는 서버에서 반응 x
-// 127.000.000.001.44680-127.000.000.001.06667: MODE #abc +i
-// 127.000.000.001.06667-127.000.000.001.44680: :test!root@127.0.0.1 MODE #abc :+i
 // - i: 초대 전용 채널로 설정 및 해제
 // - t: 채널 관리자가 TOPIC 명령어 제한 설정 및 해제 -> TOPIC 명령어를 운영자만 사용할 수 있는지 여부
 // - k: 채널 비밀번호 설정 및 해제
 // - o: 채널 관리자 특권 부여 및 제거
 // - l: 채널에서 유저 제한 설정 및 해제
+//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
+//코드가 너무 더럽다..
 void	Command::mode(Client *client)
-{//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
+{
 	std::string channel = cmd[1];
+	std::string info = " ";
 	
 	//사용자가 처음 서버에 진입할때 사용자 모드를 +i로 바꿔줌
 	if (cmd[1][0] != '#' && cmd[2] == "+i") 
@@ -485,34 +490,123 @@ void	Command::mode(Client *client)
 	else if (cmd[2][0] == 'b')
 		client->PushSendQueue(":irc.local 368 " + client->getNickname() + " " + channel + " :End of channel ban list\r\n");
 	else if (cmd[2][0] == '+') {
+		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " +");
+		int idx = 3;
 		for (size_t i = 1; i < cmd[2].size(); i++) {
-			if (cmd[2][i] == 'i') {
-				serv->SetModeToChannel('i', channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+i \r\n");
-			}
-			if (cmd[2][i] == 't') {
-				serv->SetModeToChannel('t', channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+t\r\n");
-			}
-			if (cmd[2][i] == 'k') {
-				// if(cmd.size() < 4)
-				serv->SetModeToChannel('k', channel);
-				serv->SetPasswordInChannel(cmd[3], channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+k\r\n");
-			}
-			if (cmd[2][i] == 'o') {
-				serv->SetModeToChannel('o', channel);
-				serv->AddChannelOwner(cmd[3], channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+o\r\n");
-			}
-			if (cmd[2][i] == 'l') {
-				// if(cmd.size() < 4)
-				serv->SetModeToChannel('l', channel);
-				int limit = std::stoi(cmd[3]);
-				serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " +l :" + cmd[3] + "\r\n");
+			char mode = cmd[2][i];
+			switch (mode) { //한꺼번에 보내야 한다...
+				// MODE #abc +kl 3 123
+				// :test!root@127.0.0.1 MODE #abc +kl 3 :123
+
+				// MODE #abc +itkol 1234 user 5
+				// :test!root@127.0.0.1 MODE #abc +itkol 1234 user :5
+
+				// MODE #abc +kl 3 abc
+				// :test!root@127.0.0.1 MODE #abc +kl 3 :0
+
+				// MODE #abc +itkol
+				// :irc.local 696 user #abc k * :You must specify a parameter for the key mode. Syntax: <key>.
+				// :irc.local 696 user #abc o * :You must specify a parameter for the op mode. Syntax: <nick>.
+				// :irc.local 696 user #abc l * :You must specify a parameter for the limit mode. Syntax: <limit>.
+				// :user!root@127.0.0.1 MODE #abc :+it
+
+				case 'i':
+					serv->SetModeToChannel('i', channel);
+					str += "i";
+					break;
+				case 't':
+					serv->SetModeToChannel('t', channel);
+					str += "t";
+					break;
+				case 'k':
+					if (cmd.size() < 4) {
+						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " k * :You must specify a parameter for the key mode. Syntax: <key>.\r\n");
+					} else {
+						serv->SetModeToChannel('k', channel);
+						serv->SetPasswordInChannel(cmd[idx], channel);
+						str += "k";
+						info += (cmd[idx] + " ");
+						idx++;
+					}
+					break;
+				case 'o':
+					if (cmd.size() < 4) {
+						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>.\r\n");
+					} else {
+						serv->SetModeToChannel('o', channel);
+						serv->AddChannelOwner(cmd[idx], channel);
+						str += "o";
+						info += (cmd[idx] + " ");
+						idx++;
+					}
+					break;
+				case 'l':
+					if (cmd.size() < 4) {
+						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " l * :You must specify a parameter for the key mode. Syntax: <limit>.\r\n");
+					} else {
+						serv->SetModeToChannel('l', channel);
+						int limit = std::stoi(cmd[idx]);
+						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
+						str += "l";
+						info += (cmd[idx] + " ");
+						idx++;
+					}
+					break;
+				default:
+					// 해당하는 모드가 없을 때 처리
+					break;
 			}
 		}
+		client->PushSendQueue(str + info + "\r\n");
+	}
+	else if (cmd[2][0] == '-') {
+		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " -");
+		int idx = 3;
+		for (size_t i = 1; i < cmd[2].size(); i++) {
+			char mode = cmd[2][i];
+			switch (mode) {
+				case 'i':
+					if (serv->HasModeInChannel('i', channel)) {
+						serv->RemoveModeFromChannel('i', channel);
+						str += "i";
+					}
+					break;
+				case 't':
+					if (serv->HasModeInChannel('t', channel)) {
+						serv->RemoveModeFromChannel('t', channel);
+						str += "t";
+					}
+					break;
+				case 'k':
+					if (serv->HasModeInChannel('k', channel)) {
+						serv->RemoveModeFromChannel('k', channel);
+						serv->SetPasswordInChannel("", channel);
+						str += "k";
+						idx++;
+					}
+					break;
+				case 'o':
+					if (serv->HasModeInChannel('o', channel)) {
+						serv->RemoveModeFromChannel('o', channel);
+						serv->RemoveChannelOwner(cmd[idx], channel);
+						str += "o";
+						idx++;
+					}
+					break;
+				case 'l':
+					if (serv->HasModeInChannel('l', channel)) {
+						serv->RemoveModeFromChannel('l', channel);
+						serv->SetUsersLimitInChannel(0, channel);
+						str += "l";
+						idx++;
+					}
+					break;
+				default:
+					// 해당하는 모드가 없을 때 처리
+					break;
+			}
+		}
+		client->PushSendQueue(str + info + "\r\n");
 	}
 }
 // :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root

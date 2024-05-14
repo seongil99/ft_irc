@@ -258,8 +258,17 @@ void Server::RemoveChannelOwner(Client &client,
                                 const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
-        (*it).second.RemoveClient(client.getClientSocket());
+        (*it).second.RemoveOwner(client.getClientSocket());
     }
+}
+
+void Server::RemoveChannelOwner(const std::string &client_name, 
+							 	const std::string &channel_name) {
+    clients_iter client = FindClientByNickname(client_name);
+	channels_iter it = channels_.find(channel_name);
+	if (client != clients_.end() && it != channels_.end()) {
+		(*it).second.RemoveOwner((*client).second.getClientSocket());
+	}
 }
 
 void Server::PushSendQueueClient(int client_socket,

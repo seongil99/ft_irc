@@ -101,7 +101,9 @@ class Server {
 	void AddChannelOwner(const std::string &client_name, 
 						 const std::string &channel_name);
     void RemoveChannelOwner(Client &client, const std::string &channel_name);
-    bool HasChannel(const std::string &channel_name) const;
+    void RemoveChannelOwner(const std::string &client_name, 
+							const std::string &channel_name);
+	bool HasChannel(const std::string &channel_name) const;
     bool HasClientInChannel(int client_socket,
                             const std::string &channel_name) const;
     void SendMessageToAllClientsInChannel(const std::string &channel_name,
