@@ -16,10 +16,8 @@
 
 Channel::Channel(void) { 
 	owner_ = NULL;
-	invite_only_ = false;
-	topic_limit_ = false;
 	passwd_ = "";
-	users_limit_ = -1;
+	users_limit_ = 0;
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -27,10 +25,8 @@ Channel::Channel(const Channel &ref) { *this = ref; }
 Channel::Channel(const std::string &channel_name) {
     this->channel_name_ = channel_name;
     owner_ = NULL;
-	invite_only_ = false;
-	topic_limit_ = false;
 	passwd_ = "";
-	users_limit_ = -1;
+	users_limit_ = 0;
 }
 
 Channel::~Channel(void) {}
@@ -50,6 +46,7 @@ void Channel::AddClient(Client &client) {
     int client_socket = client.getClientSocket();
     std::map<int, Client *>::iterator it = clients_.find(client_socket);
     if (!clients_.size()) {
+		owners_[client_socket] = &client;
         owner_ = &client;
     }
     if (it == clients_.end()) {
@@ -149,12 +146,23 @@ Client *Channel::getJoinedClient(const std::string &nickname) {
     return NULL;
 }
 
-
-bool Channel::IsInviteOnly() { return invite_only_; };
-bool Channel::HasTopicLimit() { return topic_limit_; };
 std::string Channel::getPassword() { return passwd_; };
 int	Channel::getUsersLimit() { return users_limit_; };
 bool Channel::IsInvited(int client_socket) {
 	std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);
     return it != clients_.end();
+}
+
+bool Channel::IsOwner(int client_socket) { return owners_.find(client_socket) != owners_.end(); }
+
+const std::string Channel::ClientsList(void) {
+	std::string list("");
+	for (std::map<int, Client *>::iterator it = clients_.begin(); it!= clients_.end(); it++) {
+		if (IsOwner(it->first))
+			list += "@";
+		list += it->second->getNickname();
+		list += " ";
+	}
+	std::cout << list << std::endl;
+	return list;
 }

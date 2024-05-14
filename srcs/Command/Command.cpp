@@ -136,13 +136,13 @@ void	Command::user(Client *client)
 	}
 	if (client->getRealname().size() != 0)//사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
 		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
-	//username 만들기 
+	//username 만들기
 	std::string	temp = cmd[1];
 	if (temp[temp.size() - 1] == '\n')
 		temp = temp.substr(0, temp.size());
 	client->setUsername(temp);
 	temp.clear();
-	//realname 만들기 
+	//realname 만들기
 	for (size_t i = 4; i < cmd.size(); i++)
 	{
 		temp += cmd[i];
@@ -150,7 +150,7 @@ void	Command::user(Client *client)
 			temp += " ";
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
-	
+
 	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
 	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
@@ -179,7 +179,7 @@ void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	std::vector<std::string>	channel, pw;
 
-	if (cmd.size() == 2 && cmd[1] == ":") 
+	if (cmd.size() == 2 && cmd[1] == ":")
 	{
 		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
 		return ;
@@ -196,13 +196,26 @@ void	Command::join(Client *client)
 			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
 				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (invite only)\r\n");
-			if (serv->HasChannelPassword(channel[i])) {
+			else if (serv->HasChannelPassword(channel[i])) {
 				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (incorrect channel key)\r\n");
 			}
 		}
+		serv->AddClientToChannel(*client, channel[i]);
+		client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
+							  "@127.0.0.1 JOIN : " + channel[i] + "\r\n");
+		client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
+							  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
+		client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
 	}
+	// 127.000.000.001.06667-127.000.000.001.40258: :test!root@127.0.0.1 JOIN :#abc
+	// :irc.local 353 test = #abc :@test
+	// :irc.local 366 test #abc :End of /NAMES list.
+
+	// 127.000.000.001.06667-127.000.000.001.40260: :user!root@127.0.0.1 JOIN :#abc
+	// :irc.local 353 user = #abc :@test user
+	// :irc.local 366 user #abc :End of /NAMES list.
 }
 
 void	Command::part(Client *client)
@@ -496,7 +509,7 @@ void	Command::topic(Client *client)
 }
 
 void	Command::mode(Client *client)
-{//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
+{ //MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 	//물론 채널, 권한이 존재하는지 확인
 	if (cmd[2] == "i" || cmd[2] == "-i")
 	{
@@ -518,11 +531,13 @@ void	Command::mode(Client *client)
 	{
 
 	}
-	else//플래그를 무조건 넣어야하나?
-	{//그 이외의 플래그?
-		std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 
-	}
+	// }
+	// else//플래그를 무조건 넣어야하나?
+	// {//그 이외의 플래그?
+	// 	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
+
+	// }
 }
 
 void	Command::notice(Client *client)
