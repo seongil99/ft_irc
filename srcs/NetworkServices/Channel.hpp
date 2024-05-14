@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:18:59 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:31:30 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,8 @@ class Channel {
     void AddMode(char mode);
     void RemoveMode(char mode);
 
+    bool CheckPassword(const std::string &passwd) const;
+
     /* Getter */
 
     const std::string &getChannelName(void) const;
@@ -71,6 +73,7 @@ class Channel {
     void setChannelName(const std::string &channel_name);
     void setOwner(Client *client);
     void setTopic(const std::string &topic);
+    void setPassword(const std::string &passwd);
 
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
@@ -79,7 +82,6 @@ class Channel {
     Client *getJoinedClient(const std::string &nickname);
 
     // channel mode 확인 관련 함수
-    std::string getPassword();
     int getUsersLimit();
     bool IsInvited(int client_socket);
 

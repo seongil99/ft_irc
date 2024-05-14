@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:19:15 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:31:18 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,12 @@ Client *Channel::getJoinedClient(const std::string &nickname) {
     return NULL;
 }
 
-std::string Channel::getPassword() { return passwd_; };
+void Channel::setPassword(const std::string &passwd) { this->passwd_ = passwd; }
+
+bool Channel::CheckPassword(const std::string &passwd) const {
+    return this->passwd_ == passwd;
+}
+
 int Channel::getUsersLimit() { return users_limit_; };
 bool Channel::IsInvited(int client_socket) {
     std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);

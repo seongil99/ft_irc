@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:19:21 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:32:49 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <ctime>
 
 #include "Server.hpp"
 #include "utils.hpp"
@@ -222,7 +221,7 @@ void Server::AddClientToChannel(Client &client,
                                 const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
-		(*it).second.AddClient(client);
+        (*it).second.AddClient(client);
 }
 
 void Server::RemoveClientFromChannel(int client_socket,
@@ -312,35 +311,35 @@ void Server::SendMessageToOtherClient(int sender_socket,
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);
     }
-	if (sender_socket)
-		return;
+    if (sender_socket)
+        return;
 }
 
-//채널 password, invite only 관련 함수 추가
+// 채널 password, invite only 관련 함수 추가
 bool Server::HasChannelPassword(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
-	if (it != channels_.end()) {
-		if (!(*it).second.getPassword().empty())
-			return true;
-	}
-	return false;
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        if (!(*it).second.CheckPassword(""))
+            return true;
+    }
+    return false;
 }
 
 bool Server::CheckChannelPassword(const std::string &password_input,
-							  const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
-	if (it != channels_.end() && HasChannelPassword(channel_name))
-		return password_input == (*it).second.getPassword();
-	return true;
+                                  const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && HasChannelPassword(channel_name))
+        return (*it).second.CheckPassword(password_input);
+    return true;
 }
 
 bool Server::IsInvitedChannel(int client_socket,
-					  const std::string &channel_name) {
-	clients_iter client = clients_.find(client_socket);
-	channels_iter it = channels_.find(channel_name);
-	if (it != channels_.end() && (*it).second.HasMode('i'))
-		return (*it).second.IsInvited((*client).second.getClientSocket());
-	return true;
+                              const std::string &channel_name) {
+    clients_iter client = clients_.find(client_socket);
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && (*it).second.HasMode('i'))
+        return (*it).second.IsInvited((*client).second.getClientSocket());
+    return true;
 }
 
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
@@ -375,14 +374,12 @@ void Server::RemoveModeFromChannel(const char mode,
 }
 
 bool Server::IsChannelOwner(int client_socket,
-					const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+                            const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.IsOwner(client_socket);
-	return false;
+    return false;
 }
-
-
 
 /**
  * @return All channel name delimited by comma ','
@@ -440,19 +437,20 @@ void Server::RemoveClientFromServer(int client_socket) {
 const std::string &Server::getStartedTime() const { return started_time_; }
 
 /** @return 채널의 개수 */
-size_t	Server::HowManyChannelsAre() const {return channels_.size();}
+size_t Server::HowManyChannelsAre() const { return channels_.size(); }
 
 /** @return 클라이언트 개수 */
-size_t	Server::HowManyClientsAre() const {return clients_.size();}
-size_t	Server::HowManyClientsAreInChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+size_t Server::HowManyClientsAre() const { return clients_.size(); }
+size_t Server::HowManyClientsAreInChannel(const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.getClientCount();
-	return 0;
+    return 0;
 }
-const std::string Server::ClientsInChannelList(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+const std::string
+Server::ClientsInChannelList(const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
-		return (*it).second.ClientsList();
-	return NULL;
+        return (*it).second.ClientsList();
+    return NULL;
 }
