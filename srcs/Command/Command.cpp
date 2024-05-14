@@ -494,29 +494,12 @@ void	Command::mode(Client *client)
 		size_t idx = 3;
 		for (size_t i = 1; i < cmd[2].size(); i++) {
 			char mode = cmd[2][i];
-			switch (mode) { //한꺼번에 보내야 한다...
-				// MODE #abc +kl 3 123
-				// :test!root@127.0.0.1 MODE #abc +kl 3 :123
-
-				// MODE #abc +itkol 1234 user 5
-				// :test!root@127.0.0.1 MODE #abc +itkol 1234 user :5
-
-				// MODE #abc +kl 3 abc
-				// :test!root@127.0.0.1 MODE #abc +kl 3 :0
-
-				// MODE #abc +itkol
-				// :irc.local 696 user #abc k * :You must specify a parameter for the key mode. Syntax: <key>.
-				// :irc.local 696 user #abc o * :You must specify a parameter for the op mode. Syntax: <nick>.
-				// :irc.local 696 user #abc l * :You must specify a parameter for the limit mode. Syntax: <limit>.
-				// :user!root@127.0.0.1 MODE #abc :+it
-
+			switch (mode) {
 				case 'i':
 					serv->SetModeToChannel('i', channel);
-					//str += "i";
 					break;
 				case 't':
 					serv->SetModeToChannel('t', channel);
-					//str += "t";
 					break;
 				case 'k':
 					if (cmd.size() < idx + 1) {
@@ -524,8 +507,6 @@ void	Command::mode(Client *client)
 					} else {
 						serv->SetModeToChannel('k', channel);
 						serv->SetPasswordInChannel(cmd[idx], channel);
-						//str += "k";
-						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
@@ -535,8 +516,6 @@ void	Command::mode(Client *client)
 					} else {
 						serv->SetModeToChannel('o', channel);
 						serv->AddChannelOwner(cmd[idx], channel);
-						//str += "o";
-						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
@@ -547,18 +526,17 @@ void	Command::mode(Client *client)
 						serv->SetModeToChannel('l', channel);
 						int limit = std::stoi(cmd[idx]);
 						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
-						//str += "l";
-						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
-				default:
-					// 해당하는 모드가 없을 때 처리
+				default: // 해당하는 모드가 없을 때 처리
 					break;
 			}
 		}
-		if (info.size() == 1)
-			str += (":" + cmd[2]);
+		//클라이언트에 보낼 string 완성
+		if (idx == 3)
+			str += ":";
+		str += cmd[2];
 		for (size_t i = 3; i < idx; i++) {
 			if (idx == i + 1)
 				info += ":";
@@ -567,28 +545,23 @@ void	Command::mode(Client *client)
 		serv->SendMessageToAllClientsInChannel(channel, str + info + "\r\n");
 	}
 	else if (cmd[2][0] == '-') {
-		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " -");
+		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " ");
 		int idx = 3;
 		for (size_t i = 1; i < cmd[2].size(); i++) {
 			char mode = cmd[2][i];
 			switch (mode) {
 				case 'i':
-					if (serv->HasModeInChannel('i', channel)) {
+					if (serv->HasModeInChannel('i', channel))
 						serv->RemoveModeFromChannel('i', channel);
-						str += "i";
-					}
 					break;
 				case 't':
-					if (serv->HasModeInChannel('t', channel)) {
+					if (serv->HasModeInChannel('t', channel))
 						serv->RemoveModeFromChannel('t', channel);
-						str += "t";
-					}
 					break;
 				case 'k':
 					if (serv->HasModeInChannel('k', channel)) {
 						serv->RemoveModeFromChannel('k', channel);
 						serv->SetPasswordInChannel("", channel);
-						str += "k";
 						idx++;
 					}
 					break;
@@ -596,7 +569,6 @@ void	Command::mode(Client *client)
 					if (serv->HasModeInChannel('o', channel)) {
 						serv->RemoveModeFromChannel('o', channel);
 						serv->RemoveChannelOwner(cmd[idx], channel);
-						str += "o";
 						idx++;
 					}
 					break;
@@ -604,14 +576,21 @@ void	Command::mode(Client *client)
 					if (serv->HasModeInChannel('l', channel)) {
 						serv->RemoveModeFromChannel('l', channel);
 						serv->SetUsersLimitInChannel(0, channel);
-						str += "l";
 						idx++;
 					}
 					break;
-				default:
-					// 해당하는 모드가 없을 때 처리
+				default: // 해당하는 모드가 없을 때 처리
 					break;
 			}
+		}
+		//클라이언트에 보낼 string 완성
+		if (idx == 3)
+			str += ":";
+		str += cmd[2];
+		for (size_t i = 3; i < idx; i++) {
+			if (idx == i + 1)
+				info += ":";
+			info += (cmd[i] + " ");
 		}
 		serv->SendMessageToAllClientsInChannel(channel, str + info + "\r\n");
 	}
