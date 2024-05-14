@@ -148,9 +148,10 @@ void	Command::user(Client *client)
 			temp += " ";
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
+	client->setHostname("192.168.65.2");//임시로 이렇게 넣은거니 확실해지면 추가할 것!
 
-	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
-	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
+	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (" + client->getHostname() +") instead.\r\n");
+	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), client->getHostname()));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
 	client->PushSendQueue(get_reply_number(RPL_CREATED) + client->getNickname() + get_reply_str(RPL_CREATED, serv->getStartedTime()));
 	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
@@ -228,6 +229,7 @@ void	Command::part(Client *client)// 이게 아니던...데?
 	192.168.065.002.08080-172.017.000.002.58140: :klha!root@127.0.0.1 PART #hi :good bye
 	===================================
 	근데 클라이언트가 안나가지네? 다른 문제가 있나? 여기서 뭘 더 하란 말이지?
+	로그는 문제 없으나 다른 문제가 있을 가능성도 있음
 	*/
 	// std::cout << "you typed \"" << private_msg.size() << "\"."<< std::endl;
 	std::string temp;

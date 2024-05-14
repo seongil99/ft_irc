@@ -179,16 +179,10 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     std::cout << "received data from " << client_socket << ": "
               << (*it).second.getMessage() << std::endl;
 
-    //===================================================================================================
     if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
-        // 일반 채팅문일 경우
-        // 메시지 앞에 추가 문장 달고
-
-        // 일단은 자신을 제외한 모든 클라이언트한테 쏴주기
         channels_["default"].SendMessageToOthers(
             client_socket, clients_[client_socket].getMessage());
     }
-    //===================================================================================================
 
     // execute 이후 client 지워질 수 있음
     it = clients_.find(client_socket);
