@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:04:12 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 16:32:28 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@ std::string Client::PopSendQueue(void) {
     send_q_.pop();
     return ret;
 }
+
+void Client::AppendMessage(const std::string &message) { message_ += message; }
 
 int Client::getClientSocket(void) const { return client_socket_; }
 const std::string &Client::getUsername(void) const { return username_; }

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:12:13 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 19:20:42 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,10 +167,20 @@ void Server::EventWrite(struct kevent *curr_event) {
 void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
     // 메시지 받고
-    clients_[client_socket].setMessage(std::string("") + buf);
+    std::string temp(buf);
+    clients_iter it = clients_.find(client_socket);
+    (*it).second.AppendMessage(temp);
+
+    if (temp.rfind("\r\n") == std::string::npos) {
+        return;
+    }
+
+    // 서버 콘솔에 출력
+    std::cout << "received data from " << client_socket << ": "
+              << (*it).second.getMessage() << std::endl;
 
     //===================================================================================================
-    if (cmd.excute(&clients_[client_socket], std::string(buf)) == false) {
+    if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
         // 일반 채팅문일 경우
         // 메시지 앞에 추가 문장 달고
 
@@ -180,11 +190,10 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     }
     //===================================================================================================
 
-    // 서버 콘솔에 출력
-    std::cout << "received data from " << client_socket << ": "
-              << clients_[client_socket].getMessage() << std::endl;
-
-    clients_[client_socket].setMessage(""); // 버퍼 초기화
+    // execute 이후 client 지워질 수 있음
+    it = clients_.find(client_socket);
+    if (it != clients_.end())
+        (*it).second.setMessage(""); // 버퍼 초기화
 }
 
 /**
@@ -235,6 +244,8 @@ void Server::RemoveClientFromChannel(int client_socket,
 void Server::RemoveClientFromChannel(
     int client_socket, std::map<std::string, Channel>::iterator channel_iter) {
     (*channel_iter).second.RemoveClient(client_socket);
+    // if ((*channel_iter).second.getClientCount() == 0)
+    //     channels_.erase(channel_iter);
 }
 
 void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
@@ -425,9 +436,7 @@ void Server::RemoveClientFromServer(int client_socket) {
     // 들어가있는 모든 채널에서 없애야한다.
     while (channel_iter != channels_.end()) {
         // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
-
-        // 혼자 있었으면 채널도 없어져야됨 -> todo
-
+        // 혼자 있었으면 채널도 없어져야됨 -> 주석 처리
         // 새로운 관리자 -> 일단 Channel::clients_.begin()
         RemoveClientFromChannel(client_socket, channel_iter);
         channel_iter++;
