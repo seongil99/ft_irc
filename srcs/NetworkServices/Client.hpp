@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 14:31:58 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:04:39 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ class Client {
     const std::string &getRealname(void) const;
     const std::string &getNickname(void) const;
     const std::string &getMessage(void) const;
-    const std::string &getLastJoinedChannelName(void) const;
+    const std::string getLastJoinedChannelName(void) const;
     size_t getSendQueueSize(void) const;
 
     void setUsername(const std::string &str);

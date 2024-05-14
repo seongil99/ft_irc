@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 14:35:40 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:04:12 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,9 +71,10 @@ void Client::setMessage(const std::string &str) { this->message_ = str; }
 /**
  * @return 가장 마지막으로 참여했던 채널 이름, 비어있는 경우 "" 반환
  */
-const std::string &Client::getLastJoinedChannelName(void) const {
-    std::vector<std::string>::reverse_iterator it = joined_chanels_.rbegin();
+const std::string Client::getLastJoinedChannelName(void) const {
+    std::vector<std::string>::const_reverse_iterator it =
+        joined_chanels_.rbegin();
     if (it != joined_chanels_.rend())
         return (*it);
-    return "";
+    return std::string("");
 }
