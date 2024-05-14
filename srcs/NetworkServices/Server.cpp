@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 18:32:27 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:19:21 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,7 +326,7 @@ bool Server::HasChannelPassword(const std::string &channel_name) {
 	return false;
 }
 
-bool Server::CheckChannelPassword(const std::string &password_input, 
+bool Server::CheckChannelPassword(const std::string &password_input,
 							  const std::string &channel_name) {
 	channels_iter it = channels_.find(channel_name);
 	if (it != channels_.end() && HasChannelPassword(channel_name))
@@ -341,7 +341,7 @@ bool Server::IsInvitedChannel(int client_socket,
 	if (it != channels_.end() && (*it).second.HasMode('i'))
 		return (*it).second.IsInvited((*client).second.getClientSocket());
 	return true;
-}				
+}
 
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
     clients_iter it = clients_.begin();

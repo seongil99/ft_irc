@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:57:30 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:19:15 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 
 #include "Channel.hpp"
 
-Channel::Channel(void) { 
-	owner_ = NULL;
-	passwd_ = "";
-	users_limit_ = 0;
+Channel::Channel(void) {
+    owner_ = NULL;
+    passwd_ = "";
+    users_limit_ = 0;
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -25,8 +25,8 @@ Channel::Channel(const Channel &ref) { *this = ref; }
 Channel::Channel(const std::string &channel_name) {
     this->channel_name_ = channel_name;
     owner_ = NULL;
-	passwd_ = "";
-	users_limit_ = 0;
+    passwd_ = "";
+    users_limit_ = 0;
 }
 
 Channel::~Channel(void) {}
@@ -46,7 +46,7 @@ void Channel::AddClient(Client &client) {
     int client_socket = client.getClientSocket();
     std::map<int, Client *>::iterator it = clients_.find(client_socket);
     if (!clients_.size()) {
-		owners_[client_socket] = &client;
+        owners_[client_socket] = &client;
         owner_ = &client;
     }
     if (it == clients_.end()) {
@@ -147,22 +147,25 @@ Client *Channel::getJoinedClient(const std::string &nickname) {
 }
 
 std::string Channel::getPassword() { return passwd_; };
-int	Channel::getUsersLimit() { return users_limit_; };
+int Channel::getUsersLimit() { return users_limit_; };
 bool Channel::IsInvited(int client_socket) {
-	std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);
+    std::map<int, Client *>::iterator it = invited_clients_.find(client_socket);
     return it != clients_.end();
 }
 
-bool Channel::IsOwner(int client_socket) { return owners_.find(client_socket) != owners_.end(); }
+bool Channel::IsOwner(int client_socket) {
+    return owners_.find(client_socket) != owners_.end();
+}
 
 const std::string Channel::ClientsList(void) {
-	std::string list("");
-	for (std::map<int, Client *>::iterator it = clients_.begin(); it!= clients_.end(); it++) {
-		if (IsOwner(it->first))
-			list += "@";
-		list += it->second->getNickname();
-		list += " ";
-	}
-	std::cout << list << std::endl;
-	return list;
+    std::string list("");
+    for (std::map<int, Client *>::iterator it = clients_.begin();
+         it != clients_.end(); it++) {
+        if (IsOwner(it->first))
+            list += "@";
+        list += it->second->getNickname();
+        list += " ";
+    }
+    std::cout << list << std::endl;
+    return list;
 }

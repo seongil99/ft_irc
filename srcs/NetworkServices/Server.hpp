@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 18:21:35 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:19:24 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,19 +106,16 @@ class Server {
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);
-	//채널 password, invite only 관련 함수 추가
-	bool HasChannelPassword(const std::string &channel_name);
-	bool CheckChannelPassword(const std::string &password_input, 
-							  const std::string &channel_name);
-	bool IsInvitedChannel(int client_socket,
-						  const std::string &channel_name);
+    // 채널 password, invite only 관련 함수 추가
+    bool HasChannelPassword(const std::string &channel_name);
+    bool CheckChannelPassword(const std::string &password_input,
+                              const std::string &channel_name);
+    bool IsInvitedChannel(int client_socket, const std::string &channel_name);
     bool HasModeInChannel(const char mode, const std::string &channel_name);
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
-	bool IsChannelOwner(int client_socket,
-						const std::string &channel_name);
-
+    bool IsChannelOwner(int client_socket, const std::string &channel_name);
 
     const std::string getAllChannelName();
     /**
@@ -131,10 +128,10 @@ class Server {
 
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname);
-	size_t	HowManyChannelsAre() const;
-	size_t	HowManyClientsAre() const;
-	size_t	HowManyClientsAreInChannel(const std::string &channel_name);
-	const std::string ClientsInChannelList(const std::string &channel_name);
+    size_t HowManyChannelsAre() const;
+    size_t HowManyClientsAre() const;
+    size_t HowManyClientsAreInChannel(const std::string &channel_name);
+    const std::string ClientsInChannelList(const std::string &channel_name);
 
     /* Getter */
 

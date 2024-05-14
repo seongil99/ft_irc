@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/13 16:57:37 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:18:59 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,11 +28,13 @@ class Channel {
     std::string channel_name_;
     std::map<int, Client *> clients_;
     Client *owner_;
-	std::map<int, Client *> owners_; //한 채널에 운영자가 여러명 있을 수 있어 map으로 바꿔야 할 듯
-	std::map<int, Client *> invited_clients_; //운영자가 초대 -> 초대받은 사람이 join으로 가입
-	std::string passwd_;
-	size_t users_limit_;
-    std::set<char> mode_; //i t k o l
+    // 한 채널에 운영자가 여러명 있을 수 있어 map으로 바꿔야 할 듯
+    std::map<int, Client *> owners_;
+    // 운영자가 초대 -> 초대받은 사람이 join으로 가입
+    std::map<int, Client *> invited_clients_;
+    std::string passwd_;
+    size_t users_limit_;
+    std::set<char> mode_; // i t k o l
     std::string topic_;
 
   public:
@@ -76,13 +78,13 @@ class Channel {
      */
     Client *getJoinedClient(const std::string &nickname);
 
-	//channel mode 확인 관련 함수
-	std::string getPassword();
-	int	getUsersLimit();
-	bool IsInvited(int client_socket);
+    // channel mode 확인 관련 함수
+    std::string getPassword();
+    int getUsersLimit();
+    bool IsInvited(int client_socket);
 
-	bool IsOwner(int client_socket);
-	const std::string ClientsList(void);
+    bool IsOwner(int client_socket);
+    const std::string ClientsList(void);
 };
 
 #endif
