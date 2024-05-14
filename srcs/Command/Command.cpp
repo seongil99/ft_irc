@@ -94,7 +94,7 @@ bool	Command::excute(Client *client, std::string str)
 void	Command::pass(Client *client)
 {//PASS <password>
 	if (cmd.size() == 1)
-		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 461 " + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
+		serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
 	else {
 		if (!serv->CheckPassword(cmd[1])) //패스워드 틀렸을때 어떻게 해야할지 모르겠음 수정필요
 			serv->PushSendQueueClient(client->getClientSocket(), ":irc.local Incorrect PASSWORD");

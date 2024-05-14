@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:50:59 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 19:20:42 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,10 +167,20 @@ void Server::EventWrite(struct kevent *curr_event) {
 void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
     // 메시지 받고
-    clients_[client_socket].setMessage(std::string("") + buf);
+    std::string temp(buf);
+    clients_iter it = clients_.find(client_socket);
+    (*it).second.AppendMessage(temp);
+
+    if (temp.rfind("\r\n") == std::string::npos) {
+        return;
+    }
+
+    // 서버 콘솔에 출력
+    std::cout << "received data from " << client_socket << ": "
+              << (*it).second.getMessage() << std::endl;
 
     //===================================================================================================
-    if (cmd.excute(&clients_[client_socket], std::string(buf)) == false) {
+    if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
         // 일반 채팅문일 경우
         // 메시지 앞에 추가 문장 달고
 
@@ -180,11 +190,10 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     }
     //===================================================================================================
 
-    // 서버 콘솔에 출력
-    std::cout << "received data from " << client_socket << ": "
-              << clients_[client_socket].getMessage() << std::endl;
-
-    clients_[client_socket].setMessage(""); // 버퍼 초기화
+    // execute 이후 client 지워질 수 있음
+    it = clients_.find(client_socket);
+    if (it != clients_.end())
+        (*it).second.setMessage(""); // 버퍼 초기화
 }
 
 /**
@@ -235,6 +244,8 @@ void Server::RemoveClientFromChannel(int client_socket,
 void Server::RemoveClientFromChannel(
     int client_socket, std::map<std::string, Channel>::iterator channel_iter) {
     (*channel_iter).second.RemoveClient(client_socket);
+    // if ((*channel_iter).second.getClientCount() == 0)
+    //     channels_.erase(channel_iter);
 }
 
 void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
@@ -267,8 +278,8 @@ bool Server::CheckPassword(const std::string &password_input) const {
     return this->passwd_ == password_input;
 }
 
-bool Server::HasDuplicateNickname(const std::string &nickname) {
-    clients_iter it = clients_.begin();
+bool Server::HasDuplicateNickname(const std::string &nickname) const {
+    const_clients_iter it = clients_.begin();
     for (; it != clients_.end(); it++) {
         if ((*it).second.getNickname() == nickname)
             return true;
@@ -276,16 +287,16 @@ bool Server::HasDuplicateNickname(const std::string &nickname) {
     return false;
 }
 
-bool Server::HasChannel(const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+bool Server::HasChannel(const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it == channels_.end())
         return false;
     return true;
 }
 
 bool Server::HasClientInChannel(int client_socket,
-                                const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+                                const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
         return (*it).second.HasClient(client_socket);
     }
@@ -323,8 +334,8 @@ void Server::SendMessageToOtherClient(int sender_socket,
 }
 
 // 채널 password, invite only 관련 함수 추가
-bool Server::HasChannelPassword(const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+bool Server::HasChannelPassword(const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
         if (!(*it).second.CheckPassword(""))
             return true;
@@ -333,17 +344,17 @@ bool Server::HasChannelPassword(const std::string &channel_name) {
 }
 
 bool Server::CheckChannelPassword(const std::string &password_input,
-                                  const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+                                  const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && HasChannelPassword(channel_name))
         return (*it).second.CheckPassword(password_input);
     return true;
 }
 
 bool Server::IsInvitedChannel(int client_socket,
-                              const std::string &channel_name) {
-    clients_iter client = clients_.find(client_socket);
-    channels_iter it = channels_.find(channel_name);
+                              const std::string &channel_name) const {
+    const_clients_iter client = clients_.find(client_socket);
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.HasMode('i'))
         return (*it).second.IsInvited((*client).second.getClientSocket());
     return true;
@@ -359,8 +370,8 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
 }
 
 bool Server::HasModeInChannel(const char mode,
-                              const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+                              const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.HasMode(mode);
     return false;
@@ -381,8 +392,8 @@ void Server::RemoveModeFromChannel(const char mode,
 }
 
 bool Server::IsChannelOwner(int client_socket,
-                            const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+                            const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.IsOwner(client_socket);
     return false;
@@ -391,9 +402,9 @@ bool Server::IsChannelOwner(int client_socket,
 /**
  * @return All channel name delimited by comma ','
  */
-const std::string Server::getAllChannelName() {
+const std::string Server::getAllChannelName() const {
     std::string ret("");
-    std::map<std::string, Channel>::iterator it = channels_.begin();
+    const_channels_iter it = channels_.begin();
     if (it == channels_.end())
         return ret;
     while (true) {
@@ -425,9 +436,7 @@ void Server::RemoveClientFromServer(int client_socket) {
     // 들어가있는 모든 채널에서 없애야한다.
     while (channel_iter != channels_.end()) {
         // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
-
-        // 혼자 있었으면 채널도 없어져야됨 -> todo
-
+        // 혼자 있었으면 채널도 없어져야됨 -> 주석 처리
         // 새로운 관리자 -> 일단 Channel::clients_.begin()
         RemoveClientFromChannel(client_socket, channel_iter);
         channel_iter++;
@@ -448,15 +457,16 @@ size_t Server::HowManyChannelsAre() const { return channels_.size(); }
 
 /** @return 클라이언트 개수 */
 size_t Server::HowManyClientsAre() const { return clients_.size(); }
-size_t Server::HowManyClientsAreInChannel(const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+size_t
+Server::HowManyClientsAreInChannel(const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.getClientCount();
     return 0;
 }
 const std::string
-Server::ClientsInChannelList(const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+Server::ClientsInChannelList(const std::string &channel_name) const {
+    const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.ClientsList();
     return NULL;
