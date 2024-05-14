@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:33:06 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:04:12 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,12 @@ Client &Client::operator=(const Client &ref) {
 }
 
 void Client::AddJoinedChannel(const std::string &channel_name) {
-    this->joined_chanels_.insert(channel_name);
+    this->joined_chanels_.push_back(channel_name);
 }
 void Client::RemoveJoinedChannel(const std::string &channel_name) {
-    std::set<std::string>::iterator it;
-    it = joined_chanels_.find(channel_name);
+    std::vector<std::string>::iterator it;
+    it =
+        std::find(joined_chanels_.begin(), joined_chanels_.end(), channel_name);
     if (it != joined_chanels_.end())
         joined_chanels_.erase(it);
 }
@@ -68,5 +69,13 @@ void Client::setRealname(const std::string &str) { this->realname_ = str; }
 void Client::setUsername(const std::string &str) { this->username_ = str; }
 void Client::setMessage(const std::string &str) { this->message_ = str; }
 
-/** @return 가장 마지막으로 참여했던 채널 이름*/
-const std::string &Client::getLastJoinedChannelName(void) const { return *joined_chanels_.rbegin();}
+/**
+ * @return 가장 마지막으로 참여했던 채널 이름, 비어있는 경우 "" 반환
+ */
+const std::string Client::getLastJoinedChannelName(void) const {
+    std::vector<std::string>::const_reverse_iterator it =
+        joined_chanels_.rbegin();
+    if (it != joined_chanels_.rend())
+        return (*it);
+    return std::string("");
+}

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:33:03 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:04:39 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define CLIENT_HPP
 
 #include <queue>
-#include <set>
 #include <string>
+#include <vector>
 
 class Client {
   private:
@@ -26,7 +26,7 @@ class Client {
     std::string message_;
     std::queue<std::string> send_q_;
     std::queue<std::string> recv_q_;
-    std::set<std::string> joined_chanels_;
+    std::vector<std::string> joined_chanels_;
 
   public:
     Client(void);
@@ -47,7 +47,7 @@ class Client {
     const std::string &getRealname(void) const;
     const std::string &getNickname(void) const;
     const std::string &getMessage(void) const;
-    const std::string &getLastJoinedChannelName(void) const;
+    const std::string getLastJoinedChannelName(void) const;
     size_t getSendQueueSize(void) const;
 	size_t getJoinedChannelsCount(void) const;
 

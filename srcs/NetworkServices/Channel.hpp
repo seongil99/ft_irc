@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:46:35 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:08:30 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,9 @@ class Channel {
     void SendMessageToAllClients(const std::string &message);
     void SendMessageToOthers(int sender_socket, const std::string &message);
 
-    bool HasClient(int client_socket);
-    bool HasClient(const std::string &nickname);
-    bool HasMode(char mode);
+    bool HasClient(int client_socket) const;
+    bool HasClient(const std::string &nickname) const;
+    bool HasMode(char mode) const;
 
     void AddMode(char mode);
     void RemoveMode(char mode);
@@ -85,11 +85,11 @@ class Channel {
     Client *getJoinedClient(const std::string &nickname);
 
     // channel mode 확인 관련 함수
-    size_t getUsersLimit();
-    bool IsInvited(int client_socket);
+    int getUsersLimit() const;
+    bool IsInvited(int client_socket) const;
 
-    bool IsOwner(int client_socket);
-    const std::string ClientsList(void);
+    bool IsOwner(int client_socket) const;
+    const std::string ClientsList(void) const;
 };
 
 #endif

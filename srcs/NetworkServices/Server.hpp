@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:50:01 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:11:45 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@
 
 typedef std::map<int, Client>::iterator clients_iter;
 typedef std::map<std::string, Channel>::iterator channels_iter;
+typedef std::map<int, Client>::const_iterator const_clients_iter;
+typedef std::map<std::string, Channel>::const_iterator const_channels_iter;
 
 class Server {
   private:
@@ -99,8 +101,9 @@ class Server {
 	void AddChannelOwner(const std::string &client_name, 
 						 const std::string &channel_name);
     void RemoveChannelOwner(Client &client, const std::string &channel_name);
-    bool HasChannel(const std::string &channel_name);
-    bool HasClientInChannel(int client_socket, const std::string &channel_name);
+    bool HasChannel(const std::string &channel_name) const;
+    bool HasClientInChannel(int client_socket,
+                            const std::string &channel_name) const;
     void SendMessageToAllClientsInChannel(const std::string &channel_name,
                                           const std::string &message);
     void SendMessageToOthersInChannel(int client_socket,
@@ -110,22 +113,17 @@ class Server {
                                   const std::string &receiver_nickname,
                                   const std::string &message);
     // 채널 password, invite only 관련 함수 추가
-    bool HasChannelPassword(const std::string &channel_name);
+    bool HasChannelPassword(const std::string &channel_name) const;
     bool CheckChannelPassword(const std::string &password_input,
                               const std::string &channel_name);
     bool IsInvitedChannel(int client_socket, const std::string &channel_name);
-    bool IsOverUsersLimitChannel(const std::string &channel_name);
-	bool HasModeInChannel(const char mode, const std::string &channel_name);
+    bool HasModeInChannel(const char mode, const std::string &channel_name);
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
-	void SetPasswordInChannel(const std::string &passwd, 
-							const std::string &channel_name);
-	void SetUsersLimitInChannel(size_t limit, 
-								const std::string &channel_name);
     bool IsChannelOwner(int client_socket, const std::string &channel_name);
 
-    const std::string getAllChannelName();
+    const std::string getAllChannelName() const;
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
      * 이걸 사용해야 하는 로직이 있다면 Server 메소드로 추가할 예정.
@@ -135,13 +133,12 @@ class Server {
     /* Client functions */
 
     void PushSendQueueClient(int client_socket, const std::string &message);
-    bool HasDuplicateNickname(const std::string &nickname);
+    bool HasDuplicateNickname(const std::string &nickname) const;
     size_t HowManyChannelsAre() const;
 	size_t HowManyChannelsJoined(int client_socket);
     size_t HowManyClientsAre() const;
     size_t HowManyClientsAreInChannel(const std::string &channel_name);
-    size_t GetUsersLimitInChannel(const std::string &channel_name);
-	const std::string ClientsInChannelList(const std::string &channel_name);
+    const std::string ClientsInChannelList(const std::string &channel_name);
 
     /* Getter */
 

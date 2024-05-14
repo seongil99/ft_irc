@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:48:33 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 15:09:04 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,13 +117,13 @@ void Channel::setChannelName(const std::string &channel_name) {
 }
 // return : true = that client joined this channel
 // return : false = that client didn't join this channe
-bool Channel::HasClient(int client_socket) {
-    std::map<int, Client *>::iterator it = clients_.find(client_socket);
+bool Channel::HasClient(int client_socket) const {
+    std::map<int, Client *>::const_iterator it = clients_.find(client_socket);
     return it != clients_.end();
 }
 
-bool Channel::HasClient(const std::string &nickname) {
-    std::map<int, Client *>::iterator it = clients_.begin();
+bool Channel::HasClient(const std::string &nickname) const {
+    std::map<int, Client *>::const_iterator it = clients_.begin();
     while (it != clients_.end()) {
         if (it->second->getNickname() == nickname)
             return true;
@@ -132,7 +132,9 @@ bool Channel::HasClient(const std::string &nickname) {
     return false;
 }
 
-bool Channel::HasMode(char mode) { return mode_.find(mode) != mode_.end(); }
+bool Channel::HasMode(char mode) const {
+    return mode_.find(mode) != mode_.end();
+}
 
 void Channel::AddMode(char mode) {
     if (kChannelModes.find(mode) != std::string::npos)
@@ -179,13 +181,13 @@ bool Channel::IsInvited(int client_socket) {
     return invited_clients_.find(client_socket) != invited_clients_.end();
 }
 
-bool Channel::IsOwner(int client_socket) {
+bool Channel::IsOwner(int client_socket) const {
     return owners_.find(client_socket) != owners_.end();
 }
 
-const std::string Channel::ClientsList(void) {
+const std::string Channel::ClientsList(void) const {
     std::string list("");
-    for (std::map<int, Client *>::iterator it = clients_.begin();
+    for (std::map<int, Client *>::const_iterator it = clients_.begin();
          it != clients_.end(); it++) {
         if (IsOwner(it->first))
             list += "@";
