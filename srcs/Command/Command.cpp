@@ -86,10 +86,7 @@ bool	Command::excute(Client *client, std::string str)
 			break;
 		}
 	}
-	if (ret)
-	{
-		std::cout << "for debug : " << client->getUsername() << std::endl;
-	}
+	//client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
 }
@@ -407,7 +404,7 @@ void	Command::quit(Client *client)
 		std::cout << "joined channel name is " << channel << std::endl;
 	serv->SendMessageToOthersInChannel(client->getClientSocket(), channel, quit_msg);
 	//아래는 할 것 다하고 호출!
-	// serv->RemoveClientFromServer(client->getClientSocket());
+	serv->RemoveClientFromServer(client->getClientSocket());
 }
 
 void	Command::kick(Client *client)
