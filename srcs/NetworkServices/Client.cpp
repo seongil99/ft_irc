@@ -66,3 +66,6 @@ void Client::setNickname(const std::string &str) { this->nickname_ = str; }
 void Client::setRealname(const std::string &str) { this->realname_ = str; }
 void Client::setUsername(const std::string &str) { this->username_ = str; }
 void Client::setMessage(const std::string &str) { this->message_ = str; }
+
+/** @return 가장 마지막으로 참여했던 채널 이름*/
+const std::string &Client::getLastJoinedChannelName(void) const { return *joined_chanels_.rbegin();}

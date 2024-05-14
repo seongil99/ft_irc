@@ -36,6 +36,8 @@ Command::Command(Server *server) : serv(server)
 	cmd_ft[13] = &Command::mode;
 	cmd_list.push_back("NOTICE");
 	cmd_ft[14] = &Command::notice;
+	cmd_list.push_back("PART");
+	cmd_ft[15] = &Command::part;
 }
 
 Command::~Command() {}
@@ -84,10 +86,10 @@ bool	Command::excute(Client *client, std::string str)
 			break;
 		}
 	}
-	// if (ret)
-	// {
-		//명령어라면 무엇을 더 하면 될까?
-	// }
+	if (ret)
+	{
+		std::cout << "for debug : " << cmd[0] << std::endl;
+	}
 	cmd.clear();
 	return ret;
 }
@@ -205,60 +207,18 @@ void	Command::join(Client *client)
 	}
 }
 
-void	Command::part(Client *client)
+void	Command::part(Client *client)// 이게 아니던...데?
 {//PART <channel>{,<channel>}
-	std::cout << client->getUsername();
-	std::vector<std::string>	channel;
-	std::string	temp("");
-	if (cmd.size() == 1)
-	{//PART 하나만 입력함 -> 사실 논리상 지금 현재 들어간 채널을 나가는게 맞지만... 원본은 무슨 행동을 하는가
-
-	}
-	else if (cmd.size() == 2)
-	{
-		if (cmd[1].find(",") == std::string::npos)
-			channel.push_back(cmd[1]);//하나만 입력함
-		else//,가 있음 두개 이상 입력했을 가능성
-		{
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						channel.push_back(temp);
-				temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				channel.push_back(temp);
-		}
-		//물론 채널이 존재하는지, 들어가 있었는지 확인
-		//근데 하나는 그렇다 치더라도 2개 이상 입력했으면 어떻게 처리하지?
-		for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
-		{
-			if (serv->HasChannel(*it) == false)
-			{// 없는 채널 입력함
-				//없는 채널 입력 했다는 메시지
-				continue;
-			}
-			// Channel	*joined_channel = serv->getChannel(*it);
-			if (serv->HasClientInChannel(client->getClientSocket(), (*it)) == false)
-			{//채널은 있는데 참가안한 채널을 입력함
-				//참가안한 채널이라는 메시지
-			}
-			else
-			{//있는 채널에 참가해 있음
-				serv->RemoveClientFromChannel(client->getClientSocket(), (*it));
-				//해당 채널에서 나갔다는 메시지
-			}
-		}
-	}
-	else// 무언갈 더 입력함
-	{
-
-	}
+	/*
+	/part hi ->라고 입력하면
+	:<nick>!<real>@127.0.0.1 PART #hi :hi ->  이걸 클라이언트전부에게 뿌림
+	*/
+	std::string temp(":");
+	std::cout << "you typed " << private_msg << std::endl;
+	temp += client->getNickname() + "!" + client->getRealname() + "@127.0.0.1 " + private_msg;
+	std::string channel = client->getLastJoinedChannelName();
+	serv->SendMessageToAllClientsInChannel(channel, temp);
+	serv->RemoveClientFromChannel(client->getClientSocket(), channel);
 }
 
 void	Command::privmsg(Client *client)
@@ -306,8 +266,8 @@ void	Command::privmsg(Client *client)
 		if (target.size() == 1)
 		{
 			std::cout << "target is 1. that is " << target[0] << std::endl;
-			if (serv->HasChannel(target[0].substr(1)))//받는 사람이 아니라 채널...흠
-				serv->SendMessageToAllClientsInChannel(target[0].substr(1), msg);
+			if (target[0][0] == '#' && serv->HasChannel(target[0].substr(1)))//받는게 사람이 아니라 채널...흠
+				serv->SendMessageToAllClientsInChannel(target[0].substr(1), msg.substr(1, msg.size()));
 			// else if ()
 		}
 	}
