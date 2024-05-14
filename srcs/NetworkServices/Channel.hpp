@@ -85,7 +85,7 @@ class Channel {
     Client *getJoinedClient(const std::string &nickname);
 
     // channel mode 확인 관련 함수
-    int getUsersLimit() const;
+    size_t getUsersLimit() const;
     bool IsInvited(int client_socket) const;
 
     bool IsOwner(int client_socket) const;

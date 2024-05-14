@@ -176,8 +176,8 @@ bool Channel::CheckPassword(const std::string &passwd) const {
     return this->passwd_ == passwd;
 }
 
-size_t Channel::getUsersLimit() { return users_limit_; };
-bool Channel::IsInvited(int client_socket) {
+size_t Channel::getUsersLimit() const { return users_limit_; };
+bool Channel::IsInvited(int client_socket) const {
     return invited_clients_.find(client_socket) != invited_clients_.end();
 }
 

@@ -350,15 +350,6 @@ bool Server::CheckChannelPassword(const std::string &password_input,
     return true;
 }
 
-bool Server::IsInvitedChannel(int client_socket,
-                              const std::string &channel_name) const {
-    const_clients_iter client = clients_.find(client_socket);
-    const_channels_iter it = channels_.find(channel_name);
-    if (it != channels_.end() && (*it).second.HasMode('i'))
-        return (*it).second.IsInvited((*client).second.getClientSocket());
-    return true;
-}
-
 clients_iter Server::FindClientByNickname(const std::string &nickname) {
     clients_iter it = clients_.begin();
     for (; it != clients_.end(); it++) {
@@ -370,7 +361,7 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
 
 bool Server::IsInvitedChannel(int client_socket,
                               const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
+     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.HasMode('i'))
         return (*it).second.IsInvited(client_socket);
     return true;
@@ -380,7 +371,7 @@ bool Server::IsOverUsersLimitChannel(const std::string &channel_name) {
 	channels_iter it = channels_.find(channel_name);
 	if (it != channels_.end() && (*it).second.HasMode('l'))
 		return HowManyClientsAreInChannel((*it).second.getChannelName()) \
-				>= GetUsersLimitInChannel((*it).second.getChannelName());
+				>= IsOverUsersLimitChannel((*it).second.getChannelName());
 	return false;
 }
 
