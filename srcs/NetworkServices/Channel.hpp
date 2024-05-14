@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:31:30 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:46:35 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ class Channel {
   private:
     std::string channel_name_;
     std::map<int, Client *> clients_;
-    Client *owner_;
     // 한 채널에 운영자가 여러명 있을 수 있어 map으로 바꿔야 할 듯
     std::map<int, Client *> owners_;
     // 운영자가 초대 -> 초대받은 사람이 join으로 가입
@@ -60,10 +59,15 @@ class Channel {
 
     bool CheckPassword(const std::string &passwd) const;
 
+    void AddOwner(Client *client);
+    void RemoveOwner(int client_socket);
+
+    void AddInvitedList(Client *client);
+    void RemoveInvitedList(int client_socket);
+
     /* Getter */
 
     const std::string &getChannelName(void) const;
-    Client *getOwner(void) const;
     int getClientCount(void) const;
     const std::string getModes(void) const;
     const std::string &getTopic(void) const;
@@ -71,7 +75,6 @@ class Channel {
     /* Setter */
 
     void setChannelName(const std::string &channel_name);
-    void setOwner(Client *client);
     void setTopic(const std::string &topic);
     void setPassword(const std::string &passwd);
 

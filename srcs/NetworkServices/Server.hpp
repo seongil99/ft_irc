@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:33:00 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:50:01 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,8 @@ class Server {
     void AddClientToChannel(Client &client, const std::string &channel_name);
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
-    void SetChannelOwner(Client &client, const std::string &channel_name);
+    void AddChannelOwner(Client &client, const std::string &channel_name);
+    void RemoveChannelOwner(Client &client, const std::string &channel_name);
     bool HasChannel(const std::string &channel_name);
     bool HasClientInChannel(int client_socket, const std::string &channel_name);
     void SendMessageToAllClientsInChannel(const std::string &channel_name,

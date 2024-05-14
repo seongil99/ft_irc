@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:32:49 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:50:59 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,11 +237,18 @@ void Server::RemoveClientFromChannel(
     (*channel_iter).second.RemoveClient(client_socket);
 }
 
-void Server::SetChannelOwner(Client &client, const std::string &channel_name) {
-    std::map<std::string, Channel>::iterator it;
-    it = channels_.find(channel_name);
+void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
-        (*it).second.setOwner(&client);
+        (*it).second.AddOwner(&client);
+    }
+}
+
+void Server::RemoveChannelOwner(Client &client,
+                                const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        (*it).second.RemoveClient(client.getClientSocket());
     }
 }
 

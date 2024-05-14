@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 13:31:18 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/14 13:48:33 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "Channel.hpp"
 
 Channel::Channel(void) {
-    owner_ = NULL;
     passwd_ = "";
     users_limit_ = 0;
 }
@@ -24,7 +23,6 @@ Channel::Channel(const Channel &ref) { *this = ref; }
 
 Channel::Channel(const std::string &channel_name) {
     this->channel_name_ = channel_name;
-    owner_ = NULL;
     passwd_ = "";
     users_limit_ = 0;
 }
@@ -37,7 +35,7 @@ Channel &Channel::operator=(const Channel &ref) {
     this->channel_name_ = ref.channel_name_;
     this->clients_ = ref.clients_;
     this->mode_ = ref.mode_;
-    this->owner_ = ref.owner_;
+    this->owners_ = ref.owners_;
     this->topic_ = ref.topic_;
     return *this;
 }
@@ -47,7 +45,6 @@ void Channel::AddClient(Client &client) {
     std::map<int, Client *>::iterator it = clients_.find(client_socket);
     if (!clients_.size()) {
         owners_[client_socket] = &client;
-        owner_ = &client;
     }
     if (it == clients_.end()) {
         client.AddJoinedChannel(this->channel_name_);
@@ -63,10 +60,12 @@ void Channel::RemoveClient(int client_socket) {
     if (it != clients_.end()) {
         (*it).second->RemoveJoinedChannel(this->channel_name_);
         clients_.erase(client_socket);
-        if (owner_ && owner_->getClientSocket() == client_socket)
-            owner_ = NULL;
-        if (owner_ == NULL && clients_.size())
-            setOwner((*clients_.begin()).second);
+        if (owners_.find(client_socket) != owners_.end())
+            RemoveOwner(client_socket);
+        if (invited_clients_.find(client_socket) != invited_clients_.end())
+            RemoveInvitedList(client_socket);
+        if (!owners_.size() && clients_.size())
+            AddOwner((*clients_.begin()).second);
     }
 }
 
@@ -88,13 +87,34 @@ void Channel::SendMessageToOthers(int sender_socket,
 }
 
 const std::string &Channel::getChannelName(void) const { return channel_name_; }
-Client *Channel::getOwner(void) const { return owner_; }
+
+void Channel::AddOwner(Client *client) {
+    int client_socket = client->getClientSocket();
+    if (owners_.find(client_socket) != owners_.end()) {
+        owners_[client_socket] = client;
+    }
+}
+void Channel::RemoveOwner(int client_socket) {
+    if (owners_.find(client_socket) != owners_.end()) {
+        owners_.erase(client_socket);
+    }
+}
+
+void Channel::AddInvitedList(Client *client) {
+    int client_socket = client->getClientSocket();
+    if (invited_clients_.find(client_socket) != invited_clients_.end()) {
+        invited_clients_[client_socket] = client;
+    }
+}
+void Channel::RemoveInvitedList(int client_socket) {
+    if (invited_clients_.find(client_socket) != invited_clients_.end()) {
+        invited_clients_.erase(client_socket);
+    }
+}
 
 void Channel::setChannelName(const std::string &channel_name) {
     this->channel_name_ = channel_name;
 }
-void Channel::setOwner(Client *client) { this->owner_ = client; }
-
 // return : true = that client joined this channel
 // return : false = that client didn't join this channe
 bool Channel::HasClient(int client_socket) {
