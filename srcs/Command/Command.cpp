@@ -165,11 +165,6 @@ void	Command::user(Client *client)
 	*/
 }
 
-// - i: 초대 전용 채널로 설정 및 해제
-// - t: 채널 관리자가 TOPIC 명령어 제한 설정 및 해제 -> TOPIC 명령어를 운영자만 사용할 수 있는지 여부
-// - k: 채널 비밀번호 설정 및 해제
-// - o: 채널 관리자 특권 부여 및 제거
-// - l: 채널에서 유저 제한 설정 및 해제
 //ch1 - pw1 짝이 맞아야만 들어갈 수 있음
 //채널 운영자가 여러명일 수 있다
 //비번이 있는 초대 전용 채널일 때 -> 초대를 받고 들어가면 비번 없어도 입장 가능
@@ -500,39 +495,60 @@ void	Command::topic(Client *client)
 	}
 }
 
-//채널 만들때 과정
-// 127.000.000.001.44646-127.000.000.001.06667: JOIN #aaa
-
-// 127.000.000.001.06667-127.000.000.001.44646: :test!root@127.0.0.1 JOIN :#aaa
-// :irc.local 353 test = #aaa :@test
-// :irc.local 366 test #aaa :End of /NAMES list.
-
-// 127.000.000.001.44646-127.000.000.001.06667: MODE #aaa
-
-// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 324 test #aaa :+nt
-// :irc.local 329 test #aaa :1715657672
-
-// 127.000.000.001.44646-127.000.000.001.06667: WHO #aaa %tcuhnfdar,743
-
-// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
-// :irc.local 315 test #aaa :End of /WHO list.
-
-// 127.000.000.001.44646-127.000.000.001.06667: MODE #aaa b
-
-// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 368 test #aaa :End of channel ban list
-
-
 //없는 옵션 빼려고 할때는 서버에서 반응 x
+// 127.000.000.001.44680-127.000.000.001.06667: MODE #abc +i
+// 127.000.000.001.06667-127.000.000.001.44680: :test!root@127.0.0.1 MODE #abc :+i
+// - i: 초대 전용 채널로 설정 및 해제
+// - t: 채널 관리자가 TOPIC 명령어 제한 설정 및 해제 -> TOPIC 명령어를 운영자만 사용할 수 있는지 여부
+// - k: 채널 비밀번호 설정 및 해제
+// - o: 채널 관리자 특권 부여 및 제거
+// - l: 채널에서 유저 제한 설정 및 해제
 void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 	std::string channel = cmd[1];
+	
+	//사용자가 처음 서버에 진입할때 사용자 모드를 +i로 바꿔줌
+	if (cmd[1][0] != '#' && cmd[2] == "+i") {
+		client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@127.0.0.1 MODE " + client->getNickname() + " :+i\r\n");
+		return ;
+	}
 	if (cmd.size() == 2) {
 		client->PushSendQueue(":irc.local 324 " + client->getNickname() + " " + channel + " :+nt\r\n");
 		client->PushSendQueue(":irc.local 329 " + client->getNickname() + " " + channel + "\r\n"); //시간 스탬프 값 필요
+		return ;
+	}
+	if (cmd[2][0] == 'b') {
+		client->PushSendQueue(":irc.local 368 " + client->getNickname() + " " + channel + " :End of channel ban list\r\n");
+		return ;
+	}
+	if (cmd[2][0] == '+') {
+		for (size_t i = 1; i < cmd[2].size(); i++) {
+			if (cmd[2][i] == 'i') {
+				serv->SetModeToChannel('i', channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+i\r\n");
+			}
+			if (cmd[2][i] == 't') {
+				serv->SetModeToChannel('t', channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+t\r\n");
+			}
+			if (cmd[2][i] == 'k') {
+				serv->SetModeToChannel('k', channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+k\r\n");
+			}
+			if (cmd[2][i] == 'o') {
+				serv->SetModeToChannel('o', channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+o\r\n");
+			}
+			if (cmd[2][i] == 'l') {
+				serv->SetModeToChannel('l', channel);
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " :+l\r\n");
+			}
+		}
 	}
 }
 // :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
 // :irc.local 315 test #aaa :End of /WHO list.
+// 	354, 315만 보내게 해놔서 수정 필요
 void	Command::who(Client *client)
 {
 	std::string channel = cmd[1];

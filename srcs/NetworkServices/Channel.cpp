@@ -191,6 +191,5 @@ const std::string Channel::ClientsList(void) {
         list += it->second->getNickname();
         list += " ";
     }
-    std::cout << list << std::endl;
     return list;
 }
