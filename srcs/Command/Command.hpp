@@ -23,7 +23,7 @@ private :
 	std::vector<std::string>	cmd;
 	std::string	private_msg;
 	typedef void (Command::*cmd_ft_arr)(Client*);
-	cmd_ft_arr cmd_ft[15];
+	cmd_ft_arr cmd_ft[16];
 	void	clean_cmd();
 	Server *serv;
 	//cmd=======================================
