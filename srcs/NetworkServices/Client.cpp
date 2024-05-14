@@ -72,8 +72,8 @@ void Client::setMessage(const std::string &str) { this->message_ = str; }
  * @return 가장 마지막으로 참여했던 채널 이름, 비어있는 경우 "" 반환
  */
 const std::string &Client::getLastJoinedChannelName(void) const {
-    std::vector<std::string>::reverse_iterator it = joined_chanels_.rbegin();
-    if (it != joined_chanels_.rend())
-        return (*it);
-    return "";
+    if (joined_chanels_.size())
+		return *(joined_chanels_.rbegin());
+    static const std::string empty_string;
+    return empty_string;
 }
