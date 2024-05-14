@@ -34,8 +34,8 @@ Command::Command(Server *server) : serv(server)
 	cmd_ft[12] = &Command::topic;
 	cmd_list.push_back("MODE");
 	cmd_ft[13] = &Command::mode;
-	cmd_list.push_back("NOTICE");
-	cmd_ft[14] = &Command::notice;
+	cmd_list.push_back("WHO");
+	cmd_ft[14] = &Command::who;
 	cmd_list.push_back("PART");
 	cmd_ft[15] = &Command::part;
 }
@@ -96,7 +96,6 @@ bool	Command::excute(Client *client, std::string str)
 
 void	Command::pass(Client *client)
 {//PASS <password>
-	// std::cout << client->getUsername();
 	if (cmd.size() == 1)
 		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 461 " + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
 	else {
@@ -138,13 +137,13 @@ void	Command::user(Client *client)
 	}
 	if (client->getRealname().size() != 0)//사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
 		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
-	//username 만들기 
+	//username 만들기
 	std::string	temp = cmd[1];
 	if (temp[temp.size() - 1] == '\n')
 		temp = temp.substr(0, temp.size());
 	client->setUsername(temp);
 	temp.clear();
-	//realname 만들기 
+	//realname 만들기
 	for (size_t i = 4; i < cmd.size(); i++)
 	{
 		temp += cmd[i];
@@ -152,7 +151,7 @@ void	Command::user(Client *client)
 			temp += " ";
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
-	
+
 	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
 	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
@@ -181,7 +180,7 @@ void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	std::vector<std::string>	channel, pw;
 
-	if (cmd.size() == 2 && cmd[1] == ":") 
+	if (cmd.size() == 2 && cmd[1] == ":")
 	{
 		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
 		return ;
@@ -198,12 +197,18 @@ void	Command::join(Client *client)
 			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
 				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (invite only)\r\n");
-			if (serv->HasChannelPassword(channel[i])) {
+			else if (serv->HasChannelPassword(channel[i])) {
 				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
 									  " :Cannot join channel (incorrect channel key)\r\n");
 			}
 		}
+		serv->AddClientToChannel(*client, channel[i]);
+		client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
+							  "@127.0.0.1 JOIN : " + channel[i] + "\r\n");
+		client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
+							  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
+		client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
 	}
 }
 
@@ -455,39 +460,44 @@ void	Command::topic(Client *client)
 	}
 }
 
+//채널 만들때 과정
+// 127.000.000.001.44646-127.000.000.001.06667: JOIN #aaa
+
+// 127.000.000.001.06667-127.000.000.001.44646: :test!root@127.0.0.1 JOIN :#aaa
+// :irc.local 353 test = #aaa :@test
+// :irc.local 366 test #aaa :End of /NAMES list.
+
+// 127.000.000.001.44646-127.000.000.001.06667: MODE #aaa
+
+// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 324 test #aaa :+nt
+// :irc.local 329 test #aaa :1715657672
+
+// 127.000.000.001.44646-127.000.000.001.06667: WHO #aaa %tcuhnfdar,743
+
+// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
+// :irc.local 315 test #aaa :End of /WHO list.
+
+// 127.000.000.001.44646-127.000.000.001.06667: MODE #aaa b
+
+// 127.000.000.001.06667-127.000.000.001.44646: :irc.local 368 test #aaa :End of channel ban list
+
+
+//없는 옵션 빼려고 할때는 서버에서 반응 x
 void	Command::mode(Client *client)
 {//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
-	//물론 채널, 권한이 존재하는지 확인
-	if (cmd[2] == "i" || cmd[2] == "-i")
-	{
-
-	}
-	else if (cmd[2] == "t" || cmd[2] == "-t")
-	{
-
-	}
-	else if (cmd[2] == "k" || cmd[2] == "-k")
-	{
-
-	}
-	else if (cmd[2] == "o" || cmd[2] == "-o")
-	{
-
-	}
-	else if (cmd[2] == "l" || cmd[2] == "-l")
-	{
-
-	}
-	else//플래그를 무조건 넣어야하나?
-	{//그 이외의 플래그?
-		std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
-
+	std::string channel = cmd[1];
+	if (cmd.size() == 2) {
+		client->PushSendQueue(":irc.local 324 " + client->getNickname() + " " + channel + " :+nt\r\n");
+		client->PushSendQueue(":irc.local 329 " + client->getNickname() + " " + channel + "\r\n"); //시간 스탬프 값 필요
 	}
 }
-
-void	Command::notice(Client *client)
-{//이게 뭐하는 명령어인지 몰?루
-	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
+// :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
+// :irc.local 315 test #aaa :End of /WHO list.
+void	Command::who(Client *client)
+{
+	std::string channel = cmd[1];
+	client->PushSendQueue(":irc.local 354 " + client->getNickname() + "\r\n");
+	client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 }
 
 void	Command::pong(Client *client)

@@ -41,7 +41,7 @@ private :
 	void	invite(Client *client);
 	void	topic(Client *client);
 	void	mode(Client *client);
-	void	notice(Client *client);
+	void	who(Client *client);
 	//cmd=======================================
 
 public :
