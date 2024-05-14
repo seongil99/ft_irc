@@ -490,8 +490,8 @@ void	Command::mode(Client *client)
 	else if (cmd[2][0] == 'b')
 		client->PushSendQueue(":irc.local 368 " + client->getNickname() + " " + channel + " :End of channel ban list\r\n");
 	else if (cmd[2][0] == '+') {
-		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " +");
-		int idx = 3;
+		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " ");
+		size_t idx = 3;
 		for (size_t i = 1; i < cmd[2].size(); i++) {
 			char mode = cmd[2][i];
 			switch (mode) { //한꺼번에 보내야 한다...
@@ -512,43 +512,43 @@ void	Command::mode(Client *client)
 
 				case 'i':
 					serv->SetModeToChannel('i', channel);
-					str += "i";
+					//str += "i";
 					break;
 				case 't':
 					serv->SetModeToChannel('t', channel);
-					str += "t";
+					//str += "t";
 					break;
 				case 'k':
-					if (cmd.size() < 4) {
+					if (cmd.size() < idx + 1) {
 						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " k * :You must specify a parameter for the key mode. Syntax: <key>.\r\n");
 					} else {
 						serv->SetModeToChannel('k', channel);
 						serv->SetPasswordInChannel(cmd[idx], channel);
-						str += "k";
-						info += (cmd[idx] + " ");
+						//str += "k";
+						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
 				case 'o':
-					if (cmd.size() < 4) {
+					if (cmd.size() < idx + 1) {
 						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>.\r\n");
 					} else {
 						serv->SetModeToChannel('o', channel);
 						serv->AddChannelOwner(cmd[idx], channel);
-						str += "o";
-						info += (cmd[idx] + " ");
+						//str += "o";
+						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
 				case 'l':
-					if (cmd.size() < 4) {
+					if (cmd.size() < idx + 1) {
 						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " l * :You must specify a parameter for the key mode. Syntax: <limit>.\r\n");
 					} else {
 						serv->SetModeToChannel('l', channel);
 						int limit = std::stoi(cmd[idx]);
 						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
-						str += "l";
-						info += (cmd[idx] + " ");
+						//str += "l";
+						// info += (cmd[idx] + " ");
 						idx++;
 					}
 					break;
@@ -557,7 +557,14 @@ void	Command::mode(Client *client)
 					break;
 			}
 		}
-		client->PushSendQueue(str + info + "\r\n");
+		if (info.size() == 1)
+			str += (":" + cmd[2]);
+		for (size_t i = 3; i < idx; i++) {
+			if (idx == i + 1)
+				info += ":";
+			info += (cmd[i] + " ");
+		}
+		serv->SendMessageToAllClientsInChannel(channel, str + info + "\r\n");
 	}
 	else if (cmd[2][0] == '-') {
 		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " -");
@@ -606,7 +613,7 @@ void	Command::mode(Client *client)
 					break;
 			}
 		}
-		client->PushSendQueue(str + info + "\r\n");
+		serv->SendMessageToAllClientsInChannel(channel, str + info + "\r\n");
 	}
 }
 // :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
