@@ -79,15 +79,6 @@ bool	Command::excute(Client *client, std::string str)
 	{
 		if (cmd[0] == cmd_list[i])
 		{//this is cmd. execute it.
-			//step 3 : get rid of "\r\n"
-			// temp = *cmd.rbegin();
-			// size_t last_index = temp.size() - 1;
-			// if (temp.size() > 1 && temp[last_index] == '\n' && temp[last_index - 1] == '\r')
-			// {
-			// 	cmd.pop_back();
-			// 	temp = temp.substr(0, last_index - 2);
-			// 	cmd.push_back(temp);
-			// }
 			(this->*cmd_ft[i])(client);
 			ret = true;
 			break;
@@ -138,19 +129,19 @@ void	Command::user(Client *client)
 // 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 // 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 	if (cmd.size() < 5)
-	{
+	{//인자를 적게 넣었을 경우
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
 		return;
 	}
 	if (client->getRealname().size() != 0)//사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
 		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
-	//username 만들기 
+	//username 만들기
 	std::string	temp = cmd[1];
 	if (temp[temp.size() - 1] == '\n')
 		temp = temp.substr(0, temp.size());
 	client->setUsername(temp);
 	temp.clear();
-	//realname 만들기 
+	//realname 만들기
 	for (size_t i = 4; i < cmd.size(); i++)
 	{
 		temp += cmd[i];
@@ -158,9 +149,7 @@ void	Command::user(Client *client)
 			temp += " ";
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
-	//이거 이렇게 하면 유저가 USER명령어를 치면 넣는대로 되지 않나?
-	
-	//이거 한번에 해야 되는게 맞나 아니면 이렇게 말고 나눠서 보내는게 맞나?
+
 	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
 	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
@@ -168,6 +157,12 @@ void	Command::user(Client *client)
 	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
 	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
 	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
+	/*
+	의문점
+	1. 안에 들어갈 문장은 대충 복붙했는데 이걸 어찌혀야하나
+	2. 사용자가 접속하고 나서 입력하면? -> 지금은 아무일도 안일어남.
+	3. 지금 논리상 realname에 :을 입력을 안하고 다른 글자를 넣어도 무사 통과하는데? 괜찮을까?
+	*/
 }
 
 // - i: 초대 전용 채널로 설정 및 해제
@@ -183,7 +178,7 @@ void	Command::join(Client *client)
 {//Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 	std::vector<std::string>	channel, pw;
 
-	if (cmd.size() == 2 && cmd[1] == ":") 
+	if (cmd.size() == 2 && cmd[1] == ":")
 	{
 		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered.\r\n");
 		return ;
@@ -203,7 +198,7 @@ void	Command::join(Client *client)
 			else if (serv->HasChannelPassword(channel[i])) {
 				if (i + 1 > pw.size() || pw[i].empty() || !serv->CheckChannelPassword(pw[i], channel[i]))
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] + \
-									  " :Cannot join channel (incorrect channel key)");
+									  " :Cannot join channel (incorrect channel key)\r\n");
 			}
 		}
 		serv->AddClientToChannel(*client, channel[i]);
@@ -221,7 +216,7 @@ void	Command::part(Client *client)
 	std::vector<std::string>	channel;
 	std::string	temp("");
 	if (cmd.size() == 1)
-	{//PART 하나만 입력함
+	{//PART 하나만 입력함 -> 사실 논리상 지금 현재 들어간 채널을 나가는게 맞지만... 원본은 무슨 행동을 하는가
 
 	}
 	else if (cmd.size() == 2)
@@ -273,11 +268,11 @@ void	Command::part(Client *client)
 
 void	Command::privmsg(Client *client)
 {//PRIVMSG (user1,user2,...,usern) <text to be sent>
-	std::cout << client->getUsername();
 	std::vector<std::string>	target;//귓말 받을 사람 모음
 	if (cmd.size() == 1)
 	{
 		//PRIVMSG만 입력하면?
+		std::cout << client->getUsername();
 	}
 	else if (cmd.size() == 2)
 	{
@@ -304,15 +299,22 @@ void	Command::privmsg(Client *client)
 			if (temp.empty() == false)
 				target.push_back(temp);
 		}
-		//target안에 있는 대상이 존재하는지 확인해야함
 		size_t msg_start = cmd[0].size();
 		while (private_msg[msg_start] == ' ')
 			msg_start++;
 		msg_start += cmd[1].size();
 		while (private_msg[msg_start] == ' ')
 			msg_start++;
-		std::string msg = private_msg.substr(msg_start);
+		std::string msg = private_msg.substr(msg_start);//끝에 \r\n가 남았는데 괜찮을까?
 		//보낼 메시지 완성 -> msg
+		//target안에 있는 대상이 존재하는지 확인해야함
+		if (target.size() == 1)
+		{
+			std::cout << "target is 1. that is " << target[0] << std::endl;
+			if (serv->HasChannel(target[0].substr(1)))//받는 사람이 아니라 채널...흠
+				serv->SendMessageToAllClientsInChannel(target[0].substr(1), msg);
+			// else if ()
+		}
 	}
 }
 
@@ -334,14 +336,13 @@ void	Command::oper(Client *client)
 
 void	Command::list(Client *client)
 {//LIST [<channel>{,<channel>} [<server>]]
-	// std::cout << client->getUsername();
 	std::vector<std::string>	target;
 	if (cmd.size() == 1)
 	{// 하나만 입력하면 사용 가능한 모든 채널 열람
 		std::string ret = serv->getAllChannelName();
 		if (ret.size() == 0)//채널이 없음
 			ret = "There is no channel";// 채널이 없다는 메시지
-		serv->PushSendQueueClient(client->getClientSocket(), ret);
+		serv->PushSendQueueClient(client->getClientSocket(), ret + "\r\n");
 	}
 	else
 	{
@@ -401,7 +402,6 @@ void	Command::quit(Client *client)
 
 void	Command::kick(Client *client)
 {//KICK <channel> <user> [<comment>]
-	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 	//물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
 	//권한이 있는가?
 	std::string msg(""/*강퇴 기본 메시지*/);
@@ -542,5 +542,5 @@ void	Command::who(Client *client)
 
 void	Command::pong(Client *client)
 {//PONG <server1> [<server2>]
-	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
+	client->PushSendQueue(" :irc.local PONG irc.local :irc.local\r\n");
 }
