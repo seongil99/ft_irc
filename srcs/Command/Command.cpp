@@ -88,7 +88,7 @@ bool	Command::excute(Client *client, std::string str)
 	}
 	if (ret)
 	{
-		std::cout << "for debug : " << cmd[0] << std::endl;
+		std::cout << "for debug : " << client->getUsername() << std::endl;
 	}
 	cmd.clear();
 	return ret;
@@ -213,15 +213,44 @@ void	Command::join(Client *client)
 }
 
 void	Command::part(Client *client)// 이게 아니던...데?
-{//PART <channel>{,<channel>}
+{//PART {leave msg for last channel}
 	/*
-	/part hi ->라고 입력하면
-	:<nick>!<real>@127.0.0.1 PART #hi :hi ->  이걸 클라이언트전부에게 뿌림
+	/part good bye ->라고 입력하면
+	:<nick>!<real>@127.0.0.1 PART #hi :good bye ->  이걸 클라이언트전부에게 뿌림
+
+	log
+	127.000.000.001.33312-127.000.000.001.06667: PART #hi :good bye // <= 이건 서버가 받은 메시지
+
+	127.000.000.001.06667-127.000.000.001.33312: :test2!root@127.0.0.1 PART #hi :good bye //<= 이건 같은 방에 있던 클라이언트
+
+	127.000.000.001.06667-127.000.000.001.33310: :test2!root@127.0.0.1 PART #hi :good bye //<= 이건 part친 본인
+
+	현재 결과
+	172.017.000.002.58140-192.168.065.002.08080: PART #hi :good bye
+
+	192.168.065.002.08080-172.017.000.002.58140: :klha!root@127.0.0.1 PART #hi :good bye
+	===================================
+	근데 클라이언트가 안나가지네? 다른 문제가 있나? 여기서 뭘 더 하란 말이지?
 	*/
-	std::string temp(":");
-	std::cout << "you typed " << private_msg << std::endl;
-	temp += client->getNickname() + "!" + client->getRealname() + "@127.0.0.1 " + private_msg;
+	// std::cout << "you typed \"" << private_msg.size() << "\"."<< std::endl;
+	std::string temp;
+	if (cmd.size() > 2)
+		temp = irc_utils::getForm(client, private_msg);
+	else
+		temp = irc_utils::getForm(client, cmd[0] + " :" + cmd[1] + "\r\n");
 	std::string channel = client->getLastJoinedChannelName();
+	if (channel == "")
+	{
+		std::cerr << "there is no joined channel.\ncmd terminated." << std::endl;
+		return ;
+	}
+	else
+		std::cout << "joined channel name is " << channel << std::endl;
+	//private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
+	/*
+	나간 사람이 운영자면?
+	나간 사람이 마지막 사람이라면 채널 자체를 없애버려야 한다.
+	*/
 	serv->SendMessageToAllClientsInChannel(channel, temp);
 	serv->RemoveClientFromChannel(client->getClientSocket(), channel);
 }
@@ -270,9 +299,19 @@ void	Command::privmsg(Client *client)
 		//target안에 있는 대상이 존재하는지 확인해야함
 		if (target.size() == 1)
 		{
-			std::cout << "target is 1. that is " << target[0] << std::endl;
-			if (target[0][0] == '#' && serv->HasChannel(target[0].substr(1)))//받는게 사람이 아니라 채널...흠
-				serv->SendMessageToAllClientsInChannel(target[0].substr(1), msg.substr(1, msg.size()));
+			// std::cout << "target is 1. that is " << target[0] << std::endl;
+			if (target[0][0] == '#' && serv->HasChannel(target[0]))//채널에 일반채팅문을 보냈다
+			{
+				/*
+				127.000.000.001.33322-127.000.000.001.06667: PRIVMSG #hi :hey
+
+				127.000.000.001.06667-127.000.000.001.33324: :upper!root@127.0.0.1 PRIVMSG #hi :hey
+				=======================================
+				자신을 제외하고 다 보내는 것으로 보인다.
+				*/
+
+				serv->SendMessageToOthersInChannel(client->getClientSocket(), target[0], irc_utils::getForm(client, private_msg));
+			}
 			// else if ()
 		}
 	}
@@ -339,25 +378,36 @@ void	Command::quit(Client *client)
 {//QUIT [<Quit message>]
 	//근데 이거 유저가 치면 본인이 나간다는 말 아닌가?
 	//나갈때는 모두 다 보내면 되지 않나
+	std::string quit_msg;
 	if (cmd.size() == 1)
 	{//QUIT만 침
-		//해당 유저가 나간다는 메시지
+		//원본:lower!root@127.0.0.1 QUIT :Quit: leaving
 
-		//아래는 할 것 다하고 호출!
-		serv->RemoveClientFromServer(client->getClientSocket());
+		quit_msg = irc_utils::getForm(client, "QUIT :Quit: leaving\r\n");
 	}
 	else
 	{//내보낼때 메시지도 같이 침
-		std::string msg = private_msg.substr(5);
-		if (msg[0] == ' ')
-		{
-			int space = 0;
-			while (msg[space] == ' ')
-				space++;
-			msg = msg.substr(space);
-		}
-		//보낼 메시지 완성 -> msg
+		/*
+		127.000.000.001.33378-127.000.000.001.06667: QUIT :bye
+
+		127.000.000.001.06667-127.000.000.001.33378: ERROR :Closing link: (root@127.0.0.1) [Quit: bye] //-> 요건 일단 보류
+
+		127.000.000.001.06667-127.000.000.001.33376: :lower!root@127.0.0.1 QUIT :Quit: bye
+		*/
+
+		quit_msg = irc_utils::getForm(client, "QUIT :Quit: " + private_msg.substr(6));
 	}
+	std::string channel = client->getLastJoinedChannelName();
+	if (channel == "")
+	{
+		std::cerr << "there is no joined channel.\ncmd terminated." << std::endl;
+		return ;
+	}
+	else
+		std::cout << "joined channel name is " << channel << std::endl;
+	serv->SendMessageToOthersInChannel(client->getClientSocket(), channel, quit_msg);
+	//아래는 할 것 다하고 호출!
+	// serv->RemoveClientFromServer(client->getClientSocket());
 }
 
 void	Command::kick(Client *client)
@@ -493,6 +543,7 @@ void	Command::mode(Client *client)
 }
 // :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
 // :irc.local 315 test #aaa :End of /WHO list.
+// 최초 생성때랑 기존에 있는 채널에 들어갈때 각각 보내는 메시지가 다름
 void	Command::who(Client *client)
 {
 	std::string channel = cmd[1];
