@@ -255,9 +255,9 @@ void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
     }
 }
 
-void Server::AddChannelOwner(const std::string &client_name, 
+void Server::AddChannelOwner(const std::string &client_nickname, 
 							 const std::string &channel_name) {
-    clients_iter client = FindClientByNickname(client_name);
+    clients_iter client = FindClientByNickname(client_nickname);
 	channels_iter it = channels_.find(channel_name);
 	if (client != clients_.end() && it != channels_.end()) {
 		(*it).second.AddOwner(&(*client).second);
@@ -273,12 +273,12 @@ void Server::RemoveChannelOwner(Client &client,
     }
 }
 
-void Server::RemoveChannelOwner(const std::string &client_name, 
+void Server::RemoveChannelOwner(const std::string &client_nickname, 
 							 	const std::string &channel_name) {
-    clients_iter client = FindClientByNickname(client_name);
+    clients_iter client = FindClientByNickname(client_nickname);
 	channels_iter it = channels_.find(channel_name);
 	if (client != clients_.end() && it != channels_.end()) {
-		(*it).second.RemoveOwner((*client).second.getClientSocket());
+		(*it).second.RemoveOwner((*client).first);
 	}
 }
 
@@ -322,6 +322,16 @@ bool Server::HasClientInChannel(int client_socket,
     return false;
 }
 
+bool Server::HasClientInChannel(const std::string &client_nickname,
+                                const std::string &channel_name) {
+	clients_iter client = FindClientByNickname(client_nickname);
+    const_channels_iter it = channels_.find(channel_name);
+    if (client != clients_.end() && it != channels_.end()) {
+        return (*it).second.HasClient((*client).first);
+    }
+    return false;
+}
+
 void Server::SendMessageToAllClientsInChannel(const std::string &channel_name,
                                               const std::string &message) {
     channels_iter it = channels_.find(channel_name);
@@ -343,7 +353,7 @@ void Server::SendMessageToOtherClient(int sender_socket,
                                       const std::string &receiver_nickname,
                                       const std::string &message) {
     clients_iter it = FindClientByNickname(receiver_nickname);
-    if (sender_socket == (*it).second.getClientSocket())
+    if (sender_socket == (*it).first)
         return;
     if (it != clients_.end()) {
         (*it).second.PushSendQueue(message);

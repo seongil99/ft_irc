@@ -199,7 +199,7 @@ void	Command::join(Client *client)
 			}
 			else if (serv->IsOverUsersLimitChannel(channel[i])) {
 					client->PushSendQueue(":irc.local 471 " + client->getNickname() + " " + channel[i] + \
-										  " :Cannot join channel (+l)\r\n");
+										  " :Cannot join channel (channel is full)\r\n");
 					return ;
 			}
 		}
@@ -208,10 +208,12 @@ void	Command::join(Client *client)
 		else {
 			serv->AddClientToChannel(*client, channel[i]);
 			client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
-								"@127.0.0.1 JOIN : " + channel[i] + "\r\n");
+								"@127.0.0.1 JOIN :" + channel[i] + "\r\n");
 			client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
 								channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
 			client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
+			serv->SendMessageToOthersInChannel(client->getClientSocket(), channel[i], client->getNickname() + "!" + client->getRealname() + \
+								"@127.0.0.1 JOIN :" + channel[i] + "\r\n");
 		}
 	}
 }
@@ -489,13 +491,9 @@ void	Command::invite(Client *client)
 void	Command::topic(Client *client)
 {//TOPIC <channel> [<topic>]
 	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
-	if (cmd.size() == 1)
-	{//TOPIC만 입력하면?
-		return;
-	}
 	// 채널 존재하는지 확인
 	if (serv->HasChannel(cmd[1]) == false)
-	{//채널 음슴
+	{//채널 없을때에 대한 처리는 rfc문서에 없기는 함
 		return;
 	}
 	Channel *channel = serv->getChannel(cmd[2]);
@@ -522,6 +520,9 @@ void	Command::topic(Client *client)
 // - l: 채널에서 유저 제한 설정 및 해제
 //MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 //코드가 너무 더럽다..
+
+//MODE -> :irc.local 482 user #a :You must be a channel op or higher to set channel mode i (inviteonly).
+//:irc.local 482 user #a :You must be a channel op or higher to set channel mode k (key).
 void	Command::mode(Client *client)
 {
 	std::string channel = cmd[1];
@@ -530,9 +531,13 @@ void	Command::mode(Client *client)
 	//사용자가 처음 서버에 진입할때 사용자 모드를 +i로 바꿔줌
 	if (cmd[1][0] != '#' && cmd[2] == "+i") 
 		client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@127.0.0.1 MODE " + client->getNickname() + " :+i\r\n");
+	else if (!serv->HasChannel(channel))
+		client->PushSendQueue(":irc.local 403 " + client->getNickname() + " " + get_reply_str(ERR_NOSUCHCHANNEL, channel) + "\r\n");
 	else if (cmd.size() == 2) {
+		std::time_t now = std::time(0);
+		std::string timestamp = std::to_string(now);
 		client->PushSendQueue(":irc.local 324 " + client->getNickname() + " " + channel + " :+nt\r\n");
-		client->PushSendQueue(":irc.local 329 " + client->getNickname() + " " + channel + "\r\n"); //시간 스탬프 값 필요
+		client->PushSendQueue(":irc.local 329 " + client->getNickname() + " " + channel + " :" + timestamp + "\r\n"); //시간 스탬프 값 필요
 	}
 	else if (cmd[2][0] == 'b')
 		client->PushSendQueue(":irc.local 368 " + client->getNickname() + " " + channel + " :End of channel ban list\r\n");
@@ -543,6 +548,10 @@ void	Command::mode(Client *client)
 			char mode = cmd[2][i];
 			switch (mode) {
 				case 'i':
+					if (!serv->IsChannelOwner(client->getClientSocket(), channel)) {
+						client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to set channel mode i (inviteonly).\r\n");
+						return ;
+					}
 					serv->SetModeToChannel('i', channel);
 					break;
 				case 't':
@@ -560,6 +569,9 @@ void	Command::mode(Client *client)
 				case 'o':
 					if (cmd.size() < idx + 1) {
 						client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>.\r\n");
+					} else if (!serv->HasClientInChannel(cmd[idx], channel)) {
+						client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + get_reply_str(ERR_NOSUCHNICK, cmd[idx]) + "\r\n");
+						return ;
 					} else {
 						serv->SetModeToChannel('o', channel);
 						serv->AddChannelOwner(cmd[idx], channel);
@@ -593,7 +605,7 @@ void	Command::mode(Client *client)
 	}
 	else if (cmd[2][0] == '-') {
 		std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " ");
-		int idx = 3;
+		size_t idx = 3;
 		for (size_t i = 1; i < cmd[2].size(); i++) {
 			char mode = cmd[2][i];
 			switch (mode) {

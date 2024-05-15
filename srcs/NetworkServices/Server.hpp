@@ -98,14 +98,16 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void AddChannelOwner(Client &client, const std::string &channel_name);
-	void AddChannelOwner(const std::string &client_name, 
+	void AddChannelOwner(const std::string &client_nickname, 
 						 const std::string &channel_name);
     void RemoveChannelOwner(Client &client, const std::string &channel_name);
-    void RemoveChannelOwner(const std::string &client_name, 
+    void RemoveChannelOwner(const std::string &client_nickname, 
 							const std::string &channel_name);
 	bool HasChannel(const std::string &channel_name) const;
     bool HasClientInChannel(int client_socket,
                             const std::string &channel_name) const;
+	bool HasClientInChannel(const std::string &client_nickname,
+                                const std::string &channel_name);
     void SendMessageToAllClientsInChannel(const std::string &channel_name,
                                           const std::string &message);
     void SendMessageToOthersInChannel(int client_socket,
