@@ -125,7 +125,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		ret = s1 + " :No such channel";
 		break;
 	case ERR_CANNOTSENDTOCHAN://s1 is channel name
-		ret = s1 + " :Cannot send to channel";
+		ret = s1 + " :You cannot send to channel";
 		break;
 	case ERR_TOOMANYCHANNELS://s1 is channel name
 		ret = s1 + " :You have joined too many channels";

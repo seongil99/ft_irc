@@ -51,7 +51,7 @@ std::vector<std::string> irc_utils::Split(std::string str, char delim) {
 std::string	irc_utils::getForm(Client *client, std::string origin)
 {
 	std::string temp(":");
-	temp += client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " " + origin;
+	temp += client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " " + origin + "\r\n";
 	return temp;
 }
 

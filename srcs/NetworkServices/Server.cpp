@@ -436,6 +436,35 @@ bool Server::IsChannelOwner(int client_socket,
     return false;
 }
 
+bool Server::HasTopicInChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && (*it).second.getTopic().size() != 0)
+		return true;
+	return false;
+}
+
+std::string Server::GetTopicInChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && HasTopicInChannel(channel_name))
+		return (*it).second.getTopic();
+	return 0;
+}
+
+std::string Server::WhoDidTopicInChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && HasTopicInChannel(channel_name))
+		return (*it).second.getTopicWhoDid();
+	return 0;
+}
+
+std::string Server::WhatTimeChannelMade(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+		return (*it).second.getTopicSetTime();
+	return 0;
+}
+
+
 /**
  * @return All channel name delimited by comma ','
  */

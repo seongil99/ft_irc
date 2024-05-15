@@ -132,6 +132,13 @@ class Server {
 								const std::string &channel_name);
     bool IsChannelOwner(int client_socket, const std::string &channel_name) const;
 
+	// 채널 Topic 관련 함수
+	bool HasTopicInChannel(const std::string &channel_name);
+	std::string GetTopicInChannel(const std::string &channel_name);
+	std::string WhoDidTopicInChannel(const std::string &channel_name);
+	std::string WhatTimeChannelMade(const std::string &channel_name);
+
+
     const std::string getAllChannelName() const;
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
