@@ -10,8 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
+
 #include "Client.hpp"
-#include "utils.hpp"
 #include "Channel.hpp"
 
 Channel::Channel(void) {
@@ -154,16 +155,23 @@ const std::string Channel::getModes(void) const {
 
 int Channel::getClientCount(void) const { return clients_.size(); }
 
+/**
+ * @param topic 설정할 토픽
+ * @param who_did 누가 토픽을 설정했는지 <realname>@<hostname> 양식으로 넣을 것!
+ * 
+*/
 void Channel::setTopic(const std::string &topic, const std::string &who_did) 
 {
 	topic_ = topic;
-	topic_who_did = who_did;
-	topic_set_time = irc_utils::getTimeOfNow();
+	topic_who_did_ = who_did;
+	std::stringstream ss;
+	ss << std::time(0);
+	topic_set_time_ = ss.str();
 }
 
 const std::string &Channel::getTopic(void) const { return topic_; }
-const std::string &Channel::getTopicSetTime(void) const { return topic_set_time; }
-const std::string &Channel::getTopicWhoDid(void) const { return topic_who_did; }
+const std::string &Channel::getTopicSetTime(void) const { return topic_set_time_; }
+const std::string &Channel::getTopicWhoDid(void) const { return topic_who_did_; }
 
 Client *Channel::getJoinedClient(const std::string &nickname) {
     std::map<int, Client *>::iterator it = clients_.begin();
@@ -193,9 +201,7 @@ bool Channel::IsInvited(int client_socket) const {
  *  @return 해당 클라이언트가 이 채널에서 권한이 있는지 확인
 */
 bool Channel::IsOwner(int client_socket) const {
-	if (owners_.size())
-    	return owners_.find(client_socket) != owners_.end();
-	return false;
+   	return owners_.find(client_socket) != owners_.end();
 }
 
 const std::string Channel::ClientsList(void) const {

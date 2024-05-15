@@ -57,6 +57,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 //301 RPL_AWAY : nickname, away message
 //332 RPL_TOPIC : channel, topic
 //341 RPL_INVITING : channel, nick
+//401 ERR_NOSUCHNICK: nickname, target
 //443 ERR_USERONCHANNEL : user, channel
 //482 ERR_CHANOPRIVSNEEDED: nick, channel
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
@@ -82,6 +83,9 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 	case ERR_CHANOPRIVSNEEDED:
 		ret = s1 + " " + s2 + " :You must be a channel op or higher to change the topic.";
 		break;
+	case ERR_NOSUCHNICK://s1 is nickname
+		ret = s1 + " " + s2 + " :No such nick/channel";
+		break;
 	default:
 		ret = "";
 		break;
@@ -92,7 +96,6 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 /*
 003 RPL_CREATED:  data
 331 RPL_NOTOPIC: channel name
-401 ERR_NOSUCHNICK: nickname
 403 ERR_NOSUCHCHANNEL: channel name
 404 ERR_CANNOTSENDTOCHAN: channel name
 405 ERR_TOOMANYCHANNELS: channel name
@@ -117,9 +120,6 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		break;
 	case RPL_NOTOPIC://s1 is channel name
 		ret = s1 + " :No topic is set";
-		break;
-	case ERR_NOSUCHNICK://s1 is nickname
-		ret = s1 + " :No such nick/channel";
 		break;
 	case ERR_NOSUCHCHANNEL://s1 is channel name
 		ret = s1 + " :No such channel";

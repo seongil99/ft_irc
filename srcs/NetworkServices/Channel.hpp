@@ -35,8 +35,8 @@ class Channel {
     size_t users_limit_;
     std::set<char> mode_; // i t k o l
     std::string topic_;
-    std::string topic_set_time;
-    std::string topic_who_did;
+    std::string topic_set_time_;
+    std::string topic_who_did_;
 
   public:
     Channel(void);

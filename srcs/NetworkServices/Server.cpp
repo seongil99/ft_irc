@@ -550,3 +550,27 @@ const std::string Server::ClientsInChannelList(const std::string &channel_name) 
         return (*it).second.ClientsList();
     return NULL;
 }
+
+/*
+	return -1 = 클라이언트가 없음
+*/
+int	Server::getClientSocket(const std::string &nick_name)
+{
+	clients_iter it = FindClientByNickname(nick_name);
+	if (it == clients_.end())
+		return -1;//애초에 없었음.
+	return it->first;
+}
+
+/**
+ * @param chaanel_name 초대한 채널 이름
+ * @param nick_name 초대받은 유저 닉네임
+ * @note 이 함수 내에서 유효성 검사를 안하니 호출전에 유효성 검사를 할 것!!
+*/
+void Server::AddInviteClient(const std::string &channel_name, const std::string &nick_name)
+{
+	Channel channel = channels_.find(channel_name)->second;
+	Client client = FindClientByNickname(nick_name)->second;
+
+	channel.AddInvitedList(&client);
+}

@@ -226,7 +226,7 @@ void Command::join(Client *client)
 				client->PushSendQueue(":irc.local 332 " + client->getNickname() + " " + channel[i] + " :" + serv->GetTopicInChannel(channel[i]) + "\r\n");
 				// topic 만든 사람의 realname도 넣어야 함
 				client->PushSendQueue(":irc.local 333 " + client->getNickname() + " " + channel[i] + " " +
-									  serv->WhoDidTopicInChannel(channel[i]) + "@" + client->getHostname() + " :" + serv->WhatTimeChannelMade(channel[i]) + "\r\n");
+									  serv->WhoDidTopicInChannel(channel[i]) + " :" + serv->WhatTimeChannelMade(channel[i]) + "\r\n");
 			}
 			client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " +
 								  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
@@ -524,44 +524,62 @@ void Command::kick(Client *client)
 	serv->RemoveClientFromChannel(client->getClientSocket(), cmd[1]);
 }
 
-void Command::invite(Client *client)
-{ // INVITE <nickname> <channel>
-	std::string name = cmd[1];
-	std::string channel = cmd[2];
-	if (cmd.size() != 3)
-	{ // 무언갈 더 쳤거나 덜 쳣음
+void	Command::invite(Client *client)
+{//INVITE <nickname> <channel>
+	/*특이사항
+		하나만 입력하면 채널을 알아서 넣음. 그때는 클라이언트 닉네임을 넣어야함.
+		두개를 입력하면 그대로 들어감. 입력할때 채널은 #을 붙여서 입력해야 제대로 인식함
+		세개 이상 입력하면 알아서 인자 두개만 넣어서 보내고 나머지는 버림 => 즉 무조건 인자가 3개로 들어오는게 보장됨
+	*/
+	std::string channel_name = cmd[2];
+	std::string nick_name = client->getNickname();
+	std::string invited = cmd[1];
+	if (serv->HasChannel(cmd[2]) == false)
+	{//해당 채널이 없음.
+		//":irc.local 403 middle lower :No such channel"
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 403 " + nick_name + " " + channel_name + " :No such channel\r\n");
+		return;
 	}
-	// 물론 채널, 권한, 대상 유저가 존재하는지 확인
-	if (serv->HasDuplicateNickname(name) == false)
-	{ // 해당 닉네임 없음 = 해당 유저 없음
-		client->PushSendQueue(":irc.local 401 " + client->getNickname() + get_reply_str(ERR_NOSUCHNICK, name) + "\r\n");
+	else if (serv->HasDuplicateNickname(invited) == false)
+	{//해당 닉네임 없음 = 해당 유저 없음
+		//:irc.local 401 middle lowe :No such nick
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 401 " + nick_name + " " + invited + " :No such nick\r\n");
+		return;
 	}
-	else if (serv->HasClientInChannel(name, channel))
-	{
-		client->PushSendQueue(":irc.local 443 " + client->getNickname() + " " + get_reply_str(ERR_USERONCHANNEL, name, channel) + "\r\n");
+	else if (serv->HasClientInChannel(serv->getClientSocket(invited), channel_name))
+	{//이미 있는 사람 초대했으면??
+		//:irc.local 443 upper middle #hi :is already on channel
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 443 " + nick_name + " " + invited + " " + channel_name + " :is already on channel\r\n");
+		return;
 	}
-	else if (serv->HasChannel(channel) == false)
-	{ // 해당 채널이 없음.
+	else if (serv->IsChannelOwner(client->getClientSocket(), channel_name) == false)
+	{//권한이 없음
+		//:irc.local 482 middle #hi :You must be a channel op or higher to send an invite.
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 482 " + invited + " " + channel_name + " :You must be a channel op or higher to send an invite.\r\n");
+		return;
 	}
-	// 이미 있는 사람 초대했으면??
-	// 초대하는 코드
+	//초대하는 코드
+	/*
+	127.000.000.001.52370-127.000.000.001.06667: INVITE lower #hi
+
+	127.000.000.001.06667-127.000.000.001.52370: :irc.local 341 upper lower :#hi
+
+	127.000.000.001.06667-127.000.000.001.52390: :upper!root@127.0.0.1 INVITE lower :#hi
+	*/
+		//명령어 발송자에게 날리기
+		serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 341 " + nick_name + " " + invited + " :" + channel_name + "\r\n");
+		//초대 수신자에게 날리기
+		serv->PushSendQueueClient(serv->getClientSocket(invited), irc_utils::getForm(client, private_msg));
+		//해당 채널에 초대받은 사람 초대 리스트에 넣기
+		serv->AddInviteClient(channel_name, invited);
+	/*
+	의문점
+	초대 성공하면, 받는 사람은 어떻게 초대 받음?
+	*/
 }
 
-void Command::topic(Client *client)
-{ // TOPIC [<topic>]
-	// if (cmd.size() == 1)
-	// {
-	// 	/*
-	// 		[/topic]만 입력한 경우 => 현재 있는 채널의 토픽을 알려줌. 이건 권한 유무 상관 없이 열람 가능
-	// 		1. 없을 경우 => "No topic set for  #<channel>" 이라고 안내됨. 근데 내부에 패킷이 안돌아다니는데?
-	// 		2. 있을 경우 => 이것도 내부에 패킷이 안돌아다니는데?
-	// 		Topic for #<channel>: <topic>
-	// 		Topic set by <nickname_who_did> [<realname_who_did>] [what_time_did_set_topic]
-	// 		이렇게 뜬다.
-	// 	*/
-	// 	return;
-	// }
-	// 채널 존재하는지 확인
+void	Command::topic(Client *client)
+{//TOPIC [<topic>]
 	Channel *channel = serv->getChannel(cmd[1]);
 	if (!channel)
 	{
@@ -570,28 +588,28 @@ void Command::topic(Client *client)
 	}
 	// 권한이 있는지 확인
 	if (channel->IsOwner(client->getClientSocket()))
-	{ // 있음 topic 설정 가능
-		/*
-		127.000.000.001.52294-127.000.000.001.06667: TOPIC #<channel> :<topic>
-
-		127.000.000.001.06667-127.000.000.001.52294: :lower!root@127.0.0.1 TOPIC #<channel> :<topic>
-
-		127.000.000.001.06667-127.000.000.001.52292: :lower!root@127.0.0.1 TOPIC #<channel> :<topic>
-		*/
-		channel->setTopic(private_msg.substr(8 + cmd[1].size(), private_msg.size() - 2), client->getNickname());
+	{//있음 topic 설정 가능
+		std::cout << "topic set complete!! : " + client->getRealname() + "@" + client->getHostname() << std::endl;
+		channel->setTopic(private_msg.substr(8 + cmd[1].size(), private_msg.size() - 2),  client->getRealname() + "@" + client->getHostname());
 		serv->SendMessageToAllClientsInChannel(cmd[1], irc_utils::getForm(client, private_msg));
-	}
-	else // 없음 topic 설정 불가능
+	}//잘되는 것으로 보인다. 야호!
+	else// 없음 topic 설정 불가능
 	{
 		/*
+		원본
 		127.000.000.001.52292-127.000.000.001.06667: TOPIC <channel> :<topic>
 
-		127.000.000.001.06667-127.000.000.001.52292: :irc.local 482 <nick> <channel> :You must be a channel op or higher to change the topic.
+		우리것
+		127.000.000.001.06667-127.000.000.001.52372: :irc.local 482 upper #hi :You must be a channel op or higher to change the topic.
 
-		192.168.065.002.08080-172.017.000.002.52138: :irc.local 482 lower #hi :You must be a channel op or higher to change the topic.
-
+		192.168.065.002.08080-172.017.000.002.52164: :irc.local 482 upper #hi :You must be a channel op or higher to change the topic.
 		*/
 		serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_CHANOPRIVSNEEDED) + get_reply_str(ERR_CHANOPRIVSNEEDED, client->getNickname(), cmd[1]));
+		// serv->PushSendQueueClient(client->getClientSocket(), ":irc.local 482 " + client->getNickname() + " " + cmd[1] + " :You must be a channel op or higher to change the topic.\r\n");
+		/*
+		문제점
+		이러고 다른 채팅방(채팅방이름앞에 공백하나 추가한것)으로 튕겨나간다 왜?
+		*/
 	}
 }
 

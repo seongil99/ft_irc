@@ -138,6 +138,7 @@ class Server {
 	std::string WhoDidTopicInChannel(const std::string &channel_name);
 	std::string WhatTimeChannelMade(const std::string &channel_name);
 
+	void AddInviteClient(const std::string &channel_name, const std::string &nick_name);
 
     const std::string getAllChannelName() const;
     /**
@@ -160,6 +161,7 @@ class Server {
     /* Getter */
 
     const std::string &getStartedTime() const;
+	int	getClientSocket(const std::string &nick_name);
 };
 
 #endif
