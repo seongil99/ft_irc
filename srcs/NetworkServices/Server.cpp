@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <cstdlib>
-#include <ctime>
 #include <fcntl.h>
 #include <iostream>
 #include <sys/socket.h>
@@ -22,16 +21,10 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
-Server::Server(void) : cmd(this) {
+Server::Server(void) : cmd(this), started_time_(irc_utils::getTimeOfNow()) {
     server_socket_ = 0;
     kq_ = 0;
     std::memset(&server_addr_, 0, sizeof(server_addr_));
-
-    std::time_t now = std::time(0);
-    std::tm *localTime = std::localtime(&now);
-    char buffer[80];
-    std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
-    started_time_ = buffer;
 }
 
 Server::~Server(void) {}
@@ -61,7 +54,7 @@ void Server::Init(int port, std::string passwd) {
     std::cout << "server port " << port << std::endl;
 
     /* Test Default Channel */
-    CreateChannel("default");
+    // CreateChannel("default");
 }
 
 /**

@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include <iostream>
+#include <ctime>
 
 #include "Client.hpp"
 #include "utils.hpp"
@@ -52,4 +53,15 @@ std::string	irc_utils::getForm(Client *client, std::string origin)
 	std::string temp(":");
 	temp += client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " " + origin;
 	return temp;
+}
+
+
+/** @return 양식에 맞춘 현재 시간*/
+std::string	irc_utils::getTimeOfNow()
+{
+	std::time_t now = std::time(0);
+	std::tm *localTime = std::localtime(&now);
+	char buffer[80];
+	std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
+	return std::string(buffer);
 }

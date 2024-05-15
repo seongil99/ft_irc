@@ -58,6 +58,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 //332 RPL_TOPIC : channel, topic
 //341 RPL_INVITING : channel, nick
 //443 ERR_USERONCHANNEL : user, channel
+//482 ERR_CHANOPRIVSNEEDED: nick, channel
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 {
 	std::string	ret;
@@ -77,6 +78,9 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 		break;
 	case ERR_USERONCHANNEL://s1 is user, s2 is channel
 		ret = s1 + " " + s2 + " :is already on channel";
+		break;
+	case ERR_CHANOPRIVSNEEDED:
+		ret = s1 + " " + s2 + " :You must be a channel op or higher to change the topic.";
 		break;
 	default:
 		ret = "";
@@ -102,7 +106,6 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 461 ERR_NEEDMOREPARAMS: command
 472 ERR_UNKNOWNMODE: char
 476 ERR_BADCHANMASK: channel
-482 ERR_CHANOPRIVSNEEDED: channel
 */
 std::string	get_reply_str(const Reply n, std::string s1)
 {
@@ -156,9 +159,6 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		break;
 	case ERR_BADCHANMASK://s1 is channel
 		ret = s1 + " :Bad Channel Mask";
-		break;
-	case ERR_CHANOPRIVSNEEDED: //s1 is channel
-		ret = s1 + " :You're not channel operator";
 		break;
 	default:
 		break;
