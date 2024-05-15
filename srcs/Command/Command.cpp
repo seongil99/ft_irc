@@ -38,6 +38,8 @@ Command::Command(Server *server) : serv(server)
 	cmd_ft[14] = &Command::who;
 	cmd_list.push_back("PART");
 	cmd_ft[15] = &Command::part;
+	cmd_list.push_back("CAP");
+	cmd_ft[16] = &Command::cap;
 }
 
 Command::~Command() {}
@@ -667,5 +669,8 @@ void	Command::who(Client *client)
 
 void	Command::pong(Client *client)
 {//PONG <server1> [<server2>]
-	client->PushSendQueue(" :irc.local PONG irc.local :irc.local\r\n");
+	client->PushSendQueue(":irc.local PONG irc.local :irc.local\r\n");
 }
+ void	Command::cap(Client *client) {
+	client->PushSendQueue(":irc.local Connecting...\r\n");
+ }
