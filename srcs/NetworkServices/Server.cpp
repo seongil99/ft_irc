@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <cstdlib>
-#include <ctime>
 #include <fcntl.h>
 #include <iostream>
 #include <sys/socket.h>
@@ -22,16 +21,10 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
-Server::Server(void) : cmd(this) {
+Server::Server(void) : cmd(this), started_time_(irc_utils::getTimeOfNow()) {
     server_socket_ = 0;
     kq_ = 0;
     std::memset(&server_addr_, 0, sizeof(server_addr_));
-
-    std::time_t now = std::time(0);
-    std::tm *localTime = std::localtime(&now);
-    char buffer[80];
-    std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
-    started_time_ = buffer;
 }
 
 Server::~Server(void) {}
@@ -61,7 +54,7 @@ void Server::Init(int port, std::string passwd) {
     std::cout << "server port " << port << std::endl;
 
     /* Test Default Channel */
-    CreateChannel("default");
+    // CreateChannel("default");
 }
 
 /**
@@ -179,16 +172,10 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     std::cout << "received data from " << client_socket << ": "
               << (*it).second.getMessage() << std::endl;
 
-    //===================================================================================================
     if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
-        // 일반 채팅문일 경우
-        // 메시지 앞에 추가 문장 달고
-
-        // 일단은 자신을 제외한 모든 클라이언트한테 쏴주기
         channels_["default"].SendMessageToOthers(
             client_socket, clients_[client_socket].getMessage());
     }
-    //===================================================================================================
 
     // execute 이후 client 지워질 수 있음
     it = clients_.find(client_socket);

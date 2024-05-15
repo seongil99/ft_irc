@@ -35,6 +35,8 @@ class Channel {
     size_t users_limit_;
     std::set<char> mode_; // i t k o l
     std::string topic_;
+    std::string topic_set_time;
+    std::string topic_who_did;
 
   public:
     Channel(void);
@@ -69,12 +71,14 @@ class Channel {
     int getClientCount(void) const;
     const std::string getModes(void) const;
     const std::string &getTopic(void) const;
+    const std::string &getTopicWhoDid(void) const;
+    const std::string &getTopicSetTime(void) const;
 
     /* Setter */
 
     void setChannelName(const std::string &channel_name);
-    void setTopic(const std::string &topic);
 	void setUsersLimit(size_t limit);
+    void setTopic(const std::string &topic, const std::string &who_did);
     void setPassword(const std::string &passwd);
 	bool CheckPassword(const std::string &passwd) const;
 

@@ -150,9 +150,10 @@ void	Command::user(Client *client)
 			temp += " ";
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
+	client->setHostname("192.168.65.2");//임시로 이렇게 넣은거니 확실해지면 추가할 것!
 
-	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (127.0.0.1) instead.\r\n");
-	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), "127.0.0.1"));
+	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (" + client->getHostname() +") instead.\r\n");
+	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), client->getHostname()));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
 	client->PushSendQueue(get_reply_number(RPL_CREATED) + client->getNickname() + get_reply_str(RPL_CREATED, serv->getStartedTime()));
 	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
@@ -209,6 +210,7 @@ void	Command::join(Client *client)
 			client->PushSendQueue("irc.local 405 " + client->getNickname() + " " + get_reply_str(ERR_TOOMANYCHANNELS, channel[i]) + "\r\n");
 		else {
 			serv->AddClientToChannel(*client, channel[i]);
+			// client->PushSendQueue(irc_utils::getForm(client, "JOIN : " + channel[i] + "\r\n"));
 			client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + \
 								"@127.0.0.1 JOIN :" + channel[i] + "\r\n");
 			client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " + \
@@ -218,6 +220,67 @@ void	Command::join(Client *client)
 								"@127.0.0.1 JOIN :" + channel[i] + "\r\n");
 		}
 	}
+	/*
+	==============================================================================
+	// 토픽이 설정된 채널에 들어갔을 경우
+	127.000.000.001.06667-127.000.000.001.52344: :lower!root@127.0.0.1 JOIN :#hi
+	:irc.local 332 lower #hi :abcdefg
+	:irc.local 333 lower #hi upper!root@127.0.0.1 :1715751668
+	:irc.local 353 lower = #hi :@upper lower
+	:irc.local 366 lower #hi :End of /NAMES list.
+
+	127.000.000.001.06667-127.000.000.001.52342: :lower!root@127.0.0.1 JOIN :#hi
+
+	127.000.000.001.52342-127.000.000.001.06667: WHO lower %tna,745
+
+	127.000.000.001.06667-127.000.000.001.52342: :irc.local 354 upper 745 lower :0
+	:irc.local 315 upper lower :End of /WHO list.
+
+	127.000.000.001.52344-127.000.000.001.06667: MODE #hi
+
+	127.000.000.001.06667-127.000.000.001.52344: :irc.local 324 lower #hi :+nt
+	:irc.local 329 lower #hi :1715751647
+
+	127.000.000.001.52344-127.000.000.001.06667: WHO #hi %tcuhnfdar,743
+
+	127.000.000.001.06667-127.000.000.001.52344: :irc.local 354 lower 743 #hi root 127.0.0.1 upper H@ 0 0 :root
+	:irc.local 354 lower 743 #hi root 127.0.0.1 lower H 0 0 :root
+	:irc.local 315 lower #hi :End of /WHO list.
+
+	127.000.000.001.52344-127.000.000.001.06667: MODE #hi b
+
+	127.000.000.001.06667-127.000.000.001.52344: :irc.local 368 lower #hi :End of channel ban list
+
+	//토픽이 없는 채널에 들어갔을 경우
+	127.000.000.001.52348-127.000.000.001.06667: JOIN #hi
+
+	127.000.000.001.06667-127.000.000.001.52348: :lower!root@127.0.0.1 JOIN :#hi
+	:irc.local 353 lower = #hi :@upper lower
+	:irc.local 366 lower #hi :End of /NAMES list.
+
+	127.000.000.001.06667-127.000.000.001.52346: :lower!root@127.0.0.1 JOIN :#hi
+
+	127.000.000.001.52346-127.000.000.001.06667: WHO lower %tna,745
+
+	127.000.000.001.06667-127.000.000.001.52346: :irc.local 354 upper 745 lower :0
+	:irc.local 315 upper lower :End of /WHO list.
+
+	127.000.000.001.52348-127.000.000.001.06667: MODE #hi
+
+	127.000.000.001.06667-127.000.000.001.52348: :irc.local 324 lower #hi :+nt
+	:irc.local 329 lower #hi :1715751807
+
+	127.000.000.001.52348-127.000.000.001.06667: WHO #hi %tcuhnfdar,743
+
+	127.000.000.001.06667-127.000.000.001.52348: :irc.local 354 lower 743 #hi root 127.0.0.1 upper H@ 0 0 :root
+	:irc.local 354 lower 743 #hi root 127.0.0.1 lower H 0 0 :root
+	:irc.local 315 lower #hi :End of /WHO list.
+
+	127.000.000.001.52348-127.000.000.001.06667: MODE #hi b
+
+	127.000.000.001.06667-127.000.000.001.52348: :irc.local 368 lower #hi :End of channel ban list
+	==============================================================================
+	*/
 }
 
 void	Command::part(Client *client)// 이게 아니던...데?
@@ -239,6 +302,7 @@ void	Command::part(Client *client)// 이게 아니던...데?
 	192.168.065.002.08080-172.017.000.002.58140: :klha!root@127.0.0.1 PART #hi :good bye
 	===================================
 	근데 클라이언트가 안나가지네? 다른 문제가 있나? 여기서 뭘 더 하란 말이지?
+	로그는 문제 없으나 다른 문제가 있을 가능성도 있음
 	*/
 	// std::cout << "you typed \"" << private_msg.size() << "\"."<< std::endl;
 	std::string temp;
@@ -491,26 +555,58 @@ void	Command::invite(Client *client)
 }
 
 void	Command::topic(Client *client)
+<<<<<<< HEAD
 {//TOPIC <channel> [<topic>]
 	std::cout << client->getUsername();//컴파일 에러 방지용. 나중에 꼭 지울것!!
 	// 채널 존재하는지 확인
 	if (serv->HasChannel(cmd[1]) == false)
 	{//채널 없을때에 대한 처리는 rfc문서에 없기는 함
+=======
+{//TOPIC [<topic>]
+	// if (cmd.size() == 1)
+	// {
+	// 	/*
+	// 		[/topic]만 입력한 경우 => 현재 있는 채널의 토픽을 알려줌. 이건 권한 유무 상관 없이 열람 가능
+	// 		1. 없을 경우 => "No topic set for  #<channel>" 이라고 안내됨. 근데 내부에 패킷이 안돌아다니는데?
+	// 		2. 있을 경우 => 이것도 내부에 패킷이 안돌아다니는데?
+	// 		Topic for #<channel>: <topic>
+	// 		Topic set by <nickname_who_did> [<realname_who_did>] [what_time_did_set_topic]
+	// 		이렇게 뜬다.
+	// 	*/
+	// 	return;
+	// }
+	// 채널 존재하는지 확인
+	Channel *channel = serv->getChannel(cmd[1]);
+	if (!channel)
+	{
+		std::cerr << "There is no channel in this server. check it out!" << std::endl;
+>>>>>>> klha
 		return;
 	}
-	Channel *channel = serv->getChannel(cmd[2]);
-	(void)channel;
-	if (cmd.size() == 2)//해당 채널의 토픽을 확인하는 명령어
-	{
+	//권한이 있는지 확인
+	if (channel->IsOwner(client->getClientSocket()))
+	{//있음 topic 설정 가능
+	/*
+	127.000.000.001.52294-127.000.000.001.06667: TOPIC #<channel> :<topic>
 
-	}
-	else if (cmd.size() == 3)//해당 채널의 토픽을 설정하는 명령어
-	{
+	127.000.000.001.06667-127.000.000.001.52294: :lower!root@127.0.0.1 TOPIC #<channel> :<topic>
 
+	127.000.000.001.06667-127.000.000.001.52292: :lower!root@127.0.0.1 TOPIC #<channel> :<topic>
+	*/
+		channel->setTopic(private_msg.substr(8 + cmd[1].size(), private_msg.size() - 2), client->getHostname());
+		serv->SendMessageToAllClientsInChannel(cmd[1], irc_utils::getForm(client, private_msg));
 	}
-	else
-	{// 그 이외로 무언가를 더 치면?
-		return;
+	else// 없음 topic 설정 불가능
+	{
+		/*
+		127.000.000.001.52292-127.000.000.001.06667: TOPIC <channel> :<topic>
+
+		127.000.000.001.06667-127.000.000.001.52292: :irc.local 482 <nick> <channel> :You must be a channel op or higher to change the topic.
+
+		192.168.065.002.08080-172.017.000.002.52138: :irc.local 482 lower #hi :You must be a channel op or higher to change the topic.
+
+		*/
+		serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_CHANOPRIVSNEEDED) + get_reply_str(ERR_CHANOPRIVSNEEDED, client->getNickname(), cmd[1]));
 	}
 }
 
