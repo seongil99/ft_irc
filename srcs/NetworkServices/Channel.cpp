@@ -18,6 +18,7 @@
 Channel::Channel(void) {
     passwd_ = "";
     users_limit_ = 0;
+	mode_.insert('t');
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
