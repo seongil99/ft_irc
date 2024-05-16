@@ -93,6 +93,7 @@ bool Command::excute(Client *client, std::string str)
 	return ret;
 }
 
+//이거 채팅방 비번이 아니라 서버 비번 관련 명령어인것 같은데?
 void Command::pass(Client *client)
 { // PASS <password>
 	if (cmd.size() == 1)
@@ -234,8 +235,8 @@ void Command::join(Client *client)
 	}
 }
 
-void Command::part(Client *client) // 이게 아니던...데?
-{								   // PART {leave msg for last channel}
+void Command::part(Client *client)
+{// PART {#channel} {leave msg for last channel}
 	/*
 	/part good bye ->라고 입력하면
 	:<nick>!<real>@127.0.0.1 PART #hi :good bye ->  이걸 클라이언트전부에게 뿌림
@@ -256,26 +257,41 @@ void Command::part(Client *client) // 이게 아니던...데?
 	로그는 문제 없으나 다른 문제가 있을 가능성도 있음
 	*/
 	// std::cout << "you typed \"" << private_msg.size() << "\"."<< std::endl;
+	std::string channel = cmd[1];
+	std::string nick_name = client->getNickname();
 	std::string temp;
-	if (cmd.size() > 2)
-		temp = irc_utils::getForm(client, private_msg);
+	int	socket = client->getClientSocket();
+	if (cmd.size() == 2)
+		temp = irc_utils::getForm(client, cmd[0] + " :" + channel + "\r\n");
 	else
-		temp = irc_utils::getForm(client, cmd[0] + " :" + cmd[1] + "\r\n");
-	std::string channel = client->getLastJoinedChannelName();
-	if (channel == "")
-	{
-		std::cerr << "there is no joined channel.\ncmd terminated." << std::endl;
+		temp = irc_utils::getForm(client, private_msg);
+	// private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
+	if (serv->HasChannel(channel) == false)
+	{//그런 채널 없는데? -> 그럼 현재 채널 나가
+	/* 현재 1이란 채널에서 /pass get out 사용
+	-> 그럼 클라이언트가 /pass #1 :get out으로 던짐 이건 여기에 안들어와짐
+	여기에 들어오는 건 status에서 똑같은 명령어를 쓴다면 이렇게 됨
+	127.000.000.001.49828-127.000.000.001.06667: PART get :out
+	127.000.000.001.06667-127.000.000.001.49828: :irc.local 403 upper get :No such channel
+	*/
+		serv->PushSendQueueClient(socket, get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, channel));
 		return;
 	}
-	else
-		std::cout << "joined channel name is " << channel << std::endl;
-	// private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
+	else if (serv->HasClientInChannel(nick_name, channel) == false)
+	{//채널 있기는 한데 넌 안들어가 있는데? -> 오류 메시지만 보내고 끝
 	/*
-	나간 사람이 운영자면?
+	127.000.000.001.49828-127.000.000.001.06667: PART #4 :hwy?
+	127.000.000.001.06667-127.000.000.001.49828: :irc.local 442 upper #4 :You're not on that channel
+	*/
+		serv->PushSendQueueClient(socket, get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, channel));
+		return;
+	}
+	/*
+	나간 사람이 마직막 운영자면 -> 해당 채널에 운영자가 없는 채널이 되어 버림....
 	나간 사람이 마지막 사람이라면 채널 자체를 없애버려야 한다.
 	*/
 	serv->SendMessageToAllClientsInChannel(channel, temp);
-	serv->RemoveClientFromChannel(client->getClientSocket(), channel);
+	serv->RemoveClientFromChannel(socket, channel);
 }
 
 // PRIVMSG (user1,user2,...,usern) <text to be sent>
