@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 19:13:08 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 20:04:47 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,8 @@ void Server::CloseClient(int client_fd) {
     close(client_fd);
     clients_.erase(client_fd);
 }
+
+bool Server::HasPassword(void) const { return passwd_ != ""; }
 
 void Server::CreateChannel(const std::string &channel_name) {
     if (!HasChannel(channel_name)) {

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:00:53 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 20:04:38 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,9 @@ class Server {
 
     void Init(int port, std::string passwd);
     void Listen(void);
+
     bool CheckPassword(const std::string &password_input) const;
+    bool HasPassword(void) const;
 
     void RemoveClientFromServer(int client_socket);
 
