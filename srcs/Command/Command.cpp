@@ -219,7 +219,7 @@ void Command::join(Client *client)
 		{
 			serv->AddClientToChannel(*client, channel[i]);
 			// client->PushSendQueue(irc_utils::getForm(client, "JOIN : " + channel[i] + "\r\n"));
-			client->PushSendQueue(client->getNickname() + "!" + client->getRealname() + "@" + \
+			client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + \
 								  client->getHostname() + " JOIN :" + channel[i] + "\r\n");
 			if (serv->HasTopicInChannel(channel[i]))
 			{
@@ -231,70 +231,9 @@ void Command::join(Client *client)
 			client->PushSendQueue(":irc.local 353 " + client->getNickname() + " = " +
 								  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
 			client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
-			serv->SendMessageToOthersInChannel(client->getClientSocket(), channel[i], client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " JOIN :" + channel[i] + "\r\n");
+			serv->SendMessageToOthersInChannel(client->getClientSocket(), channel[i], ":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " JOIN :" + channel[i] + "\r\n");
 		}
 	}
-	/*
-	==============================================================================
-	// 토픽이 설정된 채널에 들어갔을 경우
-	127.000.000.001.06667-127.000.000.001.52344: :lower!root@127.0.0.1 JOIN :#hi
-	:irc.local 332 lower #hi :abcdefg
-	:irc.local 333 lower #hi upper!root@127.0.0.1 :1715751668
-	:irc.local 353 lower = #hi :@upper lower
-	:irc.local 366 lower #hi :End of /NAMES list.
-
-	127.000.000.001.06667-127.000.000.001.52342: :lower!root@127.0.0.1 JOIN :#hi
-
-	127.000.000.001.52342-127.000.000.001.06667: WHO lower %tna,745
-
-	127.000.000.001.06667-127.000.000.001.52342: :irc.local 354 upper 745 lower :0
-	:irc.local 315 upper lower :End of /WHO list.
-
-	127.000.000.001.52344-127.000.000.001.06667: MODE #hi
-
-	127.000.000.001.06667-127.000.000.001.52344: :irc.local 324 lower #hi :+nt
-	:irc.local 329 lower #hi :1715751647
-
-	127.000.000.001.52344-127.000.000.001.06667: WHO #hi %tcuhnfdar,743
-
-	127.000.000.001.06667-127.000.000.001.52344: :irc.local 354 lower 743 #hi root 127.0.0.1 upper H@ 0 0 :root
-	:irc.local 354 lower 743 #hi root 127.0.0.1 lower H 0 0 :root
-	:irc.local 315 lower #hi :End of /WHO list.
-
-	127.000.000.001.52344-127.000.000.001.06667: MODE #hi b
-
-	127.000.000.001.06667-127.000.000.001.52344: :irc.local 368 lower #hi :End of channel ban list
-
-	//토픽이 없는 채널에 들어갔을 경우
-	127.000.000.001.52348-127.000.000.001.06667: JOIN #hi
-
-	127.000.000.001.06667-127.000.000.001.52348: :lower!root@127.0.0.1 JOIN :#hi
-	:irc.local 353 lower = #hi :@upper lower
-	:irc.local 366 lower #hi :End of /NAMES list.
-
-	127.000.000.001.06667-127.000.000.001.52346: :lower!root@127.0.0.1 JOIN :#hi
-
-	127.000.000.001.52346-127.000.000.001.06667: WHO lower %tna,745
-
-	127.000.000.001.06667-127.000.000.001.52346: :irc.local 354 upper 745 lower :0
-	:irc.local 315 upper lower :End of /WHO list.
-
-	127.000.000.001.52348-127.000.000.001.06667: MODE #hi
-
-	127.000.000.001.06667-127.000.000.001.52348: :irc.local 324 lower #hi :+nt
-	:irc.local 329 lower #hi :1715751807
-
-	127.000.000.001.52348-127.000.000.001.06667: WHO #hi %tcuhnfdar,743
-
-	127.000.000.001.06667-127.000.000.001.52348: :irc.local 354 lower 743 #hi root 127.0.0.1 upper H@ 0 0 :root
-	:irc.local 354 lower 743 #hi root 127.0.0.1 lower H 0 0 :root
-	:irc.local 315 lower #hi :End of /WHO list.
-
-	127.000.000.001.52348-127.000.000.001.06667: MODE #hi b
-
-	127.000.000.001.06667-127.000.000.001.52348: :irc.local 368 lower #hi :End of channel ban list
-	==============================================================================
-	*/
 }
 
 void Command::part(Client *client) // 이게 아니던...데?
@@ -786,8 +725,33 @@ void Command::mode(Client *client)
 void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
-	client->PushSendQueue(":irc.local 354 " + client->getNickname() + " :" + client->getRealname() + "\r\n");
-	client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
+	std::vector<std::string> args = irc_utils::Split(cmd[2], ',');
+
+	if (args[1] == "743") {
+		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + ":" + "\r\n");
+		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
+	}
+	else if (args[1] == "745") {
+		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 745 :" + client->getRealname() + "\r\n");
+		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
+	}
+
+	/*
+	78 = a, 80 = b
+
+	127.000.000.001.50978-127.000.000.001.06667: WHO b %tna,745
+
+	127.000.000.001.06667-127.000.000.001.50978: :irc.local 354 a 745 b :0
+	:irc.local 315 a b :End of /WHO list.
+
+	127.000.000.001.50980-127.000.000.001.06667: WHO #ch %tcuhnfdar,743
+
+	127.000.000.001.06667-127.000.000.001.50980: :irc.local 354 b 743 #ch root 127.0.0.1 a H@ 0 0 :root
+	:irc.local 354 b 743 #ch root 127.0.0.1 b H 0 0 :root
+	:irc.local 315 b #ch :End of /WHO list.
+
+	*/
+
 }
 
 void Command::pong(Client *client)
