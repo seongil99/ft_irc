@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 16:57:22 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 17:31:42 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void Server::Listen(void) {
     if (listen_result == -1)
         irc_utils::ExitWithError("listen() error");
     ChangeEvents(server_socket_, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    std::cout << "echo server started" << std::endl;
+    std::cout << "irc server started" << std::endl;
 
     /* main loop */
     int new_events;
