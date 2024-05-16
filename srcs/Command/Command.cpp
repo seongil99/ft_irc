@@ -218,13 +218,11 @@ void Command::join(Client *client)
 		else
 		{
 			serv->AddClientToChannel(*client, channel[i]);
-			// client->PushSendQueue(irc_utils::getForm(client, "JOIN : " + channel[i] + "\r\n"));
 			client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + \
 								  client->getHostname() + " JOIN :" + channel[i] + "\r\n");
 			if (serv->HasTopicInChannel(channel[i]))
 			{
 				client->PushSendQueue(":irc.local 332 " + client->getNickname() + " " + channel[i] + " :" + serv->GetTopicInChannel(channel[i]) + "\r\n");
-				// topic 만든 사람의 realname도 넣어야 함
 				client->PushSendQueue(":irc.local 333 " + client->getNickname() + " " + channel[i] + " " +
 									  serv->WhoDidTopicInChannel(channel[i]) + " :" + serv->WhatTimeChannelMade(channel[i]) + "\r\n");
 			}
@@ -291,12 +289,8 @@ void Command::privmsg(Client *client)
 	msg_start += cmd[1].size();
 	while (private_msg[msg_start] == ' ')
 		msg_start++;
-	std::string msg = private_msg.substr(msg_start + 1); // 끝에 \r\n가 남았는데 괜찮을까?
-	msg.erase(msg.size() - 2);							//앞에 ':' 빼려고 +1 했습니다
-	// 보낼 메시지 완성 -> msg
-	// target안에 있는 대상이 존재하는지 확인해야함
-	// :a!root@127.0.0.1 PRIVMSG #ch1 :hello~
-	// :a!root@127.0.0.1 PRIVMSG #ch2 :hello~
+	std::string msg = private_msg.substr(msg_start + 1); //msg 앞 ':' 제거
+	msg.erase(msg.size() - 2);							//\r\n 제거
 	for (size_t i = 0; i < target.size(); i++) {
 		if (target[i][0] == '#') {
 			if (serv->HasChannel(target[i]) && serv->HasClientInChannel(client->getClientSocket(), target[i]))
@@ -561,8 +555,9 @@ void	Command::topic(Client *client)
 // MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>] [<ban mask>]
 // 코드가 너무 더럽다..
 
-// MODE -> :irc.local 482 user #a :You must be a channel op or higher to set channel mode i (inviteonly).
-//: irc.local 482 user #a :You must be a channel op or higher to set channel mode k (key).
+// MODE #ch +w
+
+// :irc.local 472 a w :is not a recognised channel mode.
 void Command::mode(Client *client)
 {
 	std::string channel = cmd[1];
@@ -726,19 +721,19 @@ void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
 	std::vector<std::string> args = irc_utils::Split(cmd[2], ',');
-	// std::string clients_list =  serv->ClientsInChannelList(channel);
-	// std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
+	std::string clients_list =  serv->ClientsInChannelList(channel);
+	std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
 
 	if (args[1] == "743") {
-		// for (size_t i = 0; i < clients_vec.size(); i++) {
-		// 	if (clients_vec[i][0] == '@') {
-		// 		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
-		// 							  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
-		// 	}
-		// }
-		// client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + ":" + "\r\n");
-		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
+		for (size_t i = 0; i < clients_vec.size(); i++) {
+			if (clients_vec[i][0] == '@') {
+				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
+									  " " + client->getHostname() + " " + clients_vec[i].substr(1) + " H@ 0 0 :" + client->getRealname() + "\r\n");
+			}
+			else
+				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() + \
 									  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
+		}
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
 	else if (args[1] == "745") {
@@ -747,21 +742,6 @@ void Command::who(Client *client)
 	}
 
 	/*
-	127.000.000.001.51020-127.000.000.001.06667: WHO c %tna,745
-
-	127.000.000.001.51018-127.000.000.001.06667: WHO c %tna,745
-
-	127.000.000.001.06667-127.000.000.001.51020: :irc.local 354 b 745 c :0
-	:irc.local 315 b c :End of /WHO list.
-
-	127.000.000.001.06667-127.000.000.001.51018: :irc.local 354 a 745 c :0
-	:irc.local 315 a c :End of /WHO list.
-
-	127.000.000.001.51022-127.000.000.001.06667: MODE #ch
-
-	127.000.000.001.06667-127.000.000.001.51022: :irc.local 324 c #ch :+nt
-	:irc.local 329 c #ch :1715835658
-
 	WHO #ch %tcuhnfdar,743
 
 	:irc.local 354 c 743 #ch root 127.0.0.1 a H@ 0 0 :root
