@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:04:16 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 16:57:22 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,9 @@ void Server::EventRead(struct kevent *curr_event) {
         if ((client_socket = accept(server_socket_, NULL, NULL)) == -1)
             irc_utils::ExitWithError("accept() error\n");
         std::cout << "accept new client: " << client_socket << std::endl;
-        fcntl(client_socket, F_SETFL, O_NONBLOCK);
+        int fcntl_result = fcntl(client_socket, F_SETFL, O_NONBLOCK);
+        if (fcntl_result == -1)
+            irc_utils::ExitWithError("fcntl() error");
 
         /* add event for client socket - add read && write event */
         ChangeEvents(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
