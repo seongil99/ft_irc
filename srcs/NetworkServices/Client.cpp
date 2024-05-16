@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 16:32:28 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:01:01 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,12 @@ int Client::getClientSocket(void) const { return client_socket_; }
 const std::string &Client::getUsername(void) const { return username_; }
 const std::string &Client::getRealname(void) const { return realname_; }
 const std::string &Client::getNickname(void) const { return nickname_; }
-const std::string &Client::getHostname(void) const{ return hostname_; }
+const std::string &Client::getHostname(void) const { return hostname_; }
 const std::string &Client::getMessage(void) const { return message_; }
 size_t Client::getSendQueueSize(void) const { return send_q_.size(); }
-size_t Client::getJoinedChannelsCount(void) const { return joined_chanels_.size(); };
+size_t Client::getJoinedChannelsCount(void) const {
+    return joined_chanels_.size();
+};
 
 void Client::setNickname(const std::string &str) { this->nickname_ = str; }
 void Client::setRealname(const std::string &str) { this->realname_ = str; }
@@ -78,8 +80,7 @@ void Client::setMessage(const std::string &str) { this->message_ = str; }
  */
 const std::string &Client::getLastJoinedChannelName(void) const {
     if (joined_chanels_.size())
-		return *(joined_chanels_.rbegin());
+        return *(joined_chanels_.rbegin());
     static const std::string empty_string;
     return empty_string;
 }
-

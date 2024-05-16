@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 19:20:42 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:00:50 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,15 +242,14 @@ void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
     }
 }
 
-void Server::AddChannelOwner(const std::string &client_nickname, 
-							 const std::string &channel_name) {
+void Server::AddChannelOwner(const std::string &client_nickname,
+                             const std::string &channel_name) {
     clients_iter client = FindClientByNickname(client_nickname);
-	channels_iter it = channels_.find(channel_name);
-	if (client != clients_.end() && it != channels_.end()) {
-		(*it).second.AddOwner(&(*client).second);
-	}
+    channels_iter it = channels_.find(channel_name);
+    if (client != clients_.end() && it != channels_.end()) {
+        (*it).second.AddOwner(&(*client).second);
+    }
 }
-
 
 void Server::RemoveChannelOwner(Client &client,
                                 const std::string &channel_name) {
@@ -260,13 +259,13 @@ void Server::RemoveChannelOwner(Client &client,
     }
 }
 
-void Server::RemoveChannelOwner(const std::string &client_nickname, 
-							 	const std::string &channel_name) {
+void Server::RemoveChannelOwner(const std::string &client_nickname,
+                                const std::string &channel_name) {
     clients_iter client = FindClientByNickname(client_nickname);
-	channels_iter it = channels_.find(channel_name);
-	if (client != clients_.end() && it != channels_.end()) {
-		(*it).second.RemoveOwner((*client).first);
-	}
+    channels_iter it = channels_.find(channel_name);
+    if (client != clients_.end() && it != channels_.end()) {
+        (*it).second.RemoveOwner((*client).first);
+    }
 }
 
 void Server::PushSendQueueClient(int client_socket,
@@ -311,7 +310,7 @@ bool Server::HasClientInChannel(int client_socket,
 
 bool Server::HasClientInChannel(const std::string &client_nickname,
                                 const std::string &channel_name) {
-	clients_iter client = FindClientByNickname(client_nickname);
+    clients_iter client = FindClientByNickname(client_nickname);
     const_channels_iter it = channels_.find(channel_name);
     if (client != clients_.end() && it != channels_.end()) {
         return (*it).second.HasClient((*client).first);
@@ -378,18 +377,18 @@ clients_iter Server::FindClientByNickname(const std::string &nickname) {
 
 bool Server::IsInvitedChannel(int client_socket,
                               const std::string &channel_name) {
-     channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.HasMode('i'))
         return (*it).second.IsInvited(client_socket);
     return true;
 }
 
 bool Server::IsOverUsersLimitChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
-	if (it != channels_.end() && (*it).second.HasMode('l'))
-		return HowManyClientsAreInChannel((*it).second.getChannelName()) \
-				>= IsOverUsersLimitChannel((*it).second.getChannelName());
-	return false;
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end() && (*it).second.HasMode('l'))
+        return HowManyClientsAreInChannel((*it).second.getChannelName()) >=
+               IsOverUsersLimitChannel((*it).second.getChannelName());
+    return false;
 }
 
 bool Server::HasModeInChannel(const char mode,
@@ -414,16 +413,16 @@ void Server::RemoveModeFromChannel(const char mode,
         (*it).second.RemoveMode(mode);
 }
 
-void Server::SetPasswordInChannel(const std::string &passwd, 
-							    const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+void Server::SetPasswordInChannel(const std::string &passwd,
+                                  const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         (*it).second.setPassword(passwd);
 }
 
-void Server::SetUsersLimitInChannel(size_t limit, 
-									const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+void Server::SetUsersLimitInChannel(size_t limit,
+                                    const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         (*it).second.setUsersLimit(limit);
 }
@@ -437,33 +436,32 @@ bool Server::IsChannelOwner(int client_socket,
 }
 
 bool Server::HasTopicInChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.getTopic().size() != 0)
-		return true;
-	return false;
+        return true;
+    return false;
 }
 
 std::string Server::GetTopicInChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && HasTopicInChannel(channel_name))
-		return (*it).second.getTopic();
-	return 0;
+        return (*it).second.getTopic();
+    return 0;
 }
 
 std::string Server::WhoDidTopicInChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && HasTopicInChannel(channel_name))
-		return (*it).second.getTopicWhoDid();
-	return 0;
+        return (*it).second.getTopicWhoDid();
+    return 0;
 }
 
 std::string Server::WhatTimeChannelMade(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
-		return (*it).second.getTopicSetTime();
-	return 0;
+        return (*it).second.getTopicSetTime();
+    return 0;
 }
-
 
 /**
  * @return All channel name delimited by comma ','
@@ -521,10 +519,10 @@ const std::string &Server::getStartedTime() const { return started_time_; }
 /** @return 채널의 개수 */
 size_t Server::HowManyChannelsAre() const { return channels_.size(); }
 size_t Server::HowManyChannelsJoined(int client_socket) {
-	clients_iter it = clients_.find(client_socket);
+    clients_iter it = clients_.find(client_socket);
     if (it != clients_.end())
         return (*it).second.getJoinedChannelsCount();
-	return 0;
+    return 0;
 }
 
 /** @return 클라이언트 개수 */
@@ -537,14 +535,15 @@ Server::HowManyClientsAreInChannel(const std::string &channel_name) const {
     return 0;
 }
 
-size_t Server::GetUsersLimitInChannel(const std::string &channel_name) { 
-	channels_iter it = channels_.find(channel_name);
+size_t Server::GetUsersLimitInChannel(const std::string &channel_name) {
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.getUsersLimit();
     return 0;
 }
 
-const std::string Server::ClientsInChannelList(const std::string &channel_name) {
+const std::string
+Server::ClientsInChannelList(const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.ClientsList();
@@ -552,25 +551,24 @@ const std::string Server::ClientsInChannelList(const std::string &channel_name) 
 }
 
 /*
-	return -1 = 클라이언트가 없음
+        return -1 = 클라이언트가 없음
 */
-int	Server::getClientSocket(const std::string &nick_name)
-{
-	clients_iter it = FindClientByNickname(nick_name);
-	if (it == clients_.end())
-		return -1;//애초에 없었음.
-	return it->first;
+int Server::getClientSocket(const std::string &nick_name) {
+    clients_iter it = FindClientByNickname(nick_name);
+    if (it == clients_.end())
+        return -1; // 애초에 없었음.
+    return it->first;
 }
 
 /**
  * @param chaanel_name 초대한 채널 이름
  * @param nick_name 초대받은 유저 닉네임
  * @note 이 함수 내에서 유효성 검사를 안하니 호출전에 유효성 검사를 할 것!!
-*/
-void Server::AddInviteClient(const std::string &channel_name, const std::string &nick_name)
-{
-	Channel channel = channels_.find(channel_name)->second;
-	Client client = FindClientByNickname(nick_name)->second;
+ */
+void Server::AddInviteClient(const std::string &channel_name,
+                             const std::string &nick_name) {
+    Channel channel = channels_.find(channel_name)->second;
+    Client client = FindClientByNickname(nick_name)->second;
 
-	channel.AddInvitedList(&client);
+    channel.AddInvitedList(&client);
 }

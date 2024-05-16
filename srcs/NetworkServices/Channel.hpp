@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:08:30 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:00:58 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,10 +77,10 @@ class Channel {
     /* Setter */
 
     void setChannelName(const std::string &channel_name);
-	void setUsersLimit(size_t limit);
+    void setUsersLimit(size_t limit);
     void setTopic(const std::string &topic, const std::string &who_did);
     void setPassword(const std::string &passwd);
-	bool CheckPassword(const std::string &passwd) const;
+    bool CheckPassword(const std::string &passwd) const;
 
     /**
      * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.

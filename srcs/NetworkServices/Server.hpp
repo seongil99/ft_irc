@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:11:45 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:00:53 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,16 +98,16 @@ class Server {
     void RemoveClientFromChannel(int client_socket,
                                  const std::string &channel_name);
     void AddChannelOwner(Client &client, const std::string &channel_name);
-	void AddChannelOwner(const std::string &client_nickname, 
-						 const std::string &channel_name);
+    void AddChannelOwner(const std::string &client_nickname,
+                         const std::string &channel_name);
     void RemoveChannelOwner(Client &client, const std::string &channel_name);
-    void RemoveChannelOwner(const std::string &client_nickname, 
-							const std::string &channel_name);
-	bool HasChannel(const std::string &channel_name) const;
+    void RemoveChannelOwner(const std::string &client_nickname,
+                            const std::string &channel_name);
+    bool HasChannel(const std::string &channel_name) const;
     bool HasClientInChannel(int client_socket,
                             const std::string &channel_name) const;
-	bool HasClientInChannel(const std::string &client_nickname,
-                                const std::string &channel_name);
+    bool HasClientInChannel(const std::string &client_nickname,
+                            const std::string &channel_name);
     void SendMessageToAllClientsInChannel(const std::string &channel_name,
                                           const std::string &message);
     void SendMessageToOthersInChannel(int client_socket,
@@ -122,23 +122,25 @@ class Server {
                               const std::string &channel_name) const;
     bool IsInvitedChannel(int client_socket, const std::string &channel_name);
     bool IsOverUsersLimitChannel(const std::string &channel_name);
-	bool HasModeInChannel(const char mode, const std::string &channel_name) const;
+    bool HasModeInChannel(const char mode,
+                          const std::string &channel_name) const;
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
-	void SetPasswordInChannel(const std::string &passwd, 
-							  const std::string &channel_name);
-	void SetUsersLimitInChannel(size_t limit, 
-								const std::string &channel_name);
-    bool IsChannelOwner(int client_socket, const std::string &channel_name) const;
+    void SetPasswordInChannel(const std::string &passwd,
+                              const std::string &channel_name);
+    void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
+    bool IsChannelOwner(int client_socket,
+                        const std::string &channel_name) const;
 
-	// 채널 Topic 관련 함수
-	bool HasTopicInChannel(const std::string &channel_name);
-	std::string GetTopicInChannel(const std::string &channel_name);
-	std::string WhoDidTopicInChannel(const std::string &channel_name);
-	std::string WhatTimeChannelMade(const std::string &channel_name);
+    // 채널 Topic 관련 함수
+    bool HasTopicInChannel(const std::string &channel_name);
+    std::string GetTopicInChannel(const std::string &channel_name);
+    std::string WhoDidTopicInChannel(const std::string &channel_name);
+    std::string WhatTimeChannelMade(const std::string &channel_name);
 
-	void AddInviteClient(const std::string &channel_name, const std::string &nick_name);
+    void AddInviteClient(const std::string &channel_name,
+                         const std::string &nick_name);
 
     const std::string getAllChannelName() const;
     /**
@@ -152,16 +154,16 @@ class Server {
     void PushSendQueueClient(int client_socket, const std::string &message);
     bool HasDuplicateNickname(const std::string &nickname) const;
     size_t HowManyChannelsAre() const;
-	size_t HowManyChannelsJoined(int client_socket);
+    size_t HowManyChannelsJoined(int client_socket);
     size_t HowManyClientsAre() const;
     size_t HowManyClientsAreInChannel(const std::string &channel_name) const;
     size_t GetUsersLimitInChannel(const std::string &channel_name);
-	const std::string ClientsInChannelList(const std::string &channel_name);
+    const std::string ClientsInChannelList(const std::string &channel_name);
 
     /* Getter */
 
     const std::string &getStartedTime() const;
-	int	getClientSocket(const std::string &nick_name);
+    int getClientSocket(const std::string &nick_name);
 };
 
 #endif

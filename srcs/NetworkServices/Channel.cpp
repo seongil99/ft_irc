@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:09:04 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:01:05 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,9 +158,9 @@ int Channel::getClientCount(void) const { return clients_.size(); }
 /**
  * @param topic 설정할 토픽
  * @param who_did 누가 토픽을 설정했는지 <realname>@<hostname> 양식으로 넣을 것!
- * 
+ *
 */
-void Channel::setTopic(const std::string &topic, const std::string &who_did) 
+void Channel::setTopic(const std::string &topic, const std::string &who_did)
 {
 	topic_ = topic;
 	topic_who_did_ = who_did;
