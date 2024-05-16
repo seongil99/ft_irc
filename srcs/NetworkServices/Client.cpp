@@ -14,11 +14,11 @@
 
 #include <iostream>
 
-Client::Client(void) {}
+Client::Client(void) : password_(false) {}
 
 Client::Client(const Client &ref) { *this = ref; }
 
-Client::Client(int client_socket) : client_socket_(client_socket) {}
+Client::Client(int client_socket) : client_socket_(client_socket), password_(false) {}
 
 Client::~Client(void) {}
 
@@ -30,6 +30,7 @@ Client &Client::operator=(const Client &ref) {
     this->nickname_ = ref.nickname_;
     this->realname_ = ref.realname_;
     this->username_ = ref.username_;
+	this->password_ = ref.password_;
     return *this;
 }
 
@@ -66,12 +67,14 @@ const std::string &Client::getHostname(void) const{ return hostname_; }
 const std::string &Client::getMessage(void) const { return message_; }
 size_t Client::getSendQueueSize(void) const { return send_q_.size(); }
 size_t Client::getJoinedChannelsCount(void) const { return joined_chanels_.size(); };
+bool Client::getPassword() { return password_; }
 
 void Client::setNickname(const std::string &str) { this->nickname_ = str; }
 void Client::setRealname(const std::string &str) { this->realname_ = str; }
 void Client::setUsername(const std::string &str) { this->username_ = str; }
 void Client::setHostname(const std::string &str) { this->hostname_ = str; }
 void Client::setMessage(const std::string &str) { this->message_ = str; }
+void Client::setPassword(bool passed) { this->password_ = passed; }
 
 /**
  * @return 가장 마지막으로 참여했던 채널 이름, 비어있는 경우 "" 반환
@@ -82,4 +85,3 @@ const std::string &Client::getLastJoinedChannelName(void) const {
     static const std::string empty_string;
     return empty_string;
 }
-

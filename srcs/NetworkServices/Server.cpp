@@ -52,9 +52,6 @@ void Server::Init(int port, std::string passwd) {
     if (fcntl_result == -1)
         irc_utils::ExitWithError("fcntl() error");
     std::cout << "server port " << port << std::endl;
-
-    /* Test Default Channel */
-    // CreateChannel("default");
 }
 
 /**
@@ -121,10 +118,6 @@ void Server::EventRead(struct kevent *curr_event) {
         ChangeEvents(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0,
                      NULL);
         clients_[client_socket] = Client(client_socket);
-        /* Test add to default channel */
-        AddClientToChannel(clients_[client_socket], "default");
-        // SendMessageToAllClientsInChannel("default",
-        //                                  "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -173,8 +166,8 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
               << (*it).second.getMessage() << std::endl;
 
     if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
-        channels_["default"].SendMessageToOthers(
-            client_socket, clients_[client_socket].getMessage());
+    //     channels_["default"].SendMessageToOthers(
+    //         client_socket, clients_[client_socket].getMessage());
     }
 
     // execute 이후 client 지워질 수 있음
@@ -569,10 +562,9 @@ int	Server::getClientSocket(const std::string &nick_name)
 */
 void Server::AddInviteClient(const std::string &channel_name, const std::string &nick_name)
 {
-	Channel channel = channels_.find(channel_name)->second;
-	Client client = FindClientByNickname(nick_name)->second;
+	Channel *channel = &(channels_.find(channel_name)->second);
 
-	channel.AddInvitedList(&client);
+	channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
 }
 
 // size_t Server::getClientSendMsg(const std::string &nickname) {
@@ -611,14 +603,13 @@ void Server::SendMessageToAllJoinedChannel(int client_socket, const std::string 
 void Server::ActivateList(Client *client)
 {
 	std::string nickname = client->getNickname();
-	int socket = client->getClientSocket();
 	std::string joined_client_number;
 	for (channels_iter	it = channels_.begin(); it != channels_.end();it++)
 	{
 		std::stringstream iss;
 		iss << it->second.getClientCount();
 		joined_client_number = iss.str();
-		PushSendQueueClient(socket, ":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
+		client->PushSendQueue(":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
 	}
 }
 
@@ -634,11 +625,10 @@ void Server::ActivateList(Client *client, const std::string &channel_name)
 	if (it != channels_.end())
 	{
 		std::string nickname = client->getNickname();
-		int socket = client->getClientSocket();
 		std::stringstream iss;
 		iss << it->second.getClientCount();
 		std::string joined_client_number = iss.str();
-		PushSendQueueClient(socket, ":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
+		client->PushSendQueue(":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
 	}
 }
 
@@ -651,6 +641,14 @@ void Server::ActivateList(Client *client, const std::string &channel_name)
 void Server::SetTopicInChannel(const std::string &channel_name, const std::string &topic, const std::string &who_did)
 {
 	channels_iter it = channels_.find(channel_name);
-	Channel channel = it->second;
-	channel.setTopic(topic, who_did);
+	Channel *channel = &(it->second);
+	channel->setTopic(topic, who_did);
+}
+
+/**
+ * @param client_socket 틀린 명령어를 보낸 클라이언트 소켓 넘버
+*/
+void Server::CorrectPassword(Client *client)
+{
+	client->setPassword(true);
 }

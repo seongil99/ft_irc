@@ -45,6 +45,7 @@ bool Command::excute(Client *client, std::string str)
 	std::string temp("");
 	private_msg = str; // 여기 뒤에 \r\n을 빼야 하나?
 	bool ret = false;
+	std::map<std::string, cmd_fts>::iterator it;
 	//==========================================================
 	// step 1 : split string by ' '
 	for (size_t i = 0; i < str.size(); i++)
@@ -55,6 +56,20 @@ bool Command::excute(Client *client, std::string str)
 				cmd.push_back(temp);
 			temp.clear();
 		}
+		else if (str[i] == '\n' && i != str.size() - 1 && i > 0)
+		{
+			if (str[i - 1] == '\r')
+			{
+				std::string temp = str;
+				private_msg = temp.substr(0, i);
+				it = cmd_ft.find(cmd[0]);
+				if (it != cmd_ft.end())
+					(this->*(it->second))(client);
+				temp.clear();
+				cmd.clear();
+				private_msg = temp.substr(i);
+			}
+		}
 		else if (str[i] != '\r' && str[i] != '\n')
 			temp += str[i];
 	}
@@ -62,7 +77,7 @@ bool Command::excute(Client *client, std::string str)
 		cmd.push_back(temp);
 	//==========================================================
 	// step 2 : figure it out is this cmd or not
-	std::map<std::string, cmd_fts>::iterator it = cmd_ft.find(cmd[0]);
+	it = cmd_ft.find(cmd[0]);
 	if (it != cmd_ft.end())
 		(this->*(it->second))(client);
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
@@ -73,12 +88,21 @@ bool Command::excute(Client *client, std::string str)
 //이거 채팅방 비번이 아니라 서버 비번 관련 명령어인것 같은데?
 void Command::pass(Client *client)
 { // PASS <password>
+	/*
+	비번에 관한 경우의 3가지
+	1. 서버 비번 없음 => 비번 입력하든 말든 프리패스 해야함
+	2. 서버 비번 있음
+	2-1 비번 맞음 => 통과
+	2-2 비번 틀림 => 통과 못함
+	*/
 	if (cmd.size() == 1)
-		serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
 	else
 	{
-		if (!serv->CheckPassword(cmd[1])) // 패스워드 틀렸을때 어떻게 해야할지 모르겠음 수정필요
-			serv->PushSendQueueClient(client->getClientSocket(), ":irc.local Incorrect PASSWORD");
+		if (serv->CheckPassword(""))
+			serv->CorrectPassword(client);
+		else if (serv->CheckPassword(cmd[1]))
+			serv->CorrectPassword(client);
 	}
 }
 
@@ -132,12 +156,20 @@ void Command::user(Client *client)
 	client->setHostname("192.168.65.2"); // 임시로 이렇게 넣은거니 확실해지면 추가할 것!
 
 	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (" + client->getHostname() + ") instead.\r\n");
+	if ((serv->CheckPassword("") || client->getPassword()) == false)//서버가 비번이 설정 되어 있으며, 클라이언트가 비번 못 맞춘 경우
+	{
+		//ERROR :Closing link: (root@192.168.65.2) [Access denied by configuration]
+		client->PushSendQueue("ERROR :Closing link: (" + client->getRealname() + "@" + client->getHostname() + ") [Access denied by configuration]\r\n");
+		return ;
+	}
+
 	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), client->getHostname()));
 	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
 	client->PushSendQueue(get_reply_number(RPL_CREATED) + client->getNickname() + get_reply_str(RPL_CREATED, serv->getStartedTime()));
 	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
-	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
-	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
+	// client->PushSendQueue(":irc.local 005 " + client->getNickname() + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
+	// client->PushSendQueue(":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
+	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " Enjoy our ft_irc.\r\n");
 	/*
 	의문점
 	1. 안에 들어갈 문장은 대충 복붙했는데 이걸 어찌혀야하나
@@ -251,7 +283,7 @@ void Command::part(Client *client)
 	127.000.000.001.49828-127.000.000.001.06667: PART get :out
 	127.000.000.001.06667-127.000.000.001.49828: :irc.local 403 upper get :No such channel
 	*/
-		serv->PushSendQueueClient(socket, get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, channel));
+		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, channel));
 		return;
 	}
 	else if (serv->HasClientInChannel(nick_name, channel) == false)
@@ -260,7 +292,7 @@ void Command::part(Client *client)
 	127.000.000.001.49828-127.000.000.001.06667: PART #4 :hwy?
 	127.000.000.001.06667-127.000.000.001.49828: :irc.local 442 upper #4 :You're not on that channel
 	*/
-		serv->PushSendQueueClient(socket, get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, channel));
+		client->PushSendQueue(get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, channel));
 		return;
 	}
 	/*
@@ -328,10 +360,9 @@ void Command::oper(Client *client)
 
 void Command::list(Client *client)
 { // LIST [<channel>{,<channel>} [<server>]]
-	int socket = client->getClientSocket();
 	std::string nickname = client->getNickname();
 	std::vector<std::string> target;
-	serv->PushSendQueueClient(socket, ":irc.local 321 " + nickname + " Channel :Users Name\r\n");
+	client->PushSendQueue(":irc.local 321 " + nickname + " Channel :Users Name\r\n");
 	if (cmd.size() == 1)
 	{ // 하나만 입력하면 사용 가능한 모든 채널 열람
 		/*
@@ -358,7 +389,7 @@ void Command::list(Client *client)
 			serv->ActivateList(client, *it);
 	}
 	// 두번째랑 세번째 인자는 왜 있는지 몰?루
-	serv->PushSendQueueClient(socket, ":irc.local 323 " + nickname + " :End of channel list.\r\n");
+	client->PushSendQueue(":irc.local 323 " + nickname + " :End of channel list.\r\n");
 }
 
 void Command::ping(Client *client) // ping을 받은 상황

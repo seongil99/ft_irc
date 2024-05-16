@@ -163,6 +163,7 @@ class Server {
     size_t HowManyClientsAreInChannel(const std::string &channel_name) const;
     size_t GetUsersLimitInChannel(const std::string &channel_name);
 	const std::string ClientsInChannelList(const std::string &channel_name);
+	void CorrectPassword(Client *client);
 
     /* Getter */
 
