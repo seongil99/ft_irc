@@ -312,8 +312,8 @@ void Command::privmsg(Client *client)
 			if (!serv->HasDuplicateNickname(target[i]))
 				client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " +  get_reply_str(ERR_NOSUCHNICK, target[i]) + "\r\n");
 			else {
-				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg);
-				// serv->SendMessageToOtherClient(client->getClientSocket(), target[i], msg);
+				serv->SendMessageToOtherClient(client->getClientSocket(), target[i], \
+				":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
 			}
 		}
 	}
@@ -726,32 +726,49 @@ void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
 	std::vector<std::string> args = irc_utils::Split(cmd[2], ',');
+	// std::string clients_list =  serv->ClientsInChannelList(channel);
+	// std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
 
 	if (args[1] == "743") {
-		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + ":" + "\r\n");
+		// for (size_t i = 0; i < clients_vec.size(); i++) {
+		// 	if (clients_vec[i][0] == '@') {
+		// 		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
+		// 							  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
+		// 	}
+		// }
+		// client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + ":" + "\r\n");
+		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
+									  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
 	else if (args[1] == "745") {
-		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 745 :" + client->getRealname() + "\r\n");
+		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 745 " + cmd[1] + " :0" + "\r\n");
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
 
 	/*
-	78 = a, 80 = b
+	127.000.000.001.51020-127.000.000.001.06667: WHO c %tna,745
 
-	127.000.000.001.50978-127.000.000.001.06667: WHO b %tna,745
+	127.000.000.001.51018-127.000.000.001.06667: WHO c %tna,745
 
-	127.000.000.001.06667-127.000.000.001.50978: :irc.local 354 a 745 b :0
-	:irc.local 315 a b :End of /WHO list.
+	127.000.000.001.06667-127.000.000.001.51020: :irc.local 354 b 745 c :0
+	:irc.local 315 b c :End of /WHO list.
 
-	127.000.000.001.50980-127.000.000.001.06667: WHO #ch %tcuhnfdar,743
+	127.000.000.001.06667-127.000.000.001.51018: :irc.local 354 a 745 c :0
+	:irc.local 315 a c :End of /WHO list.
 
-	127.000.000.001.06667-127.000.000.001.50980: :irc.local 354 b 743 #ch root 127.0.0.1 a H@ 0 0 :root
-	:irc.local 354 b 743 #ch root 127.0.0.1 b H 0 0 :root
-	:irc.local 315 b #ch :End of /WHO list.
+	127.000.000.001.51022-127.000.000.001.06667: MODE #ch
 
+	127.000.000.001.06667-127.000.000.001.51022: :irc.local 324 c #ch :+nt
+	:irc.local 329 c #ch :1715835658
+
+	WHO #ch %tcuhnfdar,743
+
+	:irc.local 354 c 743 #ch root 127.0.0.1 a H@ 0 0 :root
+	:irc.local 354 c 743 #ch root 127.0.0.1 b H 0 0 :root
+	:irc.local 354 c 743 #ch root 127.0.0.1 c H 0 0 :root
+	:irc.local 315 c #ch :End of /WHO list.
 	*/
-
 }
 
 void Command::pong(Client *client)

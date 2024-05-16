@@ -25,7 +25,7 @@ class Client {
     std::string nickname_;
 	std::string hostname_;
     std::string message_;
-    std::queue<std::string> send_q_;
+	std::queue<std::string> send_q_;
     std::queue<std::string> recv_q_;
     std::vector<std::string> joined_chanels_;
 

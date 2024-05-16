@@ -574,3 +574,17 @@ void Server::AddInviteClient(const std::string &channel_name, const std::string 
 
 	channel.AddInvitedList(&client);
 }
+
+// size_t Server::getClientSendMsg(const std::string &nickname) {
+// 	clients_iter it = FindClientByNickname(nickname);
+// 	if (it != clients_.end())
+// 		return (*it).second.getSendMsgCount();
+// 	return 0;
+// }
+
+// size_t Server::getClientRecvMsg(const std::string &nickname) {
+// 	clients_iter it = FindClientByNickname(nickname);
+// 	if (it != clients_.end())
+// 		return (*it).second.getRecvMsgCount();
+// 	return 0;
+// }

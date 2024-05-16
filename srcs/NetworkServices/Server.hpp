@@ -162,6 +162,8 @@ class Server {
 
     const std::string &getStartedTime() const;
 	int	getClientSocket(const std::string &nick_name);
+	// size_t getClientSendMsg(const std::string &nickname);
+	// size_t getClientRecvMsg(const std::string &nickname);
 };
 
 #endif
