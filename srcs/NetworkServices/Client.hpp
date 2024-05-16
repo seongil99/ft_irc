@@ -28,6 +28,7 @@ class Client {
 	std::queue<std::string> send_q_;
     std::queue<std::string> recv_q_;
     std::vector<std::string> joined_chanels_;
+	bool password_;
 
   public:
     Client(void);
@@ -45,6 +46,7 @@ class Client {
 
     void AppendMessage(const std::string &message);
 
+	/* getter */
     int getClientSocket(void) const;
     const std::string &getUsername(void) const;
     const std::string &getRealname(void) const;
@@ -54,12 +56,15 @@ class Client {
     const std::string &getHostname(void) const;
     size_t getSendQueueSize(void) const;
 	size_t getJoinedChannelsCount(void) const;
+	bool getPassword();
 
+	/* setter */
     void setUsername(const std::string &str);
     void setRealname(const std::string &str);
     void setNickname(const std::string &str);
     void setHostname(const std::string &str);
     void setMessage(const std::string &str);
+	void setPassword(bool passed);
 };
 
 #endif

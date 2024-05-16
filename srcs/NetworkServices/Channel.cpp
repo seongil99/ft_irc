@@ -159,7 +159,6 @@ int Channel::getClientCount(void) const { return clients_.size(); }
 /**
  * @param topic 설정할 토픽
  * @param who_did 누가 토픽을 설정했는지 <realname>@<hostname> 양식으로 넣을 것!
- * 
 */
 void Channel::setTopic(const std::string &topic, const std::string &who_did) 
 {

@@ -52,9 +52,6 @@ void Server::Init(int port, std::string passwd) {
     if (fcntl_result == -1)
         irc_utils::ExitWithError("fcntl() error");
     std::cout << "server port " << port << std::endl;
-
-    /* Test Default Channel */
-    // CreateChannel("default");
 }
 
 /**
@@ -121,10 +118,6 @@ void Server::EventRead(struct kevent *curr_event) {
         ChangeEvents(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0,
                      NULL);
         clients_[client_socket] = Client(client_socket);
-        /* Test add to default channel */
-        AddClientToChannel(clients_[client_socket], "default");
-        // SendMessageToAllClientsInChannel("default",
-        //                                  "new client to default channel!");
     } else if (clients_.find(curr_event->ident) != clients_.end()) {
         /* read data from client */
         char buf[BUF_SIZE];
@@ -173,8 +166,8 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
               << (*it).second.getMessage() << std::endl;
 
     if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
-        channels_["default"].SendMessageToOthers(
-            client_socket, clients_[client_socket].getMessage());
+    //     channels_["default"].SendMessageToOthers(
+    //         client_socket, clients_[client_socket].getMessage());
     }
 
     // execute 이후 client 지워질 수 있음
@@ -569,10 +562,9 @@ int	Server::getClientSocket(const std::string &nick_name)
 */
 void Server::AddInviteClient(const std::string &channel_name, const std::string &nick_name)
 {
-	Channel channel = channels_.find(channel_name)->second;
-	Client client = FindClientByNickname(nick_name)->second;
+	Channel *channel = &(channels_.find(channel_name)->second);
 
-	channel.AddInvitedList(&client);
+	channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
 }
 
 // size_t Server::getClientSendMsg(const std::string &nickname) {
@@ -653,4 +645,76 @@ void Server::SetTopicInChannel(const std::string &channel_name, const std::strin
 	channels_iter it = channels_.find(channel_name);
 	Channel channel = it->second;
 	channel.setTopic(topic, who_did);
+}
+
+/**
+ * @param client_socket 대상 클라이언트 소켓 넘버
+ * @param message 보낼 메시지. 양식을 꼭 지켜야함.\r\n으로 끝나야됨
+ * @note QUIT 명령어를 위해 만든 함수. 자신이 참가한 채널에 자신을 제외한 모든 클라이언트에게 메시지를 보내야함.
+*/
+void Server::SendMessageToAllJoinedChannel(int client_socket, const std::string &message)
+{
+	for (channels_iter	it = channels_.begin(); it != channels_.end(); it++)
+	{
+		if (HasClientInChannel(client_socket, it->first))
+			SendMessageToOthersInChannel(client_socket, it->first, message);
+	}
+}
+
+/**
+ * 양식 => :irc.local 322 <nick> <channel> <참가 인원수> :<모드> {topic}
+ * @param client_socket list 명령어를 보낸 클라이언트 소켓
+ * @note 단일 명령어를 내려서 현재 존재하는 모든 채널의 정보를 보내야 함.
+*/
+void Server::ActivateList(Client *client)
+{
+	std::string nickname = client->getNickname();
+	std::string joined_client_number;
+	for (channels_iter	it = channels_.begin(); it != channels_.end();it++)
+	{
+		std::stringstream iss;
+		iss << it->second.getClientCount();
+		joined_client_number = iss.str();
+		client->PushSendQueue(":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
+	}
+}
+
+/**
+ * 양식 => :irc.local 322 <nick> <channel> <참가 인원수> :<모드> {topic}
+ * @param client_socket list 명령어를 보낸 클라이언트 소켓
+ * @param channel_name 정보를 보고 싶은 채널 이름
+ * @note 해당 채널의 정보를 보내야 함.
+*/
+void Server::ActivateList(Client *client, const std::string &channel_name)
+{
+	channels_iter it = channels_.find(channel_name);
+	if (it != channels_.end())
+	{
+		std::string nickname = client->getNickname();
+		std::stringstream iss;
+		iss << it->second.getClientCount();
+		std::string joined_client_number = iss.str();
+		client->PushSendQueue(":irc.local 322 " + nickname + " " + it->first + " " + joined_client_number + " :[+" + it->second.getModes() + "] " + it->second.getTopic() + "\r\n");
+	}
+}
+
+/**
+ * @param channel_name 추가할 채널 이름
+ * @param topic 추가할 토픽
+ * @param who_did 누가 설정했는지 양식에 맞춰서 넣을 것
+ * @note 유효성 검사를 진행하지 않으니 호출 전에 유효성 검사를 다 해볼것!!
+*/
+void Server::SetTopicInChannel(const std::string &channel_name, const std::string &topic, const std::string &who_did)
+{
+	channels_iter it = channels_.find(channel_name);
+	Channel *channel = &(it->second);
+	channel->setTopic(topic, who_did);
+}
+
+/**
+ * @param client_socket 틀린 명령어를 보낸 클라이언트 소켓 넘버
+*/
+void Server::CorrectPassword(Client *client)
+{
+	client->setPassword(true);
 }
