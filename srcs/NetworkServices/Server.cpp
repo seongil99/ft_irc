@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 17:31:42 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 19:13:08 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ void Server::EventRead(struct kevent *curr_event) {
         int n = read(curr_event->ident, buf, sizeof(buf));
 
         if (n <= 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN)
+            if (errno == EWOULDBLOCK)
                 return;
             else if (n < 0)
                 std::cerr << "client read error!" << std::endl;
