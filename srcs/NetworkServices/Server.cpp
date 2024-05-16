@@ -548,7 +548,7 @@ const std::string Server::ClientsInChannelList(const std::string &channel_name) 
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.ClientsList();
-    return NULL;
+    return "";
 }
 
 /*
@@ -574,6 +574,20 @@ void Server::AddInviteClient(const std::string &channel_name, const std::string 
 
 	channel.AddInvitedList(&client);
 }
+
+// size_t Server::getClientSendMsg(const std::string &nickname) {
+// 	clients_iter it = FindClientByNickname(nickname);
+// 	if (it != clients_.end())
+// 		return (*it).second.getSendMsgCount();
+// 	return 0;
+// }
+
+// size_t Server::getClientRecvMsg(const std::string &nickname) {
+// 	clients_iter it = FindClientByNickname(nickname);
+// 	if (it != clients_.end())
+// 		return (*it).second.getRecvMsgCount();
+// 	return 0;
+// }
 
 /**
  * @param client_socket 대상 클라이언트 소켓 넘버
