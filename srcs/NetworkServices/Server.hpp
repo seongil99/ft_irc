@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:11:45 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:00:53 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,14 +131,20 @@ class Server {
 	void SetUsersLimitInChannel(size_t limit, 
 								const std::string &channel_name);
     bool IsChannelOwner(int client_socket, const std::string &channel_name) const;
+	void SendMessageToAllJoinedChannel(int client_socket, const std::string &message);
 
 	// 채널 Topic 관련 함수
 	bool HasTopicInChannel(const std::string &channel_name);
+	void SetTopicInChannel(const std::string &channel_name, const std::string &topic, const std::string &who_did);
 	std::string GetTopicInChannel(const std::string &channel_name);
 	std::string WhoDidTopicInChannel(const std::string &channel_name);
 	std::string WhatTimeChannelMade(const std::string &channel_name);
 
 	void AddInviteClient(const std::string &channel_name, const std::string &nick_name);
+
+	//list 관련 함수
+	void ActivateList(Client *client);
+	void ActivateList(Client *client, const std::string &channel_name);
 
     const std::string getAllChannelName() const;
     /**

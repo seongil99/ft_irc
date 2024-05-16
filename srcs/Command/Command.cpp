@@ -6,40 +6,23 @@
 
 Command::Command(Server *server) : serv(server)
 {
-	cmd_list.push_back("PRIVMSG");
-	cmd_ft[0] = &Command::privmsg;
-	cmd_list.push_back("PASS");
-	cmd_ft[1] = &Command::pass;
-	cmd_list.push_back("NICK");
-	cmd_ft[2] = &Command::nick;
-	cmd_list.push_back("USER");
-	cmd_ft[3] = &Command::user;
-	cmd_list.push_back("JOIN");
-	cmd_ft[4] = &Command::join;
-	cmd_list.push_back("OPER");
-	cmd_ft[5] = &Command::oper;
-	cmd_list.push_back("LIST");
-	cmd_ft[6] = &Command::list;
-	cmd_list.push_back("PING");
-	cmd_ft[7] = &Command::ping;
-	cmd_list.push_back("PONG");
-	cmd_ft[8] = &Command::pong;
-	cmd_list.push_back("QUIT");
-	cmd_ft[9] = &Command::quit;
-	cmd_list.push_back("KICK");
-	cmd_ft[10] = &Command::kick;
-	cmd_list.push_back("INVITE");
-	cmd_ft[11] = &Command::invite;
-	cmd_list.push_back("TOPIC");
-	cmd_ft[12] = &Command::topic;
-	cmd_list.push_back("MODE");
-	cmd_ft[13] = &Command::mode;
-	cmd_list.push_back("WHO");
-	cmd_ft[14] = &Command::who;
-	cmd_list.push_back("PART");
-	cmd_ft[15] = &Command::part;
-	cmd_list.push_back("CAP");
-	cmd_ft[16] = &Command::cap;
+	cmd_ft["PRIVMSG"] = &Command::privmsg;
+	cmd_ft["PASS"] = &Command::pass;
+	cmd_ft["NICK"] = &Command::nick;
+	cmd_ft["USER"] = &Command::user;
+	cmd_ft["JOIN"] = &Command::join;
+	cmd_ft["LIST"] = &Command::list;
+	cmd_ft["PING"] = &Command::ping;
+	// cmd_ft["PONG"] = &Command::pong;
+	cmd_ft["QUIT"] = &Command::quit;
+	cmd_ft["KICK"] = &Command::kick;
+	cmd_ft["INVITE"] = &Command::invite;
+	cmd_ft["TOPIC"] = &Command::topic;
+	cmd_ft["MODE"] = &Command::mode;
+	cmd_ft["WHO"] = &Command::who;
+	cmd_ft["PART"] = &Command::part;
+	cmd_ft["CAP"] = &Command::cap;
+	cmd_ft["OPER"] = &Command::oper;
 }
 
 Command::~Command() {}
@@ -79,15 +62,9 @@ bool Command::excute(Client *client, std::string str)
 		cmd.push_back(temp);
 	//==========================================================
 	// step 2 : figure it out is this cmd or not
-	for (size_t i = 0; i < cmd_list.size(); i++)
-	{
-		if (cmd[0] == cmd_list[i])
-		{ // this is cmd. execute it.
-			(this->*cmd_ft[i])(client);
-			ret = true;
-			break;
-		}
-	}
+	std::map<std::string, cmd_fts>::iterator it = cmd_ft.find(cmd[0]);
+	if (it != cmd_ft.end())
+		(this->*(it->second))(client);
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
@@ -100,35 +77,32 @@ void Command::pass(Client *client)
 		serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PASS"));
 	else
 	{
-		if (!serv->CheckPassword(cmd[1])) // 패스워드 틀렸을때 어떻게 해야할지 모르겠음 수정필요
+		if (!serv->CheckPassword(cmd[1])) {
 			serv->PushSendQueueClient(client->getClientSocket(), ":irc.local Incorrect PASSWORD");
+			//ERROR :Closing link: (root@127.0.0.1) [Access denied by configuration]
+			//강제종료 필요해 보임
+		}
 	}
 }
 
+// NICK <nickname>
 void Command::nick(Client *client)
-{ // NICK <nickname>
-	if (cmd.size() == 1)
-	{ // NICK 명령어만 입력했을 경우
+{
+	if (cmd.size() == 1) //닉네임 지정 없이 접속
 		client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN));
-		return;
-	}
 	else
 	{
 		// 닉네임 중복 여부 판단
 		if (serv->HasDuplicateNickname(cmd[1]))
-		{ // 닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
 			serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NICKNAMEINUSE) + get_reply_str(ERR_NICKNAMEINUSE, cmd[1]));
-		}
 		else
-		{ // 닉네임 중복이 안되었으니 닉네임 변경
 			client->setNickname(cmd[1]);
-		}
 	}
-	// NICK aaa bbb ccc ddd 이런 식으로 여러개 쳤을때는 닉네임이 aaa로 바뀌고 다른 반응 없음
 }
 
+// USER <username> <hostname> <servername> :<realname>
 void Command::user(Client *client)
-{ // USER <username> <hostname> <servername> :<realname>
+{
 	// 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 	// 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 	if (cmd.size() < 5)
@@ -169,12 +143,9 @@ void Command::user(Client *client)
 	*/
 }
 
-// ch1 - pw1 짝이 맞아야만 들어갈 수 있음
-// 채널 운영자가 여러명일 수 있다
-// 비번이 있는 초대 전용 채널일 때 -> 초대를 받고 들어가면 비번 없어도 입장 가능
-//						-> 초대를 못 받고 비번만 맞으면 473 error
+// JOIN (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 void Command::join(Client *client)
-{ // Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
+{
 	std::vector<std::string> channel, pw;
 
 	if (cmd.size() == 2 && cmd[1] == ":")
@@ -305,22 +276,23 @@ void Command::privmsg(Client *client)
 	msg_start += cmd[1].size();
 	while (private_msg[msg_start] == ' ')
 		msg_start++;
-	std::string msg = private_msg.substr(msg_start + 1); //msg 앞 ':' 제거
-	msg.erase(msg.size() - 2);							//\r\n 제거
+	std::string msg = private_msg.substr(msg_start + 1);
+	msg.erase(msg.size() - 2);
+	// 보낼 메시지 완성 -> msg
+	// target안에 있는 대상이 존재하는지 확인해야함
 	for (size_t i = 0; i < target.size(); i++) {
 		if (target[i][0] == '#') {
 			if (serv->HasChannel(target[i]) && serv->HasClientInChannel(client->getClientSocket(), target[i]))
-				// serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], irc_utils::getForm(client, private_msg));
 				serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], \
-					":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
+				":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
 			else if (serv->HasChannel(target[i]))
-				client->PushSendQueue(":irc.local 404 " + client->getNickname() + " " + get_reply_str(ERR_CANNOTSENDTOCHAN, target[i]) + "\r\n");
+				client->PushSendQueue(":irc.local 404 " + client->getNickname() + " " + get_reply_str(ERR_CANNOTSENDTOCHAN, target[i]));
 			else
-				client->PushSendQueue(":irc.local 403 " + client->getNickname() + " " + get_reply_str(ERR_NOSUCHCHANNEL, target[i]) + "\r\n");
+				client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, client->getNickname(), target[i]));
 		}
 		else {
 			if (!serv->HasDuplicateNickname(target[i]))
-				client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + target[i] + " :No such nick\r\n");
+				client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " +  get_reply_str(ERR_NOSUCHNICK, target[i]));
 			else {
 				serv->SendMessageToOtherClient(client->getClientSocket(), target[i], \
 				":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
@@ -347,37 +319,37 @@ void Command::oper(Client *client)
 
 void Command::list(Client *client)
 { // LIST [<channel>{,<channel>} [<server>]]
+	int socket = client->getClientSocket();
+	std::string nickname = client->getNickname();
 	std::vector<std::string> target;
+	serv->PushSendQueueClient(socket, ":irc.local 321 " + nickname + " Channel :Users Name\r\n");
 	if (cmd.size() == 1)
 	{ // 하나만 입력하면 사용 가능한 모든 채널 열람
-		std::string ret = serv->getAllChannelName();
-		if (ret.size() == 0)			 // 채널이 없음
-			ret = "There is no channel"; // 채널이 없다는 메시지
-		serv->PushSendQueueClient(client->getClientSocket(), ret + "\r\n");
+		/*
+		127.000.000.001.49916-127.000.000.001.06667: LIST
+		127.000.000.001.06667-127.000.000.001.49916: :irc.local 321 lower Channel :Users Name
+		:irc.local 322 lower #1 1 :[+nt]
+		:irc.local 322 lower #2 1 :[+nt]
+		:irc.local 322 lower #3 1 :[+nt]
+		:irc.local 322 lower #4 1 :[+nt]
+		:irc.local 322 lower #5 1 :[+nt]
+		:irc.local 322 lower #6 1 :[+nt]
+		양식 => :irc.local 322 <nick> <channel> <참가 인원수> :<모드> {topic}
+		:irc.local 323 lower :End of channel list.
+		*/
+		serv->ActivateList(client);
 	}
 	else
 	{
 		if (cmd[1].find(",") == std::string::npos)
 			target.push_back(cmd[1]); // 하나만 입력함
 		else						  //,가 있음 두개 이상 입력했을 가능성
-		{
-			std::string temp("");
-			for (int i = 0; cmd[1][i]; i++)
-			{
-				if (cmd[1][i] == ',')
-				{
-					if (temp.empty() == false)
-						target.push_back(temp);
-					temp.clear();
-				}
-				else
-					temp += cmd[1][i];
-			}
-			if (temp.empty() == false)
-				target.push_back(temp);
-		}
+			target = irc_utils::Split(cmd[1], ',');
+		for (std::vector<std::string>::iterator it = target.begin(); it != target.end(); it++)
+			serv->ActivateList(client, *it);
 	}
 	// 두번째랑 세번째 인자는 왜 있는지 몰?루
+	serv->PushSendQueueClient(socket, ":irc.local 323 " + nickname + " :End of channel list.\r\n");
 }
 
 void Command::ping(Client *client) // ping을 받은 상황
@@ -388,7 +360,6 @@ void Command::ping(Client *client) // ping을 받은 상황
 
 void Command::quit(Client *client)
 { // QUIT [<Quit message>]
-	// 근데 이거 유저가 치면 본인이 나간다는 말 아닌가?
 	// 나갈때는 모두 다 보내면 되지 않나
 	std::string quit_msg;
 	if (cmd.size() == 1)
@@ -406,71 +377,58 @@ void Command::quit(Client *client)
 
 		127.000.000.001.06667-127.000.000.001.33376: :lower!root@127.0.0.1 QUIT :Quit: bye
 		*/
-
 		quit_msg = irc_utils::getForm(client, "QUIT :Quit: " + private_msg.substr(6));
 	}
-	std::string channel = client->getLastJoinedChannelName();
-	if (channel == "")
-	{
-		std::cerr << "there is no joined channel.\ncmd terminated." << std::endl;
-		return;
-	}
-	else
-		std::cout << "joined channel name is " << channel << std::endl;
-	serv->SendMessageToOthersInChannel(client->getClientSocket(), channel, quit_msg);
+	// quit 명령어를 내렸다는 것을 참가했던 모든 채널의 클라이언트에게 본인제외하고 다 보내야함.
+	serv->SendMessageToAllJoinedChannel(client->getClientSocket(), quit_msg);
 	// 아래는 할 것 다하고 호출!
 	serv->RemoveClientFromServer(client->getClientSocket());
+	// 클라이언트가 삭제되기에 더이상 해당 클라이언트를 부르면 안됨!
 }
 
 void Command::kick(Client *client)
 { // KICK <channel> <user> [<comment>]
-	// 물론 채널, 해당 유저의 권한, 대상 유저가 존재하는지 확인
-	// 권한이 있는가?
-	std::string msg("" /*강퇴 기본 메시지*/);
-	if (cmd.size() < 3)
-	{ // 채널 or 유저를 안침 물론 둘다 안쳤을수도
-	}
-	else if (cmd.size() > 3)
-	{ // 마지막에 강퇴 메시지를 넣었음
-		size_t msg_start = cmd[0].size();
-		while (private_msg[msg_start] == ' ')
-			msg_start++;
-		msg_start += cmd[1].size();
-		while (private_msg[msg_start] == ' ')
-			msg_start++;
-		msg = private_msg.substr(msg_start);
-		// 보낼 메시지 완성 -> msg
-	}
-	// 채널이 존재 하는가
-	if (serv->HasChannel(cmd[1]) == false)
-	{ // 채널 음슴
-		return;
-	} // 유저가 존재하는가
-	else if (serv->HasDuplicateNickname(cmd[2]) == false)
+/*
+127.000.000.001.49876-127.000.000.001.06667: KICK #1 lower :
+
+127.000.000.001.06667-127.000.000.001.49876: :upper!root@127.0.0.1 KICK #1 lower :
+
+127.000.000.001.06667-127.000.000.001.49872: :upper!root@127.0.0.1 KICK #1 lower :
+*/
+	// KICK #1 get :out
+	std::string nickname = client->getNickname();
+	std::string channel = cmd[1];
+	std::string target = cmd[2];
+	int	socket = client->getClientSocket();
+	int target_socket = serv->getClientSocket(target);
+	if (serv->HasDuplicateNickname(target) == false)
 	{ // 유저 음슴
+		//:irc.local 401 upper get :No such nick
+		serv->PushSendQueueClient(socket, ":irc.local 401 " + nickname + " " + target + " :No such nick\r\n");
 		return;
 	}
-	// Channel	*channel = serv->getChannel(cmd[1]);
-	// 유저가 해당 채널에 존재 하는가?
-	if (serv->HasClientInChannel(client->getClientSocket(), cmd[1]) == false)
-	{
-		// 채널에 해당 유저가 음슴
+	else if (serv->HasChannel(channel) == false)
+	{ // 채널이 음슴
+		// :irc.local 442 upper #2 :You're not on that channel!
+		serv->PushSendQueueClient(socket, ":irc.local 442 " + nickname + " " + channel + " :You're not on that channel!\r\n");
 		return;
 	}
-	Client *kicked_client = client;
-	(void)kicked_client;
-
-	/*
-	강퇴당했다는 메시지를 보내야함
-	당연히 명령어 친 사람과 강퇴 당한 사람에게 보내야겠지? 그보다 해당 채널에 있는 모든 사람에게 보내면 더 좋지 않나?
-
-	강퇴 메시지 가공
-	*/
-	// channel->SendMessageToAllClients(msg);
-	serv->SendMessageToAllClientsInChannel(cmd[1], msg);
+	else if (serv->HasClientInChannel(target_socket, channel) == false)
+	{// 채널은 존재하는데 그곳에 해당 유저가 음슴
+		// :irc.local 441 upper lower #1 :They are not on that channel
+		serv->PushSendQueueClient(socket, ":irc.local 441 " + nickname + " " + target + " " + channel + " :They are not on that channel\r\n");
+		return;
+	}
+	else if (serv->IsChannelOwner(socket, channel) == false)
+	{//권한이 없음
+		// :irc.local 482 lower #1 :You must be a channel op or higher to kick a more privileged user.
+		serv->PushSendQueueClient(socket, ":irc.local 482 "+ nickname + " " + channel + " :You must be a channel op or higher to kick a more privileged user.\r\n");
+		return;
+	}
+	// 해당 채널에서 강퇴했다는 로그 발송
+	serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
 	// 해당 채널에서 강퇴
-	//  channel->RemoveClient(kicked_client->getClientSocket());
-	serv->RemoveClientFromChannel(client->getClientSocket(), cmd[1]);
+	serv->RemoveClientFromChannel(target_socket, channel);
 }
 
 void	Command::invite(Client *client)
@@ -529,20 +487,26 @@ void	Command::invite(Client *client)
 
 void	Command::topic(Client *client)
 {//TOPIC [<topic>]
-	Channel *channel = serv->getChannel(cmd[1]);
-	if (!channel)
+	std::string nickname = client->getNickname();
+	int socket = client->getClientSocket();
+	if (cmd.size() == 1)
 	{
-		std::cerr << "There is no channel in this server. check it out!" << std::endl;
+		//:irc.local 461 upper TOPIC :Not enough parameters.
+		serv->PushSendQueueClient(socket, ":irc.local 461 " + nickname + " TOPIC :Not enough parameters.\r\n");
 		return;
 	}
-	// 권한이 있는지 확인
-	if (channel->IsOwner(client->getClientSocket()))
-	{//있음 topic 설정 가능
-		std::cout << "topic set complete!! : " + client->getRealname() + "@" + client->getHostname() << std::endl;
-		channel->setTopic(private_msg.substr(8 + cmd[1].size(), private_msg.size() - 2),  client->getRealname() + "@" + client->getHostname());
-		serv->SendMessageToAllClientsInChannel(cmd[1], irc_utils::getForm(client, private_msg));
+	std::string channel = cmd[1];
+	if (serv->HasChannel(channel) == false)
+	{//채널이 음슴
+		//:irc.local 403 upper hi :No such channel
+		serv->PushSendQueueClient(socket, ":irc.local 403 " + nickname + " " + channel + " :No such channel\r\n");
+	}
+	else if (serv->HasModeInChannel('t', channel) == false || serv->IsChannelOwner(socket, channel))
+	{//채널에 t 모드가 없거나 권한이 있으니 topic 설정 가능
+		serv->SetTopicInChannel(channel, private_msg.substr(8 + channel.size(), private_msg.size() - 2),  client->getRealname() + "@" + client->getHostname());
+		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
 	}//잘되는 것으로 보인다. 야호!
-	else// 없음 topic 설정 불가능
+	else
 	{
 		/*
 		원본
@@ -580,7 +544,7 @@ void Command::mode(Client *client)
 	if (cmd[1][0] != '#' && cmd[2] == "+i")
 		client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " MODE " + client->getNickname() + " :+i\r\n");
 	else if (!serv->HasChannel(channel))
-		client->PushSendQueue(":irc.local 403 " + client->getNickname() + " " + get_reply_str(ERR_NOSUCHCHANNEL, channel) + "\r\n");
+		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, client->getNickname(), channel) + "\r\n");
 	else if (cmd.size() == 2)
 	{
 		std::time_t now = std::time(0);
@@ -669,7 +633,7 @@ void Command::mode(Client *client)
 			}
 		}
 		// 클라이언트에 보낼 string 완성
-		if (idx == 3 || !args.size())
+		if (idx == 3)
 			str += ":";
 		if (options.length() > 0) 
 			str += "+";
@@ -678,12 +642,12 @@ void Command::mode(Client *client)
 		{
 			if (idx == i + 1)
 				str += ":";
-			if (args.size()) {
-				str += (args.front() + " ");
-				args.erase(args.begin());
-			}
+			str += (args.front() + " ");
+			args.erase(args.begin());
+
 		}
-		serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
+		if (options.length() > 0)
+			serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
 	}
 	else if (cmd[2][0] == '-')
 	{
@@ -767,13 +731,12 @@ void Command::mode(Client *client)
 				args.erase(args.begin());
 			}
 		}
-		serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
+		if (options.length() > 0)
+			serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
 	}
 }
-// :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
-// :irc.local 315 test #aaa :End of /WHO list.
-// 	354, 315만 보내게 해놔서 수정 필요
-// 최초 생성때랑 기존에 있는 채널에 들어갈때 각각 보내는 메시지가 다름
+
+// JOIN 시 클라이언트에서 자동으로 보냄
 void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
@@ -797,15 +760,6 @@ void Command::who(Client *client)
 		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 745 " + cmd[1] + " :0" + "\r\n");
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
-
-	/*
-	WHO #ch %tcuhnfdar,743
-
-	:irc.local 354 c 743 #ch root 127.0.0.1 a H@ 0 0 :root
-	:irc.local 354 c 743 #ch root 127.0.0.1 b H 0 0 :root
-	:irc.local 354 c 743 #ch root 127.0.0.1 c H 0 0 :root
-	:irc.local 315 c #ch :End of /WHO list.
-	*/
 }
 
 void Command::pong(Client *client)

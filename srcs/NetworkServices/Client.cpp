@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 16:32:28 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:01:01 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,4 +82,3 @@ const std::string &Client::getLastJoinedChannelName(void) const {
     static const std::string empty_string;
     return empty_string;
 }
-

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/14 15:09:04 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:01:05 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 Channel::Channel(void) {
     passwd_ = "";
     users_limit_ = 0;
+	mode_.insert('t');
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
