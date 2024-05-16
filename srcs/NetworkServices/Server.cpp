@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:00:50 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 13:04:16 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -567,8 +567,8 @@ int Server::getClientSocket(const std::string &nick_name) {
  */
 void Server::AddInviteClient(const std::string &channel_name,
                              const std::string &nick_name) {
-    Channel channel = channels_.find(channel_name)->second;
-    Client client = FindClientByNickname(nick_name)->second;
+    Channel *channel = &(channels_.find(channel_name)->second);
+    Client *client = &(FindClientByNickname(nick_name)->second);
 
-    channel.AddInvitedList(&client);
+    channel->AddInvitedList(client);
 }
