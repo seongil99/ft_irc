@@ -104,8 +104,8 @@ void Channel::RemoveOwner(int client_socket) {
 
 void Channel::AddInvitedList(Client *client) {
     int client_socket = client->getClientSocket();
-    if (invited_clients_.find(client_socket) != invited_clients_.end()) {
-        invited_clients_[client_socket] = client;
+    if (invited_clients_.find(client_socket) == invited_clients_.end()) {
+		invited_clients_[client_socket] = client;
     }
 }
 void Channel::RemoveInvitedList(int client_socket) {
@@ -161,13 +161,14 @@ int Channel::getClientCount(void) const { return clients_.size(); }
 /**
  * @param topic 설정할 토픽
  * @param who_did 누가 토픽을 설정했는지 <realname>@<hostname> 양식으로 넣을 것!
- */
-void Channel::setTopic(const std::string &topic, const std::string &who_did) {
-    topic_ = topic;
-    topic_who_did_ = who_did;
-    std::stringstream ss;
-    ss << std::time(0);
-    topic_set_time_ = ss.str();
+*/
+void Channel::setTopic(const std::string &topic, const std::string &who_did) 
+{
+	topic_ = topic;
+	topic_who_did_ = who_did;
+	std::stringstream ss;
+	ss << std::time(0);
+	topic_set_time_ = ss.str();
 }
 
 const std::string &Channel::getTopic(void) const { return topic_; }

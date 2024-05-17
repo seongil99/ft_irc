@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 18:08:42 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 18:09:57 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -363,8 +363,7 @@ void Server::SendMessageToOtherClient(int sender_socket,
 bool Server::HasChannelPassword(const std::string &channel_name) const {
     const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
-        if (!(*it).second.HasPassword())
-            return true;
+        return (*it).second.HasPassword();
     }
     return false;
 }
@@ -516,9 +515,7 @@ void Server::RemoveClientFromServer(int client_socket) {
         if (!RemoveClientFromChannel(client_socket, channel_iter))
             channel_iter++;
     }
-    // 서버에서도 지우자
     clients_.erase(client_socket);
-    // disconnect tcp connection
     CloseClient(client_socket);
 }
 
@@ -582,20 +579,6 @@ void Server::AddInviteClient(const std::string &channel_name,
 
     channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
 }
-
-// size_t Server::getClientSendMsg(const std::string &nickname) {
-// 	clients_iter it = FindClientByNickname(nickname);
-// 	if (it != clients_.end())
-// 		return (*it).second.getSendMsgCount();
-// 	return 0;
-// }
-
-// size_t Server::getClientRecvMsg(const std::string &nickname) {
-// 	clients_iter it = FindClientByNickname(nickname);
-// 	if (it != clients_.end())
-// 		return (*it).second.getRecvMsgCount();
-// 	return 0;
-// }
 
 /**
  * @param client_socket 대상 클라이언트 소켓 넘버
