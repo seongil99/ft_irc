@@ -73,7 +73,7 @@ bool Command::excute(Client *client, std::string str)
 					ret = true;
 					(this->*(it->second))(client);
 				}
-				DebugFtForCmdParssing();
+				// DebugFtForCmdParssing();
 				temp.clear();
 				cmd.clear();
 				private_msg = str.substr(i + 1);
@@ -92,7 +92,7 @@ bool Command::excute(Client *client, std::string str)
 		ret = true;
 		(this->*(it->second))(client);
 	}
-	DebugFtForCmdParssing();
+	// DebugFtForCmdParssing();
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
