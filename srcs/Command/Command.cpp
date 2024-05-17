@@ -657,9 +657,8 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + cmd[idx] + " :No such nick\r\n");
 					return;
 				}
-				else if (!serv->HasModeInChannel('o', channel))
+				else
 				{
-					serv->SetModeToChannel('o', channel);
 					serv->AddChannelOwner(cmd[idx], channel);
 					options += "o";
 					args.push_back(cmd[idx]);
@@ -746,9 +745,8 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>.\r\n");
 				else if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to unset channel mode o (op).\r\n");
-				else if (serv->HasModeInChannel('o', channel))
+				else
 				{
-					serv->RemoveModeFromChannel('o', channel);
 					serv->RemoveChannelOwner(cmd[idx], channel);
 					options += "o";
 					args.push_back(cmd[idx]);
