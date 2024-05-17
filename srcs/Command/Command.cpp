@@ -809,7 +809,7 @@ void Command::who(Client *client)
 			}
 			else
 				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " " + cmd[1] + " " + client->getRealname() + \
-									  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
+									  " " + client->getHostname() + " " + clients_vec[i] + " H 0 0 :" + client->getRealname() + "\r\n");
 		}
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
