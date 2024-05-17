@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 20:03:15 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 16:33:53 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 Channel::Channel(void) {
     passwd_ = "";
     users_limit_ = 0;
-	mode_.insert('t');
+    mode_.insert('t');
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -104,8 +104,8 @@ void Channel::RemoveOwner(int client_socket) {
 
 void Channel::AddInvitedList(Client *client) {
     int client_socket = client->getClientSocket();
-    if (invited_clients_.find(client_socket) != invited_clients_.end()) {
-        invited_clients_[client_socket] = client;
+    if (invited_clients_.find(client_socket) == invited_clients_.end()) {
+		invited_clients_[client_socket] = client;
     }
 }
 void Channel::RemoveInvitedList(int client_socket) {

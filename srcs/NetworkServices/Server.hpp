@@ -118,6 +118,9 @@ class Server {
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);
+	void SendMessageToAllJoinedChannel(int client_socket,
+                                           const std::string &message);
+	
     // 채널 password, invite only 관련 함수 추가
     bool HasChannelPassword(const std::string &channel_name) const;
     bool CheckChannelPassword(const std::string &password_input,
@@ -143,6 +146,9 @@ class Server {
     std::string GetTopicInChannel(const std::string &channel_name);
     std::string WhoDidTopicInChannel(const std::string &channel_name);
     std::string WhatTimeChannelMade(const std::string &channel_name);
+	void SetTopicInChannel(const std::string &channel_name,
+                               const std::string &topic,
+                               const std::string &who_did);
 
     void AddInviteClient(const std::string &channel_name,
                          const std::string &nick_name);
@@ -167,7 +173,7 @@ class Server {
     size_t HowManyClientsAre() const;
     size_t HowManyClientsAreInChannel(const std::string &channel_name) const;
     size_t GetUsersLimitInChannel(const std::string &channel_name);
-    const std::string ClientsInChannelList(const std::string &channel_name);
+	const std::string ClientsInChannelList(const std::string &channel_name);
 	void CorrectPassword(Client *client);
 
     /* Getter */

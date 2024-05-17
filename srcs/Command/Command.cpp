@@ -73,7 +73,7 @@ bool Command::excute(Client *client, std::string str)
 					ret = true;
 					(this->*(it->second))(client);
 				}
-				DebugFtForCmdParssing();
+				// DebugFtForCmdParssing();
 				temp.clear();
 				cmd.clear();
 				private_msg = str.substr(i + 1);
@@ -92,7 +92,7 @@ bool Command::excute(Client *client, std::string str)
 		ret = true;
 		(this->*(it->second))(client);
 	}
-	DebugFtForCmdParssing();
+	// DebugFtForCmdParssing();
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
@@ -215,12 +215,9 @@ void Command::user(Client *client)
 	*/
 }
 
-// ch1 - pw1 짝이 맞아야만 들어갈 수 있음
-// 채널 운영자가 여러명일 수 있다
-// 비번이 있는 초대 전용 채널일 때 -> 초대를 받고 들어가면 비번 없어도 입장 가능
-//						-> 초대를 못 받고 비번만 맞으면 473 error
+// Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 void Command::join(Client *client)
-{ // Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
+{
 	std::vector<std::string> channel, pw;
 
 	if (cmd.size() == 2 && cmd[1] == ":")
@@ -281,6 +278,8 @@ void Command::join(Client *client)
 	}
 }
 
+// PART {#channel} {leave msg for last channel}
+//*****채널에서 마지막 한 명이 나갈때 채널 삭제 필요
 void Command::part(Client *client)
 {// PART {#channel} {leave msg for last channel}
 	/*
@@ -349,14 +348,10 @@ void Command::privmsg(Client *client)
 		msg_start++;
 	std::string msg = private_msg.substr(msg_start + 1);
 	msg.erase(msg.size() - 2);
-	// 보낼 메시지 완성 -> msg
-	// target안에 있는 대상이 존재하는지 확인해야함
-	// :a!root@127.0.0.1 PRIVMSG #ch1 :hello~
-	// :a!root@127.0.0.1 PRIVMSG #ch2 :hello~
+
 	for (size_t i = 0; i < target.size(); i++) {
 		if (target[i][0] == '#') {
 			if (serv->HasChannel(target[i]) && serv->HasClientInChannel(client->getClientSocket(), target[i]))
-				// serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], irc_utils::getForm(client, private_msg));
 				serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], \
 					":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
 			else if (serv->HasChannel(target[i]))
@@ -584,7 +579,7 @@ void	Command::topic(Client *client)
 	}
 }
 
-// 없는 옵션 빼려고 할때는 서버에서 반응 x
+// 없는 옵션 빼려고 할 때, 있는 옵션 등록하려 할 때는 서버에서 반응 x
 //  - i: 초대 전용 채널로 설정 및 해제
 //  - t: 채널 관리자가 TOPIC 명령어 제한 설정 및 해제 -> TOPIC 명령어를 운영자만 사용할 수 있는지 여부
 //  - k: 채널 비밀번호 설정 및 해제
@@ -625,7 +620,7 @@ void Command::mode(Client *client)
 			case 'i':
 				if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to set channel mode i (inviteonly).\r\n");
-				else {
+				else if (!serv->HasModeInChannel('i', channel)) {
 					serv->SetModeToChannel('i', channel);
 					options += "i";
 				}
@@ -633,7 +628,7 @@ void Command::mode(Client *client)
 			case 't':
 				if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to unset channel mode t (topiclock).\r\n");
-				else {
+				else if (!serv->HasModeInChannel('t', channel)) {
 					serv->SetModeToChannel('t', channel);
 					options += "t";
 				}
@@ -643,7 +638,7 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " k * :You must specify a parameter for the key mode. Syntax: <key>.\r\n");
 				else if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to unset channel mode k (key).\r\n");
-				else
+				else if (!serv->HasModeInChannel('k', channel))
 				{
 					serv->SetModeToChannel('k', channel);
 					serv->SetPasswordInChannel(cmd[idx], channel);
@@ -661,7 +656,7 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + cmd[idx] + " :No such nick\r\n");
 					return;
 				}
-				else
+				else if (!serv->HasModeInChannel('o', channel))
 				{
 					serv->SetModeToChannel('o', channel);
 					serv->AddChannelOwner(cmd[idx], channel);
@@ -675,7 +670,7 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " l * :You must specify a parameter for the key mode. Syntax: <limit>.\r\n");
 				else if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to set channel mode l (limit).\r\n");
-				else
+				else if (!serv->HasModeInChannel('l', channel))
 				{
 					serv->SetModeToChannel('l', channel);
 					int limit = std::stoi(cmd[idx]);

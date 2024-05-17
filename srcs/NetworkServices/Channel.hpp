@@ -37,9 +37,8 @@ class Channel {
     std::string topic_;
     std::string topic_set_time_;
     std::string topic_who_did_;
-	// std::map<int, size_t> send_msgs_;
-	// std::map<int, size_t> recv_msgs_;
-
+    // std::map<int, size_t> send_msgs_;
+    // std::map<int, size_t> recv_msgs_;
 
   public:
     Channel(void);
