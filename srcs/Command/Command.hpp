@@ -44,6 +44,7 @@ private :
 	void	who(Client *client);
 	void	cap(Client *client);
 	//cmd=======================================
+	void	DebugFtForCmdParssing();
 
 public :
 	Command(Server *server);
@@ -53,6 +54,7 @@ public :
 	//cmd=======================================
 	void	pong(Client *client);
 	//cmd=======================================
+
 };
 
 #endif

@@ -161,13 +161,23 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
         return;
     }
 
-    // 서버 콘솔에 출력
-    std::cout << "received data from " << client_socket << ": "
-              << (*it).second.getMessage() << std::endl;
+    // 서버 콘솔에 출력==================================================
+    std::cout << "received data from " << client_socket << ": ";
+    std::string str = (*it).second.getMessage();
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == '\r')
+			std::cout << "\\r";
+		else if (str[i] == '\n')
+			std::cout << "\\n";
+		else
+			std::cout << str[i];
+	}
+	std::cout << '\n' << std::endl;
+	//=================================================================
 
     if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
-    //     channels_["default"].SendMessageToOthers(
-    //         client_socket, clients_[client_socket].getMessage());
+		std::cerr << "Something horrible received!" << std::endl;
     }
 
     // execute 이후 client 지워질 수 있음
