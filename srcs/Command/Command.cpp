@@ -763,7 +763,6 @@ void Command::mode(Client *client)
 					serv->RemoveModeFromChannel('l', channel);
 					serv->SetUsersLimitInChannel(0, channel);
 					options += "l";
-					idx++;
 				}
 				break;
 			default: // 해당하는 모드가 없을 때 처리
@@ -772,14 +771,14 @@ void Command::mode(Client *client)
 			}
 		}
 		// 클라이언트에 보낼 string 완성
-		if (idx == 3 || !args.size())
+		if (idx == 3)
 			str += ":";
 		if (options.length() > 0) 
 			str += "-";
 		str += options + " ";
 		for (size_t i = 3; i < idx; i++)
 		{
-			if (idx == i + 1 && args.size())
+			if (idx == i + 1)
 				str += ":";
 			if (args.size()) {
 				str += (args.front() + " ");
@@ -790,10 +789,8 @@ void Command::mode(Client *client)
 			serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
 	}
 }
-// :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
-// :irc.local 315 test #aaa :End of /WHO list.
-// 	354, 315만 보내게 해놔서 수정 필요
-// 최초 생성때랑 기존에 있는 채널에 들어갈때 각각 보내는 메시지가 다름
+
+// 채널 입장 시 join -> mode -> who 순으로 동작
 void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
