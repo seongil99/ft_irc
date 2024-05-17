@@ -361,8 +361,7 @@ void Server::SendMessageToOtherClient(int sender_socket,
 bool Server::HasChannelPassword(const std::string &channel_name) const {
     const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
-        if (!(*it).second.HasPassword())
-            return true;
+		return (*it).second.HasPassword();
     }
     return false;
 }

@@ -6,11 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-<<<<<<<<< Temporary merge branch 1
-/*   Updated: 2024/05/16 13:00:53 by seonyoon         ###   ########.fr       */
-=========
 /*   Updated: 2024/05/17 16:22:02 by seonyoon         ###   ########.fr       */
->>>>>>>>> Temporary merge branch 2
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +118,9 @@ class Server {
     void SendMessageToOtherClient(int sender_socket,
                                   const std::string &receiver_nickname,
                                   const std::string &message);
+	void SendMessageToAllJoinedChannel(int client_socket,
+                                           const std::string &message);
+	
     // 채널 password, invite only 관련 함수 추가
     bool HasChannelPassword(const std::string &channel_name) const;
     bool CheckChannelPassword(const std::string &password_input,
@@ -144,7 +143,9 @@ class Server {
     std::string GetTopicInChannel(const std::string &channel_name);
     std::string WhoDidTopicInChannel(const std::string &channel_name);
     std::string WhatTimeChannelMade(const std::string &channel_name);
->>>>>>>>> Temporary merge branch 2
+	void SetTopicInChannel(const std::string &channel_name,
+                               const std::string &topic,
+                               const std::string &who_did);
 
     void AddInviteClient(const std::string &channel_name,
                          const std::string &nick_name);
@@ -169,18 +170,13 @@ class Server {
     size_t HowManyClientsAre() const;
     size_t HowManyClientsAreInChannel(const std::string &channel_name) const;
     size_t GetUsersLimitInChannel(const std::string &channel_name);
-<<<<<<<<< Temporary merge branch 1
 	const std::string ClientsInChannelList(const std::string &channel_name);
 	void CorrectPassword(Client *client);
-=========
-    const std::string ClientsInChannelList(const std::string &channel_name);
->>>>>>>>> Temporary merge branch 2
 
     /* Getter */
 
     const std::string &getStartedTime() const;
     int getClientSocket(const std::string &nick_name);
->>>>>>>>> Temporary merge branch 2
 };
 
 #endif
