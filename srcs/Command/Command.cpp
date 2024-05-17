@@ -275,6 +275,7 @@ void Command::join(Client *client)
 								  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
 			client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
 			serv->SendMessageToOthersInChannel(client->getClientSocket(), channel[i], ":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " JOIN :" + channel[i] + "\r\n");
+			serv->RemoveInviteClient(channel[i], client->getNickname());
 		}
 	}
 }

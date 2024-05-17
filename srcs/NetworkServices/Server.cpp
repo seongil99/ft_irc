@@ -580,10 +580,11 @@ void Server::AddInviteClient(const std::string &channel_name,
     channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
 }
 
-// void Server::RemoveInviteClient(const std::string &channel_name,
-//                          	const std::string &nick_name) {
-// 	Channel *channel = &(channels_.find(channel_name)->second);
-// }
+void Server::RemoveInviteClient(const std::string &channel_name,
+                         	const std::string &nick_name) {
+	Channel *channel = &(channels_.find(channel_name)->second);
+	channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
+}
 
 /**
  * @param client_socket 대상 클라이언트 소켓 넘버
