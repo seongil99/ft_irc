@@ -178,12 +178,9 @@ void Command::user(Client *client)
 	*/
 }
 
-// ch1 - pw1 짝이 맞아야만 들어갈 수 있음
-// 채널 운영자가 여러명일 수 있다
-// 비번이 있는 초대 전용 채널일 때 -> 초대를 받고 들어가면 비번 없어도 입장 가능
-//						-> 초대를 못 받고 비번만 맞으면 473 error
+// Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
 void Command::join(Client *client)
-{ // Join (ch1,ch2,...chn) (pw1,pw2,...,pwn)
+{
 	std::vector<std::string> channel, pw;
 
 	if (cmd.size() == 2 && cmd[1] == ":")
@@ -244,6 +241,8 @@ void Command::join(Client *client)
 	}
 }
 
+// PART {#channel} {leave msg for last channel}
+//*****채널에서 마지막 한 명이 나갈때 채널 삭제 필요
 void Command::part(Client *client)
 {// PART {#channel} {leave msg for last channel}
 	/*
@@ -316,14 +315,10 @@ void Command::privmsg(Client *client)
 		msg_start++;
 	std::string msg = private_msg.substr(msg_start + 1);
 	msg.erase(msg.size() - 2);
-	// 보낼 메시지 완성 -> msg
-	// target안에 있는 대상이 존재하는지 확인해야함
-	// :a!root@127.0.0.1 PRIVMSG #ch1 :hello~
-	// :a!root@127.0.0.1 PRIVMSG #ch2 :hello~
+
 	for (size_t i = 0; i < target.size(); i++) {
 		if (target[i][0] == '#') {
 			if (serv->HasChannel(target[i]) && serv->HasClientInChannel(client->getClientSocket(), target[i]))
-				// serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], irc_utils::getForm(client, private_msg));
 				serv->SendMessageToOthersInChannel(client->getClientSocket(), target[i], \
 					":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
 			else if (serv->HasChannel(target[i]))

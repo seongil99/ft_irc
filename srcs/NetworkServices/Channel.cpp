@@ -104,8 +104,8 @@ void Channel::RemoveOwner(int client_socket) {
 
 void Channel::AddInvitedList(Client *client) {
     int client_socket = client->getClientSocket();
-    if (invited_clients_.find(client_socket) != invited_clients_.end()) {
-        invited_clients_[client_socket] = client;
+    if (invited_clients_.find(client_socket) == invited_clients_.end()) {
+		invited_clients_[client_socket] = client;
     }
 }
 void Channel::RemoveInvitedList(int client_socket) {
