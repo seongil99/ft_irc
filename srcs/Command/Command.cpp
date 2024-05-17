@@ -118,7 +118,7 @@ void Command::nick(Client *client)
 		// 닉네임 중복 여부 판단
 		if (serv->HasDuplicateNickname(cmd[1]))
 		{ // 닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
-			serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NICKNAMEINUSE) + get_reply_str(ERR_NICKNAMEINUSE, cmd[1]));
+			serv->PushSendQueueClient(client->getClientSocket(), get_reply_number(ERR_NICKNAMEINUSE) + get_reply_str(ERR_NICKNAMEINUSE, cmd[1]));	
 		}
 		else
 		{ // 닉네임 중복이 안되었으니 닉네임 변경
@@ -787,7 +787,19 @@ void Command::who(Client *client)
 	std::string clients_list =  serv->ClientsInChannelList(channel);
 	std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
 
-	if (args[1] == "743") {
+	if (cmd.size() == 2 && cmd[1][0] == '#') {
+		for (size_t i = 0; i < clients_vec.size(); i++) {
+			if (clients_vec[i][0] == '@') {
+				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " " + cmd[1] + " " + client->getRealname() +\
+									  " " + client->getHostname() + " " + clients_vec[i].substr(1) + " H@ 0 0 :" + client->getRealname() + "\r\n");
+			}
+			else
+				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " " + cmd[1] + " " + client->getRealname() + \
+									  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
+		}
+		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
+	}
+	else if (args[1] == "743") {
 		for (size_t i = 0; i < clients_vec.size(); i++) {
 			if (clients_vec[i][0] == '@') {
 				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 743 " + cmd[1] + " " + client->getRealname() +\
@@ -803,15 +815,6 @@ void Command::who(Client *client)
 		client->PushSendQueue(":irc.local 354 " + client->getNickname() + " 745 " + cmd[1] + " :0" + "\r\n");
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
-
-	/*
-	WHO #ch %tcuhnfdar,743
-
-	:irc.local 354 c 743 #ch root 127.0.0.1 a H@ 0 0 :root
-	:irc.local 354 c 743 #ch root 127.0.0.1 b H 0 0 :root
-	:irc.local 354 c 743 #ch root 127.0.0.1 c H 0 0 :root
-	:irc.local 315 c #ch :End of /WHO list.
-	*/
 }
 
 void Command::pong(Client *client)
