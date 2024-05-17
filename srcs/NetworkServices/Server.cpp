@@ -597,7 +597,7 @@ void Server::SendMessageToAllJoinedChannel(int client_socket,
 /**
  * 양식 => :irc.local 322 <nick> <channel> <참가 인원수> :<모드> {topic}
  * @param client_socket list 명령어를 보낸 클라이언트 소켓
- * @note 단일 명령어를 내려서 현재 존재하는 모든 채널의 정보를 보내야 함.
+ * @note 단일 명령어를 내려서 현재 존재하는 모든 채널의 정보를 보내야 함. 조회못하는 채널 모드가 s,p가 있는데 그건 구현 안했으니까 조회 못하는 채널은 없음
  */
 void Server::ActivateList(Client *client) {
     std::string nickname = client->getNickname();

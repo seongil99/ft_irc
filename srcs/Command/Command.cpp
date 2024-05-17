@@ -171,6 +171,7 @@ void Command::user(Client *client)
 	//이럴 경우는 접속할때 중복된 닉네임으로 접속시도한 경우이므로 여기서 멈춰야됨
 	if (client->getNickname() == "")
 		return ;
+	std::string nickname = client->getNickname();
 	// username 만들기
 	std::string temp = cmd[1];
 	if (temp[temp.size() - 1] == '\n')
@@ -186,22 +187,24 @@ void Command::user(Client *client)
 	}
 	client->setRealname(temp.substr(1, temp.size() - 1));
 	client->setHostname("192.168.65.2"); // 임시로 이렇게 넣은거니 확실해지면 추가할 것!
+	std::string realname = client->getRealname();
+	std::string hostname = client->getHostname();
 
-	client->PushSendQueue(":irc.local NOTICE " + client->getNickname() + " :*** Could not resolve your hostname: Request timed out; using your IP address (" + client->getHostname() + ") instead.\r\n");
+	client->PushSendQueue(":irc.local NOTICE " + nickname + " :*** Could not resolve your hostname: Request timed out; using your IP address (" + hostname + ") instead.\r\n");
 	if ((serv->CheckPassword("") || client->getPassword()) == false)//서버가 비번이 설정 되어 있으며, 클라이언트가 비번 못 맞춘 경우
 	{
 		//ERROR :Closing link: (root@192.168.65.2) [Access denied by configuration]
-		client->PushSendQueue("ERROR :Closing link: (" + client->getRealname() + "@" + client->getHostname() + ") [Access denied by configuration]\r\n");
+		client->PushSendQueue("ERROR :Closing link: (" + realname + "@" + hostname + ") [Access denied by configuration]\r\n");
 		return ;
 	}
 
-	client->PushSendQueue(get_reply_number(RPL_WELCOME) + client->getNickname() + get_reply_str(RPL_WELCOME, client->getNickname(), client->getRealname(), client->getHostname()));
-	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + client->getNickname() + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
-	client->PushSendQueue(get_reply_number(RPL_CREATED) + client->getNickname() + get_reply_str(RPL_CREATED, serv->getStartedTime()));
-	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, client->getNickname(), "irc.local", "OUR", "FT_IRC"));
-	// client->PushSendQueue(":irc.local 005 " + client->getNickname() + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
-	// client->PushSendQueue(":irc.local 005 " + client->getNickname() + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
-	client->PushSendQueue(":irc.local 005 " + client->getNickname() + " Enjoy our ft_irc.\r\n");
+	client->PushSendQueue(get_reply_number(RPL_WELCOME) + nickname + get_reply_str(RPL_WELCOME, nickname, realname, hostname));
+	client->PushSendQueue(get_reply_number(RPL_YOURHOST) + nickname + get_reply_str(RPL_YOURHOST, "irc.local", "ft_irc"));
+	client->PushSendQueue(get_reply_number(RPL_CREATED) + nickname + get_reply_str(RPL_CREATED, serv->getStartedTime()));
+	client->PushSendQueue(get_reply_number(RPL_MYINFO) + get_reply_str(RPL_MYINFO, nickname, "irc.local", "OUR", "FT_IRC"));
+	// client->PushSendQueue(":irc.local 005 " + nickname + " AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server\r\n");
+	// client->PushSendQueue(":irc.local 005 " + nickname + " MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server\r\n");
+	client->PushSendQueue(":irc.local 005 " + nickname + " Enjoy our ft_irc.\r\n");
 	/*
 	의문점
 	1. 안에 들어갈 문장은 대충 복붙했는데 이걸 어찌혀야하나
@@ -234,7 +237,7 @@ void Command::join(Client *client)
 			if (!serv->IsInvitedChannel(client->getClientSocket(), channel[i]))
 			{
 				client->PushSendQueue(":irc.local 473 " + client->getNickname() + " " + channel[i] + " :Cannot join channel (invite only)\r\n");
-				return;
+				continue;
 			}
 			else if (serv->HasChannelPassword(channel[i]))
 			{
@@ -242,14 +245,14 @@ void Command::join(Client *client)
 				{
 					client->PushSendQueue(":irc.local 475 " + client->getNickname() + " " + channel[i] +
 										  " :Cannot join channel (incorrect channel key)\r\n");
-					return;
+					continue;
 				}
 			}
 			else if (serv->IsOverUsersLimitChannel(channel[i]))
 			{
 				client->PushSendQueue(":irc.local 471 " + client->getNickname() + " " + channel[i] +
 									  " :Cannot join channel (channel is full)\r\n");
-				return;
+				continue;
 			}
 		}
 		if (serv->HowManyChannelsJoined(client->getClientSocket()) >= 10) // 채널 10개 이상 속했을 때
@@ -293,41 +296,45 @@ void Command::part(Client *client)
 
 	192.168.065.002.08080-172.017.000.002.58140: :klha!root@127.0.0.1 PART #hi :good bye
 	*/
-	std::string channel = cmd[1];
+	std::vector<std::string> channel = irc_utils::Split(cmd[1], ',');
 	std::string nick_name = client->getNickname();
 	std::string temp;
 	int	socket = client->getClientSocket();
-	if (cmd.size() == 2)
-		temp = irc_utils::getForm(client, cmd[0] + " :" + channel + "\r\n");
-	else
-		temp = irc_utils::getForm(client, private_msg);
 	// private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
-	if (serv->HasChannel(channel) == false)
-	{//그런 채널 없는데? -> 그럼 현재 채널 나가
-	/* 현재 1이란 채널에서 /pass get out 사용
-	-> 그럼 클라이언트가 /pass #1 :get out으로 던짐 이건 여기에 안들어와짐
-	여기에 들어오는 건 status에서 똑같은 명령어를 쓴다면 이렇게 됨
-	127.000.000.001.49828-127.000.000.001.06667: PART get :out
-	127.000.000.001.06667-127.000.000.001.49828: :irc.local 403 upper get :No such channel
-	*/
-		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, channel));
-		return;
+	for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
+	{
+		if (serv->HasChannel(*it) == false)
+		{//그런 채널 없는데? -> 그럼 현재 채널 나가
+		/* 현재 1이란 채널에서 /pass get out 사용
+		-> 그럼 클라이언트가 /pass #1 :get out으로 던짐 이건 여기에 안들어와짐
+		여기에 들어오는 건 status에서 똑같은 명령어를 쓴다면 이렇게 됨
+		127.000.000.001.49828-127.000.000.001.06667: PART get :out
+		127.000.000.001.06667-127.000.000.001.49828: :irc.local 403 upper get :No such channel
+		*/
+			client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, *it));
+		}
+		else if (serv->HasClientInChannel(nick_name, *it) == false)
+		{//채널 있기는 한데 넌 안들어가 있는데? -> 오류 메시지만 보내고 끝
+		/*
+		127.000.000.001.49828-127.000.000.001.06667: PART #4 :hwy?
+		127.000.000.001.06667-127.000.000.001.49828: :irc.local 442 upper #4 :You're not on that channel
+		*/
+			client->PushSendQueue(get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, *it));
+		}
+		/*
+		나간 사람이 마직막 운영자면 -> 해당 채널에 운영자가 없는 채널이 되어 버림....
+		나간 사람이 마지막 사람이라면 채널 자체를 없애버려야 한다.
+		*/
+		else
+		{
+			if (cmd.size() == 2)
+				temp = irc_utils::getForm(client, cmd[0] + " :" + *it + "\r\n");
+			else
+				temp = irc_utils::getForm(client, cmd[0] + " " + *it + " " + cmd[2] + "\r\n");
+			serv->SendMessageToAllClientsInChannel(*it, temp);
+			serv->RemoveClientFromChannel(socket, *it);
+		}
 	}
-	else if (serv->HasClientInChannel(nick_name, channel) == false)
-	{//채널 있기는 한데 넌 안들어가 있는데? -> 오류 메시지만 보내고 끝
-	/*
-	127.000.000.001.49828-127.000.000.001.06667: PART #4 :hwy?
-	127.000.000.001.06667-127.000.000.001.49828: :irc.local 442 upper #4 :You're not on that channel
-	*/
-		client->PushSendQueue(get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, channel));
-		return;
-	}
-	/*
-	나간 사람이 마직막 운영자면 -> 해당 채널에 운영자가 없는 채널이 되어 버림....
-	나간 사람이 마지막 사람이라면 채널 자체를 없애버려야 한다.
-	*/
-	serv->SendMessageToAllClientsInChannel(channel, temp);
-	serv->RemoveClientFromChannel(socket, channel);
 }
 
 // PRIVMSG (user1,user2,...,usern) <text to be sent>
@@ -355,8 +362,8 @@ void Command::privmsg(Client *client)
 				client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, client->getNickname(), target[i]));
 		}
 		else {
-			if (!serv->HasDuplicateNickname(target[i]))
-				client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " +  get_reply_str(ERR_NOSUCHNICK, target[i]));
+			if (!serv->HasDuplicateNickname(target[i]))//:irc.local 401 middle 2 :No such nick
+				client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + target[i] + " :No such nick\r\n");
 			else {
 				serv->SendMessageToOtherClient(client->getClientSocket(), target[i], \
 				":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " PRIVMSG " + target[i] + " :" + msg + "\r\n");
