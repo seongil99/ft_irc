@@ -149,7 +149,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		ret = s1 + " :Erroneus nickname";
 		break;
 	case ERR_NICKNAMEINUSE://s1 is nickname
-		ret = s1 + " :Nickname is already in use";
+		ret = "* " + s1 + " :Nickname is already in use";
 		break;
 	case ERR_NEEDMOREPARAMS://s1 is command
 		ret = s1 + " :Not enough parameters";
