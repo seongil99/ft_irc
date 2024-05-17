@@ -673,12 +673,20 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to set channel mode l (limit).\r\n");
 				else if (!serv->HasModeInChannel('l', channel))
 				{
-					serv->SetModeToChannel('l', channel);
+					if (cmd[idx].size() > 9) {
+						client->PushSendQueue(":irc.local 696 "+ client->getNickname() + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>.\r\n"); 
+						break;
+					}
 					int limit = std::stoi(cmd[idx]);
-					serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
-					options += "l";
-					args.push_back(cmd[idx]);
-					idx++;
+					if (limit < 0 || limit > INT_MAX)
+						client->PushSendQueue(":irc.local 696 "+ client->getNickname() + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>.\r\n"); 
+					else {
+						serv->SetModeToChannel('l', channel);
+						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
+						options += "l";
+						args.push_back(cmd[idx]);
+						idx++;
+					}
 				}
 				break;
 			default: // 해당하는 모드가 없을 때 처리
