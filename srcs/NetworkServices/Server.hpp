@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 16:32:53 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 18:08:40 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,9 +63,9 @@ class Server {
 
     /* Channel functions */
 
-    void RemoveClientFromChannel(
+    bool RemoveClientFromChannel(
         int client_socket,
-        std::map<std::string, Channel>::reverse_iterator channel_iter);
+        std::map<std::string, Channel>::iterator &channel_iter);
 
     /* Client functions */
 

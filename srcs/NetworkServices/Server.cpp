@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 16:32:17 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 18:08:42 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,12 +236,14 @@ void Server::RemoveClientFromChannel(int client_socket,
     }
 }
 
-void Server::RemoveClientFromChannel(
-    int client_socket,
-    std::map<std::string, Channel>::reverse_iterator channel_iter) {
+bool Server::RemoveClientFromChannel(
+    int client_socket, std::map<std::string, Channel>::iterator &channel_iter) {
     (*channel_iter).second.RemoveClient(client_socket);
-    if ((*channel_iter).second.getClientCount() == 0)
-        channels_.erase((*channel_iter).first);
+    if ((*channel_iter).second.getClientCount() == 0) {
+        channel_iter = channels_.erase(channel_iter);
+        return true;
+    }
+    return false;
 }
 
 void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
@@ -505,15 +507,14 @@ Channel *Server::getChannel(const std::string &channel_name) {
  * 서버 및 모든 곳에서 지우니, 최대한 마지막에 호출 할 것!
  */
 void Server::RemoveClientFromServer(int client_socket) {
-    std::map<std::string, Channel>::reverse_iterator channel_iter =
-        channels_.rbegin();
+    std::map<std::string, Channel>::iterator channel_iter = channels_.begin();
     // 들어가있는 모든 채널에서 없애야한다.
-    while (channel_iter != channels_.rend()) {
+    while (channel_iter != channels_.end()) {
         // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
         // 혼자 있었으면 채널도 없어져야됨 -> 주석 처리
         // 새로운 관리자 -> 일단 Channel::clients_.begin()
-        RemoveClientFromChannel(client_socket, channel_iter);
-        channel_iter++;
+        if (!RemoveClientFromChannel(client_socket, channel_iter))
+            channel_iter++;
     }
     // 서버에서도 지우자
     clients_.erase(client_socket);
