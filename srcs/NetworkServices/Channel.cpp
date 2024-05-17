@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 20:03:15 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 16:33:53 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 Channel::Channel(void) {
     passwd_ = "";
     users_limit_ = 0;
-	mode_.insert('t');
+    mode_.insert('t');
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -161,7 +161,6 @@ int Channel::getClientCount(void) const { return clients_.size(); }
 /**
  * @param topic 설정할 토픽
  * @param who_did 누가 토픽을 설정했는지 <realname>@<hostname> 양식으로 넣을 것!
- *
  */
 void Channel::setTopic(const std::string &topic, const std::string &who_did) {
     topic_ = topic;
