@@ -155,7 +155,8 @@ void Command::nick(Client *client)
 
 			127.000.000.001.06667-127.000.000.001.54498: :upper!root@127.0.0.1 NICK :test
 			*/
-			client->PushSendQueue(irc_utils::getForm(client, cmd[0] + " :" + cmd[1]));
+			if (!client->getRealname().empty())
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " NICK :" + cmd[1] + "\r\n");
 			client->setNickname(cmd[1]);
 		}
 	}
