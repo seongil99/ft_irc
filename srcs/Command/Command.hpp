@@ -6,11 +6,10 @@
 # include <string>
 # include <vector>
 # include <sstream>
+# include <map>
 
 class Client;
 class Server;
-// class Protocol;
-// class Client;
 
 class Command
 {
@@ -20,11 +19,11 @@ private :
 	Command(const Command &origin);
 	Command	&operator=(const Command &origin);
 	//[OCCF]===================================
-	std::vector<std::string>	cmd_list;
 	std::vector<std::string>	cmd;
 	std::string	private_msg;
-	typedef void (Command::*cmd_ft_arr)(Client*);
-	cmd_ft_arr cmd_ft[17];
+	typedef void (Command::*cmd_fts)(Client*);
+	std::map<std::string, cmd_fts> cmd_ft;
+	
 	void	clean_cmd();
 	Server *serv;
 	//cmd=======================================
@@ -45,6 +44,7 @@ private :
 	void	who(Client *client);
 	void	cap(Client *client);
 	//cmd=======================================
+	void	DebugFtForCmdParssing();
 
 public :
 	Command(Server *server);
@@ -54,6 +54,7 @@ public :
 	//cmd=======================================
 	void	pong(Client *client);
 	//cmd=======================================
+
 };
 
 #endif

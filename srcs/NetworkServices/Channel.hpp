@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 20:02:32 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 16:33:26 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ class Channel {
     std::string topic_;
     std::string topic_set_time_;
     std::string topic_who_did_;
+    // std::map<int, size_t> send_msgs_;
+    // std::map<int, size_t> recv_msgs_;
 
   public:
     Channel(void);

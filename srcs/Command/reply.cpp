@@ -58,6 +58,8 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 //332 RPL_TOPIC : channel, topic
 //341 RPL_INVITING : channel, nick
 //401 ERR_NOSUCHNICK: nickname, target
+//403 ERR_NOSUCHCHANNEL: nick, channel
+// 442 ERR_NOTONCHANNEL: channel name
 //443 ERR_USERONCHANNEL : user, channel
 //482 ERR_CHANOPRIVSNEEDED: nick, channel
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
@@ -86,6 +88,12 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 	case ERR_NOSUCHNICK://s1 is nickname
 		ret = s1 + " " + s2 + " :No such nick/channel";
 		break;
+	case ERR_NOSUCHCHANNEL://s1 is nickname s2 is channel name
+		ret = s1 + " " + s2 + " :No such channel";
+		break;
+	case ERR_NOTONCHANNEL://s1 is channel name
+		ret = s1 + " :You're not on that channel";
+		break;
 	default:
 		ret = "";
 		break;
@@ -96,7 +104,6 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 /*
 003 RPL_CREATED:  data
 331 RPL_NOTOPIC: channel name
-403 ERR_NOSUCHCHANNEL: channel name
 404 ERR_CANNOTSENDTOCHAN: channel name
 405 ERR_TOOMANYCHANNELS: channel name
 407 ERR_TOOMANYTARGETS: target....??
@@ -105,7 +112,6 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 414 ERR_WILDTOPLEVEL: mask
 432 ERR_ERRONEUSNICKNAME: nickname
 433 ERR_NICKNAMEINUSE: nickname
-442 ERR_NOTONCHANNEL: channel name
 461 ERR_NEEDMOREPARAMS: command
 472 ERR_UNKNOWNMODE: char
 476 ERR_BADCHANMASK: channel
@@ -120,9 +126,6 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		break;
 	case RPL_NOTOPIC://s1 is channel name
 		ret = s1 + " :No topic is set";
-		break;
-	case ERR_NOSUCHCHANNEL://s1 is channel name
-		ret = s1 + " :No such channel";
 		break;
 	case ERR_CANNOTSENDTOCHAN://s1 is channel name
 		ret = s1 + " :You cannot send to channel";
@@ -146,10 +149,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		ret = s1 + " :Erroneus nickname";
 		break;
 	case ERR_NICKNAMEINUSE://s1 is nickname
-		ret = s1 + " :Nickname is already in use";
-		break;
-	case ERR_NOTONCHANNEL://s1 is channel name
-		ret = s1 + " :You're not on that channel";
+		ret = "* " + s1 + " :Nickname is already in use";
 		break;
 	case ERR_NEEDMOREPARAMS://s1 is command
 		ret = s1 + " :Not enough parameters";

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 16:22:02 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 16:32:53 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,9 +140,29 @@ class Server {
     std::string GetTopicInChannel(const std::string &channel_name);
     std::string WhoDidTopicInChannel(const std::string &channel_name);
     std::string WhatTimeChannelMade(const std::string &channel_name);
+    void SetPasswordInChannel(const std::string &passwd,
+                              const std::string &channel_name);
+    void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
+    bool IsChannelOwner(int client_socket,
+                        const std::string &channel_name) const;
+    void SendMessageToAllJoinedChannel(int client_socket,
+                                       const std::string &message);
+
+    // 채널 Topic 관련 함수
+    bool HasTopicInChannel(const std::string &channel_name);
+    void SetTopicInChannel(const std::string &channel_name,
+                           const std::string &topic,
+                           const std::string &who_did);
+    std::string GetTopicInChannel(const std::string &channel_name);
+    std::string WhoDidTopicInChannel(const std::string &channel_name);
+    std::string WhatTimeChannelMade(const std::string &channel_name);
 
     void AddInviteClient(const std::string &channel_name,
                          const std::string &nick_name);
+
+    // list 관련 함수
+    void ActivateList(Client *client);
+    void ActivateList(Client *client, const std::string &channel_name);
 
     const std::string getAllChannelName() const;
     /**
@@ -161,11 +181,15 @@ class Server {
     size_t HowManyClientsAreInChannel(const std::string &channel_name) const;
     size_t GetUsersLimitInChannel(const std::string &channel_name);
     const std::string ClientsInChannelList(const std::string &channel_name);
+    const std::string ClientsInChannelList(const std::string &channel_name);
+    void CorrectPassword(Client *client);
 
     /* Getter */
 
     const std::string &getStartedTime() const;
     int getClientSocket(const std::string &nick_name);
+    // size_t getClientSendMsg(const std::string &nickname);
+    // size_t getClientRecvMsg(const std::string &nickname);
 };
 
 #endif
