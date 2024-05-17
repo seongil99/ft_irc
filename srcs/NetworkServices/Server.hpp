@@ -137,6 +137,10 @@ class Server {
     void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
     bool IsChannelOwner(int client_socket,
                         const std::string &channel_name) const;
+	void AddInviteClient(const std::string &channel_name,
+                         const std::string &nick_name);
+	void RemoveInviteClient(const std::string &channel_name,
+                         	const std::string &nick_name);
 
     // 채널 Topic 관련 함수
     bool HasTopicInChannel(const std::string &channel_name);
@@ -146,9 +150,6 @@ class Server {
 	void SetTopicInChannel(const std::string &channel_name,
                                const std::string &topic,
                                const std::string &who_did);
-
-    void AddInviteClient(const std::string &channel_name,
-                         const std::string &nick_name);
 
 	//list 관련 함수
 	void ActivateList(Client *client);
