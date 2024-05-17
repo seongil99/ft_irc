@@ -23,8 +23,6 @@ private :
 	std::string	private_msg;
 	typedef void (Command::*cmd_fts)(Client*);
 	std::map<std::string, cmd_fts> cmd_ft;
-	
-	void	clean_cmd();
 	Server *serv;
 	//cmd=======================================
 	void	pass(Client *client);
@@ -33,7 +31,6 @@ private :
 	void	join(Client *client);
 	void	part(Client *client);
 	void	privmsg(Client *client);
-	void	oper(Client *client);
 	void	list(Client *client);
 	void	ping(Client *client);
 	void	quit(Client *client);
@@ -50,11 +47,6 @@ public :
 	Command(Server *server);
 	~Command();
 	bool	excute(Client *client, std::string str);
-
-	//cmd=======================================
-	void	pong(Client *client);
-	//cmd=======================================
-
 };
 
 #endif

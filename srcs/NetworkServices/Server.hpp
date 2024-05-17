@@ -137,12 +137,9 @@ class Server {
     void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
     bool IsChannelOwner(int client_socket,
                         const std::string &channel_name) const;
-	void SendMessageToAllJoinedChannel(int client_socket, const std::string &message);
 
     // 채널 Topic 관련 함수
     bool HasTopicInChannel(const std::string &channel_name);
-	void SetTopicInChannel(const std::string &channel_name, const std::string &topic, 
-							const std::string &who_did);
     std::string GetTopicInChannel(const std::string &channel_name);
     std::string WhoDidTopicInChannel(const std::string &channel_name);
     std::string WhatTimeChannelMade(const std::string &channel_name);

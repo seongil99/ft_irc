@@ -25,11 +25,6 @@ Command::Command(Server *server) : serv(server)
 
 Command::~Command() {}
 
-void Command::clean_cmd()
-{
-	cmd.clear();
-}
-
 /**
  * @param clinet 클라이언트 포인터
  * @param str 클라이언트가 입력한 글
@@ -155,7 +150,7 @@ void Command::nick(Client *client)
 
 			127.000.000.001.06667-127.000.000.001.54498: :upper!root@127.0.0.1 NICK :test
 			*/
-			client->PushSendQueue(irc_utils::getForm(client, cmd[0] + " :" + cmd[1]));
+			client->PushSendQueue(irc_utils::getForm(client, cmd[0] + " :" + cmd[1] + "\r\n"));
 			client->setNickname(cmd[1]);
 		}
 	}
@@ -431,10 +426,14 @@ void Command::quit(Client *client)
 		*/
 		quit_msg = irc_utils::getForm(client, "QUIT :Quit: " + private_msg.substr(6));
 	}
+	int socket = client->getClientSocket();
+	std::string real = client->getRealname();
+	std::string host = client->getHostname();
 	// quit 명령어를 내렸다는 것을 참가했던 모든 채널의 클라이언트에게 본인제외하고 다 보내야함.
-	serv->SendMessageToAllJoinedChannel(client->getClientSocket(), quit_msg);
+	client->PushSendQueue("ERROR :Closing link: (" + real + "@" + host + ") [Quit: " + cmd[1].substr(1));
+	serv->SendMessageToAllJoinedChannel(socket, quit_msg);
 	// 아래는 할 것 다하고 호출!
-	serv->RemoveClientFromServer(client->getClientSocket());
+	serv->RemoveClientFromServer(socket);
 	// 클라이언트가 삭제되기에 더이상 해당 클라이언트를 부르면 안됨!
 }
 
@@ -556,7 +555,8 @@ void	Command::topic(Client *client)
 	}
 	else if (serv->HasModeInChannel('t', channel) == false || serv->IsChannelOwner(socket, channel))
 	{//채널에 t 모드가 없거나 권한이 있으니 topic 설정 가능
-		serv->SetTopicInChannel(channel, private_msg.substr(8 + channel.size(), private_msg.size() - 2),  client->getRealname() + "@" + client->getHostname());
+		//127.000.000.001.52292-127.000.000.001.06667: TOPIC <channel> :<topic>
+		serv->SetTopicInChannel(channel, cmd[2].substr(1),  client->getRealname() + "@" + client->getHostname());
 		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
 	}//잘되는 것으로 보인다. 야호!
 	else

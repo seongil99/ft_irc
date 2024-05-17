@@ -42,7 +42,7 @@ std::vector<std::string> irc_utils::Split(std::string str, char delim) {
 
 /** 
  * @param client 클라이언트 포인터
- * @param origin 뒤에 붙일 문자열. 뒤에 \\r\\n이 반드시 있어야한다!
+ * @param origin 뒤에 붙일 문자열. 뒤에 \\r\\n을 붙여서 안보내니 뒤에 붙어서 대입해야 한다!!
  * @return irc전송 폼에 맞춰서 반환해줌
  * @note 닉네임:test, 실명:root, 호스트:127.0.0.1일때 
  * :test!root@127.0.0.1 (전송문)
@@ -51,7 +51,7 @@ std::vector<std::string> irc_utils::Split(std::string str, char delim) {
 std::string	irc_utils::getForm(Client *client, std::string origin)
 {
 	std::string temp(":");
-	temp += client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " " + origin + "\r\n";
+	temp += client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " " + origin;
 	return temp;
 }
 

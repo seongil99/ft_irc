@@ -236,12 +236,18 @@ void Server::RemoveClientFromChannel(int client_socket,
     }
 }
 
-void Server::RemoveClientFromChannel(
-    int client_socket,
-    std::map<std::string, Channel>::reverse_iterator channel_iter) {
-    (*channel_iter).second.RemoveClient(client_socket);
-    if ((*channel_iter).second.getClientCount() == 0)
-        channels_.erase((*channel_iter).first);
+void Server::RemoveClientFromChannel(int client_socket, std::map<std::string, Channel>::reverse_iterator channel_iter) {
+    if (channel_iter != channels_.rend()) {
+        channel_iter->second.RemoveClient(client_socket);
+
+        // std::map의 reverse_iterator로 안전하게 삭제
+        std::map<std::string, Channel>::iterator base_iter = channel_iter.base();
+        if (channel_iter->second.getClientCount() == 0) {
+            // base_iter은 지울 요소 다음을 가리키므로 지우기 전에 하나 감소시킨다
+            --base_iter;
+            channels_.erase(base_iter);
+        }
+    }
 }
 
 void Server::AddChannelOwner(Client &client, const std::string &channel_name) {
@@ -504,19 +510,21 @@ Channel *Server::getChannel(const std::string &channel_name) {
  * 서버 및 모든 곳에서 지우니, 최대한 마지막에 호출 할 것!
  */
 void Server::RemoveClientFromServer(int client_socket) {
-    std::map<std::string, Channel>::reverse_iterator channel_iter =
-        channels_.rbegin();
-    // 들어가있는 모든 채널에서 없애야한다.
+    std::map<std::string, Channel>::reverse_iterator channel_iter = channels_.rbegin();
     while (channel_iter != channels_.rend()) {
-        // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
-        // 혼자 있었으면 채널도 없어져야됨 -> 주석 처리
-        // 새로운 관리자 -> 일단 Channel::clients_.begin()
         RemoveClientFromChannel(client_socket, channel_iter);
-        channel_iter++;
+
+        // 삭제된 경우 반복자 재설정
+        if (channel_iter->second.getClientCount() == 0) {
+            std::map<std::string, Channel>::iterator base_iter = channel_iter.base();
+            // base_iter은 지울 요소 다음을 가리키므로 지우기 전에 하나 감소시킨다
+            --base_iter;
+            channel_iter = std::map<std::string, Channel>::reverse_iterator(channels_.erase(base_iter));
+        } else {
+            ++channel_iter;
+        }
     }
-    // 서버에서도 지우자
     clients_.erase(client_socket);
-    // disconnect tcp connection
     CloseClient(client_socket);
 }
 
