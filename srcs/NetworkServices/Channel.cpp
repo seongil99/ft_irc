@@ -6,14 +6,14 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:01:05 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 20:03:15 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 
-#include "Client.hpp"
 #include "Channel.hpp"
+#include "Client.hpp"
 
 Channel::Channel(void) {
     passwd_ = "";
@@ -138,6 +138,8 @@ bool Channel::HasMode(char mode) const {
     return mode_.find(mode) != mode_.end();
 }
 
+bool Channel::HasPassword(void) const { return passwd_ != ""; }
+
 void Channel::AddMode(char mode) {
     if (kChannelModes.find(mode) != std::string::npos)
         mode_.insert(mode);
@@ -170,8 +172,12 @@ void Channel::setTopic(const std::string &topic, const std::string &who_did)
 }
 
 const std::string &Channel::getTopic(void) const { return topic_; }
-const std::string &Channel::getTopicSetTime(void) const { return topic_set_time_; }
-const std::string &Channel::getTopicWhoDid(void) const { return topic_who_did_; }
+const std::string &Channel::getTopicSetTime(void) const {
+    return topic_set_time_;
+}
+const std::string &Channel::getTopicWhoDid(void) const {
+    return topic_who_did_;
+}
 
 Client *Channel::getJoinedClient(const std::string &nickname) {
     std::map<int, Client *>::iterator it = clients_.begin();
@@ -199,9 +205,9 @@ bool Channel::IsInvited(int client_socket) const {
 /**
  * @param client_socket 확인할 클라이언트
  *  @return 해당 클라이언트가 이 채널에서 권한이 있는지 확인
-*/
+ */
 bool Channel::IsOwner(int client_socket) const {
-   	return owners_.find(client_socket) != owners_.end();
+    return owners_.find(client_socket) != owners_.end();
 }
 
 const std::string Channel::ClientsList(void) const {
