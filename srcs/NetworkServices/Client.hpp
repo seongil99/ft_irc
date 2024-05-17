@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:00:42 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 15:55:02 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class Client {
     std::string username_;
     std::string realname_;
     std::string nickname_;
-	std::string hostname_;
+    std::string hostname_;
     std::string message_;
 	std::queue<std::string> send_q_;
     std::queue<std::string> recv_q_;
@@ -43,6 +43,10 @@ class Client {
 
     void PushSendQueue(const std::string &message);
     std::string PopSendQueue(void);
+    void PushRecvQueue(const std::string &message);
+    std::string PopRecvQueue(void);
+
+    std::string getLine(void);
 
     void AppendMessage(const std::string &message);
 
@@ -55,8 +59,8 @@ class Client {
     const std::string &getLastJoinedChannelName(void) const;
     const std::string &getHostname(void) const;
     size_t getSendQueueSize(void) const;
-	size_t getJoinedChannelsCount(void) const;
-	bool getPassword();
+    size_t getRecvQueueSize(void) const;
+    size_t getJoinedChannelsCount(void) const;
 
 	/* setter */
     void setUsername(const std::string &str);
