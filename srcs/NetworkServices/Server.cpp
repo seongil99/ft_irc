@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 20:04:47 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/16 20:05:42 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,7 +356,7 @@ void Server::SendMessageToOtherClient(int sender_socket,
 bool Server::HasChannelPassword(const std::string &channel_name) const {
     const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
-        if (!(*it).second.CheckPassword(""))
+        if (!(*it).second.HasPassword())
             return true;
     }
     return false;
