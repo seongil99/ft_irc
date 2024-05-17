@@ -396,8 +396,7 @@ bool Server::IsInvitedChannel(int client_socket,
 bool Server::IsOverUsersLimitChannel(const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.HasMode('l'))
-        return HowManyClientsAreInChannel((*it).second.getChannelName()) >=
-               IsOverUsersLimitChannel((*it).second.getChannelName());
+        return HowManyClientsAreInChannel((*it).second.getChannelName()) >= (*it).second.getUsersLimit();
     return false;
 }
 
@@ -578,6 +577,12 @@ void Server::AddInviteClient(const std::string &channel_name,
     Channel *channel = &(channels_.find(channel_name)->second);
 
     channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
+}
+
+void Server::RemoveInviteClient(const std::string &channel_name,
+                         	const std::string &nick_name) {
+	Channel *channel = &(channels_.find(channel_name)->second);
+	channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
 }
 
 /**

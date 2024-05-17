@@ -92,7 +92,7 @@ const std::string &Channel::getChannelName(void) const { return channel_name_; }
 
 void Channel::AddOwner(Client *client) {
     int client_socket = client->getClientSocket();
-    if (owners_.find(client_socket) != owners_.end()) {
+    if (owners_.find(client_socket) == owners_.end()) {
         owners_[client_socket] = client;
     }
 }

@@ -150,7 +150,8 @@ void Command::nick(Client *client)
 
 			127.000.000.001.06667-127.000.000.001.54498: :upper!root@127.0.0.1 NICK :test
 			*/
-			client->PushSendQueue(irc_utils::getForm(client, cmd[0] + " :" + cmd[1] + "\r\n"));
+			if (!client->getRealname().empty())
+				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " NICK :" + cmd[1] + "\r\n");
 			client->setNickname(cmd[1]);
 		}
 	}
@@ -272,6 +273,7 @@ void Command::join(Client *client)
 								  channel[i] + " :" + serv->ClientsInChannelList(channel[i]) + "\r\n");
 			client->PushSendQueue(":irc.local 366 " + client->getNickname() + " " + channel[i] + " :End of /NAMES list.\r\n");
 			serv->SendMessageToOthersInChannel(client->getClientSocket(), channel[i], ":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " JOIN :" + channel[i] + "\r\n");
+			serv->RemoveInviteClient(channel[i], client->getNickname());
 		}
 	}
 }
@@ -663,9 +665,8 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 401 " + client->getNickname() + " " + cmd[idx] + " :No such nick\r\n");
 					return;
 				}
-				else if (!serv->HasModeInChannel('o', channel))
+				else
 				{
-					serv->SetModeToChannel('o', channel);
 					serv->AddChannelOwner(cmd[idx], channel);
 					options += "o";
 					args.push_back(cmd[idx]);
@@ -679,12 +680,20 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to set channel mode l (limit).\r\n");
 				else if (!serv->HasModeInChannel('l', channel))
 				{
-					serv->SetModeToChannel('l', channel);
+					if (cmd[idx].size() > 9) {
+						client->PushSendQueue(":irc.local 696 "+ client->getNickname() + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>.\r\n"); 
+						break;
+					}
 					int limit = std::stoi(cmd[idx]);
-					serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
-					options += "l";
-					args.push_back(cmd[idx]);
-					idx++;
+					if (limit < 0 || limit > INT_MAX)
+						client->PushSendQueue(":irc.local 696 "+ client->getNickname() + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>.\r\n"); 
+					else {
+						serv->SetModeToChannel('l', channel);
+						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
+						options += "l";
+						args.push_back(cmd[idx]);
+						idx++;
+					}
 				}
 				break;
 			default: // 해당하는 모드가 없을 때 처리
@@ -752,9 +761,8 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 696 " + client->getNickname() + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>.\r\n");
 				else if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + client->getNickname() + " " + channel + " :You must be a channel op or higher to unset channel mode o (op).\r\n");
-				else if (serv->HasModeInChannel('o', channel))
+				else
 				{
-					serv->RemoveModeFromChannel('o', channel);
 					serv->RemoveChannelOwner(cmd[idx], channel);
 					options += "o";
 					args.push_back(cmd[idx]);
@@ -769,7 +777,6 @@ void Command::mode(Client *client)
 					serv->RemoveModeFromChannel('l', channel);
 					serv->SetUsersLimitInChannel(0, channel);
 					options += "l";
-					idx++;
 				}
 				break;
 			default: // 해당하는 모드가 없을 때 처리
@@ -778,14 +785,14 @@ void Command::mode(Client *client)
 			}
 		}
 		// 클라이언트에 보낼 string 완성
-		if (idx == 3 || !args.size())
+		if (idx == 3)
 			str += ":";
 		if (options.length() > 0) 
 			str += "-";
 		str += options + " ";
 		for (size_t i = 3; i < idx; i++)
 		{
-			if (idx == i + 1 && args.size())
+			if (idx == i + 1)
 				str += ":";
 			if (args.size()) {
 				str += (args.front() + " ");
@@ -796,10 +803,8 @@ void Command::mode(Client *client)
 			serv->SendMessageToAllClientsInChannel(channel, str + "\r\n");
 	}
 }
-// :irc.local 354 test 743 #aaa root 127.0.0.1 test H@ 0 0 :root
-// :irc.local 315 test #aaa :End of /WHO list.
-// 	354, 315만 보내게 해놔서 수정 필요
-// 최초 생성때랑 기존에 있는 채널에 들어갈때 각각 보내는 메시지가 다름
+
+// 채널 입장 시 join -> mode -> who 순으로 동작
 void Command::who(Client *client)
 {
 	std::string channel = cmd[1];
@@ -815,7 +820,7 @@ void Command::who(Client *client)
 			}
 			else
 				client->PushSendQueue(":irc.local 354 " + client->getNickname() + " " + cmd[1] + " " + client->getRealname() + \
-									  " " + client->getHostname() + " " + client->getNickname() + " H 0 0 :" + client->getRealname() + "\r\n");
+									  " " + client->getHostname() + " " + clients_vec[i] + " H 0 0 :" + client->getRealname() + "\r\n");
 		}
 		client->PushSendQueue(":irc.local 315 " + client->getNickname() + " " + channel + " :End of /WHO list.\r\n");
 	}
