@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/16 13:01:01 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/17 15:55:22 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,18 @@ std::string Client::PopSendQueue(void) {
     return ret;
 }
 
+void Client::PushRecvQueue(const std::string &message) {
+    recv_q_.push(message);
+}
+
+std::string Client::PopRecvQueue(void) {
+    if (!recv_q_.size())
+        return "";
+    std::string ret = recv_q_.front();
+    recv_q_.pop();
+    return ret;
+}
+
 void Client::AppendMessage(const std::string &message) { message_ += message; }
 
 int Client::getClientSocket(void) const { return client_socket_; }
@@ -65,6 +77,7 @@ const std::string &Client::getNickname(void) const { return nickname_; }
 const std::string &Client::getHostname(void) const { return hostname_; }
 const std::string &Client::getMessage(void) const { return message_; }
 size_t Client::getSendQueueSize(void) const { return send_q_.size(); }
+size_t Client::getRecvQueueSize(void) const { return recv_q_.size(); }
 size_t Client::getJoinedChannelsCount(void) const {
     return joined_chanels_.size();
 };
