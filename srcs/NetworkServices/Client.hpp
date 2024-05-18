@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 15:55:02 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/18 15:21:06 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ class Client {
     size_t getSendQueueSize(void) const;
     size_t getRecvQueueSize(void) const;
     size_t getJoinedChannelsCount(void) const;
-	bool getPassword();
+    bool getPassword() const;
 
     /* setter */
     void setUsername(const std::string &str);

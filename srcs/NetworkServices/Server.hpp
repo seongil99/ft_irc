@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 18:10:05 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/18 15:15:52 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,10 +137,10 @@ class Server {
     void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
     bool IsChannelOwner(int client_socket,
                         const std::string &channel_name) const;
-	void AddInviteClient(const std::string &channel_name,
+    void AddInviteClient(const std::string &channel_name,
                          const std::string &nick_name);
-	void RemoveInviteClient(const std::string &channel_name,
-                         	const std::string &nick_name);
+    void RemoveInviteClient(const std::string &channel_name,
+                            const std::string &nick_name);
 
     // 채널 Topic 관련 함수
     bool HasTopicInChannel(const std::string &channel_name);
@@ -151,9 +151,9 @@ class Server {
                            const std::string &topic,
                            const std::string &who_did);
 
-	//list 관련 함수
-	void ActivateList(Client *client);
-	void ActivateList(Client *client, const std::string &channel_name);
+    // list 관련 함수
+    void ActivateList(Client *client);
+    void ActivateList(Client *client, const std::string &channel_name);
 
     const std::string getAllChannelName() const;
     /**

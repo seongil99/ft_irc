@@ -6,13 +6,17 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 16:33:19 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/18 16:13:10 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
 #include <iostream>
+#include <sstream>
+#include <string>
+
+static const std::string KDelim = "\r\n";
 
 Client::Client(void) : password_(false) {}
 
@@ -70,6 +74,17 @@ std::string Client::PopRecvQueue(void) {
     return ret;
 }
 
+std::string Client::getLine(void) {
+    size_t idx = message_.find(KDelim);
+    if (idx == std::string::npos) {
+        return "";
+    }
+    std::string ret = message_.substr(0, idx);
+    // \r\n을 넘기고 그 이후의 문자열을 저장
+    message_ = message_.substr(idx + KDelim.size());
+    return ret;
+}
+
 void Client::AppendMessage(const std::string &message) { message_ += message; }
 
 int Client::getClientSocket(void) const { return client_socket_; }
@@ -83,7 +98,7 @@ size_t Client::getRecvQueueSize(void) const { return recv_q_.size(); }
 size_t Client::getJoinedChannelsCount(void) const {
     return joined_chanels_.size();
 };
-bool Client::getPassword() { return password_; }
+bool Client::getPassword() const { return password_; }
 
 void Client::setNickname(const std::string &str) { this->nickname_ = str; }
 void Client::setRealname(const std::string &str) { this->realname_ = str; }

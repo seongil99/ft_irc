@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/17 18:09:57 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/18 16:14:59 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,7 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     std::cout << '\n' << std::endl;
     //=================================================================
 
-    if (cmd.excute(&((*it).second), (*it).second.getMessage()) == false) {
+    if (cmd.excute(&((*it).second), (*it).second.getLine()) == false) {
         std::cerr << "Something horrible received!" << std::endl;
     }
 
@@ -396,7 +396,8 @@ bool Server::IsInvitedChannel(int client_socket,
 bool Server::IsOverUsersLimitChannel(const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end() && (*it).second.HasMode('l'))
-        return HowManyClientsAreInChannel((*it).second.getChannelName()) >= (*it).second.getUsersLimit();
+        return HowManyClientsAreInChannel((*it).second.getChannelName()) >=
+               (*it).second.getUsersLimit();
     return false;
 }
 
@@ -580,9 +581,9 @@ void Server::AddInviteClient(const std::string &channel_name,
 }
 
 void Server::RemoveInviteClient(const std::string &channel_name,
-                         	const std::string &nick_name) {
-	Channel *channel = &(channels_.find(channel_name)->second);
-	channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
+                                const std::string &nick_name) {
+    Channel *channel = &(channels_.find(channel_name)->second);
+    channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
 }
 
 /**
@@ -602,7 +603,9 @@ void Server::SendMessageToAllJoinedChannel(int client_socket,
 /**
  * 양식 => :irc.local 322 <nick> <channel> <참가 인원수> :<모드> {topic}
  * @param client_socket list 명령어를 보낸 클라이언트 소켓
- * @note 단일 명령어를 내려서 현재 존재하는 모든 채널의 정보를 보내야 함. 조회못하는 채널 모드가 s,p가 있는데 그건 구현 안했으니까 조회 못하는 채널은 없음
+ * @note 단일 명령어를 내려서 현재 존재하는 모든 채널의 정보를 보내야 함.
+ * 조회못하는 채널 모드가 s,p가 있는데 그건 구현 안했으니까 조회 못하는 채널은
+ * 없음
  */
 void Server::ActivateList(Client *client) {
     std::string nickname = client->getNickname();
