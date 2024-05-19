@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/18 16:13:10 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/19 18:19:50 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,10 +77,10 @@ std::string Client::PopRecvQueue(void) {
 std::string Client::getLine(void) {
     size_t idx = message_.find(KDelim);
     if (idx == std::string::npos) {
-        return "";
+        return ""; // \r\n이 없으면 빈 문자열 반환
     }
-    std::string ret = message_.substr(0, idx);
-    // \r\n을 넘기고 그 이후의 문자열을 저장
+    // \r\n 까지 포함해서 리턴
+    std::string ret = message_.substr(0, idx + KDelim.size());
     message_ = message_.substr(idx + KDelim.size());
     return ret;
 }
