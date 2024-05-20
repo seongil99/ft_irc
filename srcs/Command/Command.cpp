@@ -72,7 +72,7 @@ bool Command::excute(Client *client, std::string str)
 					ret = true;
 					(this->*(it->second))(client);
 				}
-				DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+				// DebugFtForCmdParssing();//주석 처리할 거면 할 것!
 				temp.clear();
 				cmd.clear();
 				prevented_idx = i + 1;
@@ -93,7 +93,7 @@ bool Command::excute(Client *client, std::string str)
 		(this->*(it->second))(client);
 	}
 	//==========================================================
-	DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+	// DebugFtForCmdParssing();//주석 처리할 거면 할 것!
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
