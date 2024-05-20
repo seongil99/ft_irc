@@ -5,7 +5,7 @@
 #include "utils.hpp"
 #include <unistd.h>
 
-Command::Command(Server *server) : serv(server)
+Command::Command(Server *server) : serv(server), rn("\r\n")
 {
 	cmd_ft["PING"] = &Command::ping;
 	cmd_ft["PRIVMSG"] = &Command::privmsg;
