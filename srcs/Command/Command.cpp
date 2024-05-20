@@ -72,7 +72,7 @@ bool Command::excute(Client *client, std::string str)
 					ret = true;
 					(this->*(it->second))(client);
 				}
-				DebugFtForCmdParssing();
+				// DebugFtForCmdParssing();
 				temp.clear();
 				cmd.clear();
 				prevented_idx = i + 1;
@@ -92,7 +92,7 @@ bool Command::excute(Client *client, std::string str)
 		ret = true;
 		(this->*(it->second))(client);
 	}
-	DebugFtForCmdParssing();
+	// DebugFtForCmdParssing();
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
@@ -169,7 +169,7 @@ void Command::user(Client *client)
 	// 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
 	if (cmd.size() < 5)
 	{ // 인자를 적게 넣었을 경우
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " USER " + get_reply_str(ERR_NEEDMOREPARAMS));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " " + get_reply_str(ERR_NEEDMOREPARAMS, "USER"));
 		return;
 	}
 	if (client->getRealname().size() != 0) // 사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
@@ -230,6 +230,11 @@ void Command::user(Client *client)
 void Command::join(Client *client)
 {
 	std::vector<std::string> channel, pw;
+
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "JOIN"));
+		return ;
+	}
 
 	if (cmd.size() == 2 && cmd[1] == ":")
 	{
@@ -315,6 +320,12 @@ void Command::part(Client *client)
 	std::string temp;
 	int	socket = client->getClientSocket();
 	// private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
+
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PART"));
+		return ;
+	}
+
 	for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
 	{
 		if (serv->HasChannel(*it) == false)
@@ -355,6 +366,12 @@ void Command::part(Client *client)
 void Command::privmsg(Client *client)
 {
 	std::vector<std::string> target; // 귓말 받을 사람 모음
+
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PRIVMSG"));
+		return ;
+	}
+
 	target = irc_utils::Split(cmd[1], ',');
 	size_t msg_start = cmd[0].size();
 	while (private_msg[msg_start] == ' ')
@@ -468,6 +485,12 @@ void Command::kick(Client *client)
 127.000.000.001.06667-127.000.000.001.49872: :upper!root@127.0.0.1 KICK #1 lower :
 */
 	// KICK #1 get :out
+
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "KICK"));
+		return ;
+	}
+
 	std::string nickname = client->getNickname();
 	std::string channel = cmd[1];
 	std::string target = cmd[2];
@@ -510,6 +533,12 @@ void	Command::invite(Client *client)
 		두개를 입력하면 그대로 들어감. 입력할때 채널은 #을 붙여서 입력해야 제대로 인식함
 		세개 이상 입력하면 알아서 인자 두개만 넣어서 보내고 나머지는 버림 => 즉 무조건 인자가 3개로 들어오는게 보장됨
 	*/
+
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + , "KICK"));
+		return ;
+	}
+
 	std::string channel_name = cmd[2];
 	std::string nick_name = client->getNickname();
 	std::string invited = cmd[1];
@@ -610,6 +639,11 @@ void	Command::topic(Client *client)
 // 추후 전체적인 코드 리팩토링 필요..
 void Command::mode(Client *client)
 {
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "MODE"));
+		return ;
+	}
+
 	std::string channel = cmd[1];
 	std::string str = (":" + client->getNickname() + "!" + client->getRealname() + "127.0.0.1 MODE " + channel + " ");
 	std::vector<std::string> args;

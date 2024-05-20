@@ -159,8 +159,8 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 
     //=================================================================
 	//debuging용 섹션
-	std::cout << "typed data is ";
-	irc_utils::show_string_r_and_n(temp);
+	// std::cout << "typed data is ";
+	// irc_utils::show_string_r_and_n(temp);
     //=================================================================
 
     clients_iter it = clients_.find(client_socket);
@@ -174,6 +174,7 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     // 서버 콘솔에 출력==================================================
     std::cout << "received data from " << client_socket << ": ";
     irc_utils::show_string_r_and_n(client->getMessage());
+	std::cout << std::endl;
 
     //=================================================================
 
