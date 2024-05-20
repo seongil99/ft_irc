@@ -122,24 +122,16 @@ void Command::pass(Client *client)
 void Command::nick(Client *client)
 { // NICK <nickname>
 	std::string nickname = client->getNickname();
-	if (nickname.empty())
-		nickname = "*";
-	if (cmd.size() == 1)
-	{ // NICK 명령어만 입력했을 경우
-		client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN));
-		return;
-	}
+
+	if (cmd.size() == 1 && nickname.empty()) //첫 접속시 닉네임 설정 안하고 입장
+		client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
+	else if (cmd.size() == 1)
+		client->PushSendQueue("Your nickname is " + client->getNickname() + "\r\n");
 	else
 	{
 		// 닉네임 중복 여부 판단
 		if (serv->HasDuplicateNickname(cmd[1]))
-		{ // 닉네임 중복이니 그 사람 한테만 아래를 던져주면 됨
-			/*
-			최초 접속시
-			127.000.000.001.06667-127.000.000.001.54446: :irc.local 433 * upper_ :Nickname is already in use.
-
-			127.000.000.001.54446-127.000.000.001.06667: NICK upper__ 
-			*/
+		{ 
 			if (client->getNickname().empty() && client->getHostname().empty())
 			{
 				//이걸 해결하려면 명령어마다 스레드를 만들어서 다루게 하는 방법밖에 없음.
@@ -535,7 +527,7 @@ void	Command::invite(Client *client)
 	*/
 
 	if (cmd.size() < 2) {
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + , "KICK"));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "KICK"));
 		return ;
 	}
 
