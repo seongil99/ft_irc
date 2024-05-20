@@ -123,10 +123,10 @@ void Command::nick(Client *client)
 { // NICK <nickname>
 	std::string nickname = client->getNickname();
 
-	if (cmd.size() == 1 && nickname.empty()) //첫 접속시 닉네임 설정 안하고 입장
-		client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
-	else if (cmd.size() == 1)
-		client->PushSendQueue("Your nickname is " + client->getNickname() + "\r\n");
+	if (cmd.size() == 1) {
+		if (nickname.empty())  //닉네임 없이 입장했을 때
+			client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
+	}
 	else
 	{
 		// 닉네임 중복 여부 판단

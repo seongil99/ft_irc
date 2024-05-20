@@ -185,6 +185,7 @@ std::string	get_reply_str(const Reply n)
 		break;
 	case ERR_NONICKNAMEGIVEN:
 		ret = ":No nickname given";
+		break;
 	case ERR_ALREADYREGISTRED:
 		ret = ":You may not reregister";
 		break;
