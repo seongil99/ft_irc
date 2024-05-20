@@ -58,7 +58,6 @@ class Client {
     const std::string &getRealname(void) const;
     const std::string &getNickname(void) const;
     const std::string &getMessage(void) const;
-    const std::string &getLastJoinedChannelName(void) const;
     const std::string &getHostname(void) const;
     size_t getSendQueueSize(void) const;
     size_t getRecvQueueSize(void) const;

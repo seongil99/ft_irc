@@ -22,7 +22,6 @@
 
 #include "Channel.hpp"
 #include "Client.hpp"
-
 #include "Command.hpp"
 
 // 보류 중인 연결 큐의 최대 길이

@@ -16,6 +16,12 @@
 #include <vector>
 #include <string>
 
+/*
+	콘솔에서 \r\n입력하는 방법
+	ctrl+v+m = \r
+	ctrl+v+j = \n
+*/
+
 class Client;
 
 namespace irc_utils {

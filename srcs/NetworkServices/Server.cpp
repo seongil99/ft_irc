@@ -178,8 +178,9 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 
     //=================================================================
 
-    if (cmd.excute(client, client->getLine()) == false) {
-        std::cerr << "Non cmd received!" << std::endl;
+    if (cmd.excute(client, client->getMessage()) == false) {
+    // if (cmd.excute(client, client->getLine()) == false) {
+        std::cerr << "None cmd received!" << std::endl;
     }
 
     // execute 이후 client 지워질 수 있음
@@ -560,7 +561,7 @@ Server::ClientsInChannelList(const std::string &channel_name) {
 }
 
 /*
-        return -1 = 클라이언트가 없음
+    return -1 = 클라이언트가 없음
 */
 int Server::getClientSocket(const std::string &nick_name) {
     clients_iter it = FindClientByNickname(nick_name);
@@ -657,6 +658,6 @@ void Server::SetTopicInChannel(const std::string &channel_name,
 }
 
 /**
- * @param client_socket 틀린 명령어를 보낸 클라이언트 소켓 넘버
+ * @param client 맞은 비번을 입력한 클라이언트
  */
 void Server::CorrectPassword(Client *client) { client->setPassword(true); }

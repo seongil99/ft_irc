@@ -24,6 +24,7 @@ private :
 	typedef void (Command::*cmd_fts)(Client*);
 	std::map<std::string, cmd_fts> cmd_ft;
 	Server *serv;
+	const std::string rn = "\r\n";
 	//cmd=======================================
 	void	pass(Client *client);
 	void	nick(Client *client);
