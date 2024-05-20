@@ -85,7 +85,29 @@ std::string Client::getLine(void) {
     return ret;
 }
 
-void Client::AppendMessage(const std::string &message) { message_ += message; }
+/**
+ * @param message 해당 클라이언트가 입력한 메시지
+ * @note \\n이 있을 때 앞에 \\r이 없으면 넣어주고 있으면 그대로 넘어가는게 맞는 것인가?
+*/
+void Client::AppendMessage(const std::string &message)
+{
+	std::string parse("");
+	for (size_t i = 0; i < message.size(); i++)
+	{
+		if (message[i] == '\n')
+		{
+			if (i == 0)//\n으로 시작하는 메시지면?
+			{
+				parse += "\r\n";
+				continue;
+			}
+			else if (message[i - 1] != '\r')
+				parse += '\r';
+		}
+		parse += message[i];
+	}
+	message_ += parse;
+}
 
 int Client::getClientSocket(void) const { return client_socket_; }
 const std::string &Client::getUsername(void) const { return username_; }
@@ -116,3 +138,5 @@ const std::string &Client::getLastJoinedChannelName(void) const {
     static const std::string empty_string;
     return empty_string;
 }
+
+bool Client::IsCmdCompleted() { return message_.rfind("\r\n") == std::string::npos; }

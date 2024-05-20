@@ -3,6 +3,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "utils.hpp"
+#include <unistd.h>
 
 Command::Command(Server *server) : serv(server)
 {
@@ -36,9 +37,12 @@ Command::~Command() {}
 bool Command::excute(Client *client, std::string str)
 {
 	// set default=============================
+	bool ret = false;
+	if (str.size() < 3)
+		return ret;
 	std::string temp("");
 	private_msg = str;
-	bool ret = false;
+	int	prevented_idx = 0;
 	std::map<std::string, cmd_fts>::iterator it;
 	//==========================================================
 	// step 1 : split string by ' '
@@ -61,17 +65,18 @@ bool Command::excute(Client *client, std::string str)
 			{
 				if (temp.empty() == false)
 					cmd.push_back(temp);
-				private_msg = str.substr(0, i + 1);
+				private_msg = str.substr(prevented_idx, i - prevented_idx + 1);
 				it = cmd_ft.find(cmd[0]);
 				if (it != cmd_ft.end())
 				{
 					ret = true;
 					(this->*(it->second))(client);
 				}
-				// DebugFtForCmdParssing();
+				DebugFtForCmdParssing();
 				temp.clear();
 				cmd.clear();
-				private_msg = str.substr(i + 1);
+				prevented_idx = i + 1;
+				private_msg = str.substr(prevented_idx);
 			}
 		}//=====================================================
 		else if (str[i] != '\r' && str[i] != '\n')
@@ -87,7 +92,7 @@ bool Command::excute(Client *client, std::string str)
 		ret = true;
 		(this->*(it->second))(client);
 	}
-	// DebugFtForCmdParssing();
+	DebugFtForCmdParssing();
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
@@ -168,7 +173,15 @@ void Command::user(Client *client)
 		return;
 	}
 	if (client->getRealname().size() != 0) // 사용자가 USER 명령어를 내렸을 경우 또는 최초 호출인데 뭔가 잡것이 있는 경우
+	{
 		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
+		return;
+	}
+	if (cmd[4][0] != ':')
+	{//realname 맨 앞에 ':'이 없음
+		//이거 없다고 뭔가 전송해줘야 될 것 같은데 뭘 전송해줘야될지 모르겠음... 일단 리턴해서 끝는 걸로...
+		return;
+	}
 	//이럴 경우는 접속할때 중복된 닉네임으로 접속시도한 경우이므로 여기서 멈춰야됨
 	if (client->getNickname() == "")
 		return ;
@@ -210,7 +223,6 @@ void Command::user(Client *client)
 	의문점
 	1. 안에 들어갈 문장은 대충 복붙했는데 이걸 어찌혀야하나
 	2. 사용자가 접속하고 나서 입력하면? -> 지금은 아무일도 안일어남.
-	3. 지금 논리상 realname에 :을 입력을 안하고 다른 글자를 넣어도 무사 통과하는데? 괜찮을까?
 	*/
 }
 
