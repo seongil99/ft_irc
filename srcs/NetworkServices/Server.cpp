@@ -129,7 +129,7 @@ void Server::EventRead(struct kevent *curr_event) {
             if (errno == EWOULDBLOCK)
                 return;
             else if (n < 0)
-                std::cerr << "client read error!" << std::endl;
+            	std::cerr << "client read error!" << std::endl;
             RemoveClientFromServer(curr_event->ident);
         } else {
             buf[n] = '\0';
