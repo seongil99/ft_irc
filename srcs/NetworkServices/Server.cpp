@@ -159,6 +159,10 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     clients_iter it = clients_.find(client_socket);
     (*it).second.AppendMessage(temp);
 
+    //=================================================================
+	std::cout << "Saved data is \"" << (*it).second.getMessage() << "\"" << std::endl;
+    //=================================================================
+
     if (temp.rfind("\r\n") == std::string::npos) {
         return;
     }

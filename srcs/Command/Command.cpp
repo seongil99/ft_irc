@@ -534,7 +534,7 @@ void	Command::invite(Client *client)
 	127.000.000.001.06667-127.000.000.001.52390: :upper!root@127.0.0.1 INVITE lower :#hi
 	*/
 		//명령어 발송자에게 날리기
-		client->PushSendQueue(":irc.local 341 " + nick_name + " " + invited + " :" + channel_name + "\r\n");
+		client->PushSendQueue(":irc.local 341 " + nick_name + " " + invited + " " + channel_name + "\r\n");
 		//초대 수신자에게 날리기
 		serv->PushSendQueueClient(serv->getClientSocket(invited), irc_utils::getForm(client, private_msg));
 		//해당 채널에 초대받은 사람 초대 리스트에 넣기
