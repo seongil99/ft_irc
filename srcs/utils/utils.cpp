@@ -65,3 +65,22 @@ std::string	irc_utils::getTimeOfNow()
 	std::strftime(buffer, 80, "%H:%M:%S %b %d %Y", localTime);
 	return std::string(buffer);
 }
+
+/**
+ * @param 보고 싶은 스트링
+ * @note 이 함수는 입력한 스트링을 그대로 보여주는데 입력된 \\r, \\n을 글자 그대로 출력하는 디버깅용 함수. 앞뒤에 큰 따옴표로 감싸며, 마지막이 \\n이 있든 없든 무조건 개행해서 보여줄거임
+*/
+void irc_utils::show_string_r_and_n(const std::string &str)
+{
+	std::cout << "\"";
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == '\r')
+			std::cout << "\\r";
+		else if (str[i] == '\n')
+			std::cout << "\\n";
+		else
+			std::cout << str[i];
+	}
+	std::cout << "\"" << std::endl;
+}

@@ -156,35 +156,35 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
     // 메시지 받고
     std::string temp(buf);
-    clients_iter it = clients_.find(client_socket);
-    (*it).second.AppendMessage(temp);
 
-    if (temp.rfind("\r\n") == std::string::npos) {
+    //=================================================================
+	//debuging용 섹션
+	std::cout << "typed data is ";
+	irc_utils::show_string_r_and_n(temp);
+    //=================================================================
+
+    clients_iter it = clients_.find(client_socket);
+	Client *client = &(it->second);
+    client->AppendMessage(temp);
+
+    if (client->IsCmdCompleted()) {
         return;
     }
 
     // 서버 콘솔에 출력==================================================
     std::cout << "received data from " << client_socket << ": ";
-    std::string str = (*it).second.getMessage();
-    for (size_t i = 0; i < str.size(); i++) {
-        if (str[i] == '\r')
-            std::cout << "\\r";
-        else if (str[i] == '\n')
-            std::cout << "\\n";
-        else
-            std::cout << str[i];
-    }
-    std::cout << '\n' << std::endl;
+    irc_utils::show_string_r_and_n(client->getMessage());
+
     //=================================================================
 
-    if (cmd.excute(&((*it).second), (*it).second.getLine()) == false) {
-        std::cerr << "Something horrible received!" << std::endl;
+    if (cmd.excute(client, client->getLine()) == false) {
+        std::cerr << "Non cmd received!" << std::endl;
     }
 
     // execute 이후 client 지워질 수 있음
     it = clients_.find(client_socket);
     if (it != clients_.end())
-        (*it).second.setMessage(""); // 버퍼 초기화
+       client->setMessage(""); // 버퍼 초기화
 }
 
 /**
