@@ -478,7 +478,7 @@ std::string Server::WhoDidTopicInChannel(const std::string &channel_name) {
 std::string Server::WhatTimeChannelMade(const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
-        return (*it).second.getTopicSetTime();
+        return (*it).second.getStartedTime();
     return 0;
 }
 

@@ -148,8 +148,8 @@ void Command::nick(Client *client)
 	if (cmd.size() == 1) {
 		if (nickname.empty())  //닉네임 없이 입장했을 때
 			client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
-		else
-			client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "NICK"));
+		// else
+		// 	client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "NICK"));
 	}
 	else
 	{
@@ -331,6 +331,11 @@ void Command::part(Client *client)
 
 	192.168.065.002.08080-172.017.000.002.58140: :klha!root@127.0.0.1 PART #hi :good bye
 	*/
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PART"));
+		return ;
+	}
+
 	std::vector<std::string> channel = irc_utils::Split(cmd[1], ',');
 	std::string nick_name = client->getNickname();
 	int	socket = client->getClientSocket();
@@ -338,11 +343,6 @@ void Command::part(Client *client)
 	if (cmd.size() != 2)//나가는 메시지를 남김
 		msg =irc_utils::getForm(client, private_msg);
 	// private_msg의 마지막에 \r\n이 있어서 따로 추가 안해도 됨
-
-	if (cmd.size() < 2) {
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PART"));
-		return ;
-	}
 
 	for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
 	{
