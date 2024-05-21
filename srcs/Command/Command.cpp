@@ -132,7 +132,7 @@ void Command::nick(Client *client)
 
 	if (cmd.size() == 1) {
 		if (nickname.empty())  //닉네임 없이 입장했을 때
-			client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
+			client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN));
 	}
 	else
 	{
@@ -278,7 +278,7 @@ void Command::join(Client *client)
 			}
 		}
 		if (serv->HowManyChannelsJoined(socket) >= 10) // 채널 10개 이상 속했을 때
-			client->PushSendQueue("irc.local 405 " + nickname + " " + get_reply_str(ERR_TOOMANYCHANNELS, channel[i]) + rn);
+			client->PushSendQueue("irc.local 405 " + nickname + " " + get_reply_str(ERR_TOOMANYCHANNELS, channel[i]));
 		else
 		{
 			serv->AddClientToChannel(*client, channel[i]);
@@ -602,9 +602,9 @@ void	Command::invite(Client *client)
 	127.000.000.001.06667-127.000.000.001.52390: :upper!root@127.0.0.1 INVITE lower :#hi
 	*/
 	//초대 발송자에게 결과 날리기
-	client->PushSendQueue(":irc.local 341 " + nick_name + " " + invited + " " + channel_name + rn);
+	client->PushSendQueue(":irc.local 341 " + nick_name + " " + invited + " :" + channel_name + rn);
 	//초대 수신자에게 날리기
-	serv->PushSendQueueClient(serv->getClientSocket(invited), irc_utils::getForm(client, private_msg));
+	serv->PushSendQueueClient(serv->getClientSocket(invited), irc_utils::getForm(client, "INVITE " + invited + " :" + channel_name + rn));
 	//해당 채널에 초대받은 사람 초대 리스트에 넣기
 	serv->AddInviteClient(channel_name, invited);
 }
@@ -891,7 +891,7 @@ void Command::who(Client *client)
 	std::string clients_list =  serv->ClientsInChannelList(channel);
 	std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
 
-	if (cmd.size() == 2 && cmd[1][0] == '#') {
+	if ((cmd.size() == 2 && cmd[1][0] == '#') || args[1] == "743") {
 		for (size_t i = 0; i < clients_vec.size(); i++) {
 			if (clients_vec[i][0] == '@') {
 				client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname +\
@@ -900,18 +900,6 @@ void Command::who(Client *client)
 			else
 				client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname + \
 									  " " + hostname + " " + clients_vec[i] + " H 0 0 :" + realname + rn);
-		}
-		client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
-	}
-	else if (args[1] == "743") {
-		for (size_t i = 0; i < clients_vec.size(); i++) {
-			if (clients_vec[i][0] == '@') {
-				client->PushSendQueue(":irc.local 354 " + nickname + " 743 " + cmd[1] + " " + realname +\
-									  " " + hostname + " " + clients_vec[i].substr(1) + " H@ 0 0 :" + realname + rn);
-			}
-			else
-				client->PushSendQueue(":irc.local 354 " + nickname + " 743 " + cmd[1] + " " + realname + \
-									  " " + hostname + " " + nickname + " H 0 0 :" + realname + rn);
 		}
 		client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
 	}
