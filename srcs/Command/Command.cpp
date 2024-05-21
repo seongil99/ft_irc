@@ -490,7 +490,7 @@ void Command::quit(Client *client)
 	std::string real = client->getRealname();
 	std::string host = client->getHostname();
 	// quit 명령어를 내렸다는 것을 참가했던 모든 채널의 클라이언트에게 본인제외하고 다 보내야함.
-	client->PushSendQueue("ERROR :Closing link: (" + real + "@" + host + ") [Quit: " + cmd[1].substr(1));
+	client->PushSendQueue("ERROR :Closing link: (" + real + "@" + host + ") [Quit: " + cmd[1].substr(1) + rn);
 	serv->SendMessageToAllJoinedChannel(socket, quit_msg);
 	// 아래는 할 것 다하고 호출!
 	serv->RemoveClientFromServer(socket);
@@ -680,7 +680,7 @@ void Command::mode(Client *client)
 	if (cmd[1][0] != '#' && cmd[2] == "+i")
 		client->PushSendQueue(":" + nickname + "!" + realname + "@" + hostname + " MODE " + nickname + " :+i" + rn);
 	else if (!serv->HasChannel(channel))
-		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nickname, channel) + rn);
+		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nickname, channel));
 	else if (cmd.size() == 2)
 	{
 		std::time_t now = std::time(0);
@@ -883,29 +883,53 @@ void Command::mode(Client *client)
 */
 void Command::who(Client *client)
 {
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "WHO"));
+		return ;
+	}
+
 	std::string channel = cmd[1];
 	std::string nickname = client->getNickname();
 	std::string realname = client->getRealname();
 	std::string hostname = client->getHostname();
-	std::vector<std::string> args = irc_utils::Split(cmd[2], ',');
 	std::string clients_list =  serv->ClientsInChannelList(channel);
 	std::vector<std::string> clients_vec = irc_utils::Split(clients_list, ' ');
 
-	if ((cmd.size() == 2 && cmd[1][0] == '#') || args[1] == "743") {
+	if (!serv->HasChannel(channel)) {
+		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nickname, channel));
+	}
+
+	if ((cmd.size() == 2 && cmd[1][0] == '#')) {
 		for (size_t i = 0; i < clients_vec.size(); i++) {
 			if (clients_vec[i][0] == '@') {
-				client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname +\
-									  " " + hostname + " " + clients_vec[i].substr(1) + " H@ 0 0 :" + realname + rn);
+				client->PushSendQueue(":irc.local 352 " + nickname + " " + cmd[1] + " " + realname +\
+									  " " + hostname + " irc.local " + clients_vec[i].substr(1) + " H@ :0 " + realname + rn);
 			}
 			else
-				client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname + \
-									  " " + hostname + " " + clients_vec[i] + " H 0 0 :" + realname + rn);
+				client->PushSendQueue(":irc.local 352 " + nickname + " " + cmd[1] + " " + realname + \
+									  " " + hostname + " irc.local " + clients_vec[i] + " H :0 " + realname + rn);
 		}
 		client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
 	}
-	else if (args[1] == "745") {
-		client->PushSendQueue(":irc.local 354 " + nickname + " 745 " + cmd[1] + " :0" + rn);
-		client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
+
+	if (cmd.size() > 3) {
+		std::vector<std::string> args = irc_utils::Split(cmd[2], ',');
+		if (args[1] == "743") {
+			for (size_t i = 0; i < clients_vec.size(); i++) {
+				if (clients_vec[i][0] == '@') {
+					client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname +\
+										" " + hostname + " " + clients_vec[i].substr(1) + " H@ 0 0 :" + realname + rn);
+				}
+				else
+					client->PushSendQueue(":irc.local 354 " + nickname + " " + cmd[1] + " " + realname + \
+										" " + hostname + " " + clients_vec[i] + " H 0 0 :" + realname + rn);
+			}
+			client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
+		}
+		else if (args[1] == "745") {
+			client->PushSendQueue(":irc.local 354 " + nickname + " 745 " + cmd[1] + " :0" + rn);
+			client->PushSendQueue(":irc.local 315 " + nickname + " " + channel + " :End of /WHO list." + rn);
+		}
 	}
 }
 
