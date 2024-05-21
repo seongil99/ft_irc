@@ -547,7 +547,7 @@ void Command::kick(Client *client)
 		return;
 	}
 	// 해당 채널에서 강퇴했다는 로그 발송
-	serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
+	serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg + rn));
 	// 해당 채널에서 강퇴
 	serv->RemoveClientFromChannel(target_socket, channel);
 }
@@ -633,7 +633,7 @@ void	Command::topic(Client *client)
 	{//채널에 t 모드가 없거나 권한이 있으니 topic 설정 가능
 		//127.000.000.001.52292-127.000.000.001.06667: TOPIC <channel> :<topic>
 		serv->SetTopicInChannel(channel, cmd[2].substr(1),  client->getRealname() + "@" + client->getHostname());
-		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
+		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg + rn));
 	}//잘되는 것으로 보인다. 야호!
 	else
 	{
