@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 12:41:52 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:21:01 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ class Client {
 
     void AppendMessage(const std::string &message);
 
-	bool HasCmdrn();
+    bool HasCmdrn();
 
     /* getter */
     int getClientSocket(void) const;
