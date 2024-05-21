@@ -84,3 +84,20 @@ void irc_utils::show_string_r_and_n(const std::string &str)
 	}
 	std::cout << "\"" << std::endl;
 }
+
+/**
+ * @param str 영어 대문자로 변환할 스트링
+ * @return 대문자로 변환된 스트링
+*/
+std::string	irc_utils::ft_uppercase(std::string str)
+{
+	std::string ret;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] >= 'a' && str[i] <='z')
+		 	ret += str[i] + 'A' - 'a';
+		else
+			ret += str[i];
+	}
+	return ret;
+}

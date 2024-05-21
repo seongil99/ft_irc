@@ -159,15 +159,15 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 
     //=================================================================
 	//debuging용 섹션
-	// std::cout << "typed data is ";
-	// irc_utils::show_string_r_and_n(temp);
+	std::cout << "typed data is ";
+	irc_utils::show_string_r_and_n(temp);
     //=================================================================
 
     clients_iter it = clients_.find(client_socket);
 	Client *client = &(it->second);
     client->AppendMessage(temp);
 
-    if (client->IsCmdCompleted()) {
+    if (client->HasCmdrn()) {
         return;
     }
 

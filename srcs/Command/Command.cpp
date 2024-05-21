@@ -38,7 +38,7 @@ bool Command::excute(Client *client, std::string str)
 {
 	// set default=============================
 	bool ret = false;
-	if (str.size() < 3)
+	if (str.size() < 4)
 		return ret;
 	std::string temp("");
 	private_msg = str;
@@ -50,33 +50,44 @@ bool Command::excute(Client *client, std::string str)
 	{
 		if (str[i] == ' ')
 		{
-			if (temp.empty() == false)
-				cmd.push_back(temp);
-			temp.clear();
-		}
-		else if (str[i] == '\n' && i != str.size() - 1 && i > 0)
-		{//=====================================================
-			/*
-				이 코드의 존재 이유
-				클라이언트가 비번을 쏘며 접속 시도하면 NICK과 USER를 한 번에 쏴버립니다....
-				그것 때문에 어쩔 수 없이 이런 논리를 사용할 수 밖에 없었습니다....
-			*/
-			if (str[i - 1] == '\r')
+			if (temp.empty())
+				continue;
+			else
 			{
-				if (temp.empty() == false)
-					cmd.push_back(temp);
-				private_msg = str.substr(prevented_idx, i - prevented_idx + 1);
-				it = cmd_ft.find(cmd[0]);
-				if (it != cmd_ft.end())
-				{
-					ret = true;
-					(this->*(it->second))(client);
-				}
-				DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+				cmd.push_back(temp);
 				temp.clear();
-				cmd.clear();
-				prevented_idx = i + 1;
-				private_msg = str.substr(prevented_idx);
+			}
+		}
+		else if (str[i] == '\n')
+		{//=====================================================
+			if (cmd.empty() || i == 0)
+				continue;
+			else if (i != str.size() - 1 && i > 0)
+			{
+				if (str[i - 1] == '\r')
+				{
+					if (temp.empty() == false)
+						cmd.push_back(temp);
+					private_msg = str.substr(prevented_idx, i - prevented_idx + 1);
+					it = cmd_ft.find(cmd[0]);
+					if (it != cmd_ft.end())
+					{
+						ret = true;
+						(this->*(it->second))(client);
+					}
+					else
+					{
+						if (client->getHostname().empty())
+							continue;
+						else if (cmd.size())//:irc.local 421 test A :Unknown command
+							client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
+					}
+					DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+					temp.clear();
+					cmd.clear();
+					prevented_idx = i + 1;
+					private_msg = str.substr(prevented_idx);
+				}
 			}
 		}//=====================================================
 		else if (str[i] != '\r' && str[i] != '\n')
@@ -86,12 +97,16 @@ bool Command::excute(Client *client, std::string str)
 		cmd.push_back(temp);
 	//==========================================================
 	// step 2 : figure it out is this cmd or not
+	if (cmd.empty())
+		return ret;
 	it = cmd_ft.find(cmd[0]);
 	if (it != cmd_ft.end())
 	{
 		ret = true;
 		(this->*(it->second))(client);
 	}
+	else if (cmd.size() && client->getHostname().empty() == false)//:irc.local 421 test A :Unknown command
+		client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
 	//==========================================================
 	DebugFtForCmdParssing();//주석 처리할 거면 할 것!
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
@@ -133,6 +148,8 @@ void Command::nick(Client *client)
 	if (cmd.size() == 1) {
 		if (nickname.empty())  //닉네임 없이 입장했을 때
 			client->PushSendQueue(get_reply_number(ERR_NONICKNAMEGIVEN) + get_reply_str(ERR_NONICKNAMEGIVEN) + "\r\n");
+		else
+			client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "NICK"));
 	}
 	else
 	{
@@ -169,6 +186,8 @@ void Command::user(Client *client)
 { // USER <username> <hostname> <servername> :<realname>
 	// 연결이 시작될 때 사용자의 사용자명, 실명 지정에 사용
 	// 실명 매개변수는 공백 문자를 포함할 수 있도록 마지막 매개변수여야 하며, :을 붙여 인식하도록 함
+	if (client->getNickname() == "")//이럴 경우는 접속할때 중복된 닉네임으로 접속시도한 경우이거나 막 입력한 것
+		return;
 	if (cmd.size() < 5)
 	{ // 인자를 적게 넣었을 경우
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + client->getNickname() + " " + get_reply_str(ERR_NEEDMOREPARAMS, "USER"));
@@ -180,13 +199,9 @@ void Command::user(Client *client)
 		return;
 	}
 	if (cmd[4][0] != ':')
-	{//realname 맨 앞에 ':'이 없음
-		client->PushSendQueue("ERROR :Closing link: (root@192.168.65.2) [Access denied by Realname issue]\nrealname doesn't start with \':\'!" + rn);
+	{//realname 맨 앞에 ':'이 없음 -> 양식을 무시했으니 무시
 		return;
 	}
-	//이럴 경우는 접속할때 중복된 닉네임으로 접속시도한 경우이므로 여기서 멈춰야됨
-	if (client->getNickname() == "")
-		return ;
 	std::string nickname = client->getNickname();
 	// username 만들기
 	std::string temp = cmd[1];
@@ -370,16 +385,18 @@ void Command::part(Client *client)
 /**
  * @note 메시지 보내는 명령어
  * @note PRIVMSG (user1,user2,...,usern) <text to be sent>
+ * @note 3번째 인자가 :으로 시작해야함. 안하면 무시하기로
 */
 void Command::privmsg(Client *client)
 {
 	std::vector<std::string> target; // 귓말 받을 사람 모음
 
-	if (cmd.size() < 2) {
+	if (cmd.size() < 3) {
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "PRIVMSG"));
 		return ;
 	}
-
+	else if (cmd[2][0] != ':')
+		return;
 	target = irc_utils::Split(cmd[1], ',');
 	std::string nickname = client->getNickname();
 	std::string realname = client->getRealname();
@@ -471,13 +488,15 @@ void Command::quit(Client *client)
 	// 나갈때는 모두 다 보내면 되지 않나
 	std::string quit_msg;
 	if (cmd.size() == 1)
-	{ // QUIT만 침
-		// 원본:lower!root@127.0.0.1 QUIT :Quit: leaving
-		quit_msg = irc_utils::getForm(client, "QUIT :Quit: leaving" + rn);
+	{
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
+		return;
 	}
 	else
-	{ // 내보낼때 메시지도 같이 침
-		/*
+	{
+		// 원본:lower!root@127.0.0.1 QUIT :Quit: leaving
+		// QUIT만 치면 => "QUIT :Quit: leaving\r\n"
+		/* 다른걸 더 치면
 		127.000.000.001.33378-127.000.000.001.06667: QUIT :bye
 
 		127.000.000.001.06667-127.000.000.001.33378: ERROR :Closing link: (root@127.0.0.1) [Quit: bye] //-> 요건 일단 보류
@@ -512,9 +531,9 @@ void Command::kick(Client *client)
 */
 	// KICK #1 get :out
 
-	if (cmd.size() < 2) {
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "KICK"));
-		return ;
+	if (cmd.size() < 3) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
+		return;
 	}
 
 	std::string nickname = client->getNickname();
@@ -563,7 +582,7 @@ void Command::kick(Client *client)
 void	Command::invite(Client *client)
 {
 	if (cmd.size() < 2) {
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "KICK"));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
 		return ;
 	}
 	std::string channel_name = cmd[2];
@@ -619,9 +638,8 @@ void	Command::topic(Client *client)
 	int socket = client->getClientSocket();
 	if (cmd.size() == 1)
 	{
-		//:irc.local 461 upper TOPIC :Not enough parameters.
-		client->PushSendQueue(":irc.local 461 " + nickname + " TOPIC :Not enough parameters." + rn);
-		return;
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
+		return ;
 	}
 	std::string channel = cmd[1];
 	if (serv->HasChannel(channel) == false)
@@ -664,7 +682,7 @@ void	Command::topic(Client *client)
 void Command::mode(Client *client)
 {
 	if (cmd.size() < 2) {
-		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, "MODE"));
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
 		return ;
 	}
 
@@ -883,6 +901,10 @@ void Command::mode(Client *client)
 */
 void Command::who(Client *client)
 {
+	if (cmd.size() < 2) {
+		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
+		return ;
+	}
 	std::string channel = cmd[1];
 	std::string nickname = client->getNickname();
 	std::string realname = client->getRealname();

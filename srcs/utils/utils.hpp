@@ -31,6 +31,7 @@ std::vector<std::string> Split(std::string str, char delim);
 std::string	getForm(Client *client, std::string origin);
 std::string getTimeOfNow();
 void show_string_r_and_n(const std::string &str);
+std::string	ft_uppercase(std::string str);
 
 };
 

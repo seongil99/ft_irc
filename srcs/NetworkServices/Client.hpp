@@ -50,7 +50,7 @@ class Client {
 
     void AppendMessage(const std::string &message);
 
-	bool IsCmdCompleted();
+	bool HasCmdrn();
 
     /* getter */
     int getClientSocket(void) const;

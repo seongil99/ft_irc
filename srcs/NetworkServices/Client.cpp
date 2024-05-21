@@ -129,6 +129,6 @@ void Client::setMessage(const std::string &str) { this->message_ = str; }
 void Client::setPassword(bool passed) { this->password_ = passed; }
 
 /**
- * @return 현재까지 저장된 명령어에 \\r\\n이 포함 안되었는가에 대한 진리값
-*/
-bool Client::IsCmdCompleted() { return message_.rfind("\r\n") == std::string::npos; }
+ * @return 현재까지 저장된 명령어에 \\r\\n이 포함 되었는가
+ */
+bool Client::HasCmdrn() { return message_.rfind("\r\n") == std::string::npos; }
