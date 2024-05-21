@@ -79,7 +79,7 @@ bool Command::excute(Client *client, std::string str)
 					{
 						if (client->getHostname().empty())
 							continue;
-						else if (cmd.size())//:irc.local 421 test A :Unknown command
+						else if (cmd.size())
 							client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
 					}
 					DebugFtForCmdParssing();//주석 처리할 거면 할 것!
@@ -105,7 +105,7 @@ bool Command::excute(Client *client, std::string str)
 		ret = true;
 		(this->*(it->second))(client);
 	}
-	else if (cmd.size() && client->getHostname().empty() == false)//:irc.local 421 test A :Unknown command
+	else if (cmd.size() && client->getHostname().empty() == false)
 		client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
 	//==========================================================
 	DebugFtForCmdParssing();//주석 처리할 거면 할 것!
@@ -174,7 +174,6 @@ void Command::nick(Client *client)
 */
 void Command::user(Client *client)
 {
-
 	if (client->getNickname().empty())//이럴 경우는 접속할때 중복된 닉네임으로 접속시도한 경우이거나 막 입력한 것
 		return;
 	if (cmd.size() < 5)
@@ -187,10 +186,8 @@ void Command::user(Client *client)
 		client->PushSendQueue(get_reply_number(ERR_ALREADYREGISTRED) + client->getNickname() + " " + get_reply_str(ERR_ALREADYREGISTRED));
 		return;
 	}
-	if (cmd[4][0] != ':')
-	{//realname 맨 앞에 ':'이 없음 -> 양식을 무시했으니 무시
+	if (cmd[4][0] != ':') //realname 맨 앞에 ':'이 없음 -> 양식을 무시했으니 무시
 		return;
-	}
 	if (serv->CheckPassword(""))//서버가 비번이 설정안되어 있으면 패스
 		serv->CorrectPassword(client);
 	if (client->getPassword() == false)// 클라이언트가 비번 못 맞춘 경우
@@ -249,9 +246,6 @@ void Command::join(Client *client)
 		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered." + rn);
 		return;
 	}
-	std::string hostname = client->getHostname();
-	if (hostname.empty())
-		return;
 	std::vector<std::string> channel, pw;
 	std::string hostname = client->getHostname();
 	if (hostname.empty() || client->getPassword() == false)
@@ -341,13 +335,9 @@ void Command::part(Client *client)
 	for (std::vector<std::string>::iterator it = channel.begin(); it != channel.end(); it++)
 	{
 		if (serv->HasChannel(*it) == false)
-		{//채널 없음 -> 그럼 현재 채널 나가기
 			client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nick_name, *it));
-		}
-		else if (serv->HasClientInChannel(nick_name, *it) == false)
-		{//채널 있기는 한데 클라이언트가 미참여 -> 오류 메시지만 보내고 끝
+		else if (serv->HasClientInChannel(nick_name, *it) == false) //채널 있기는 한데 클라이언트가 미참여 -> 오류 메시지만 보내고 끝
 			client->PushSendQueue(get_reply_number(ERR_NOTONCHANNEL) + get_reply_str(ERR_NOTONCHANNEL, nick_name, *it));
-		}
 		else
 		{
 			serv->SendMessageToAllClientsInChannel(*it, msg);
@@ -363,8 +353,7 @@ void Command::part(Client *client)
 */
 void Command::privmsg(Client *client)
 {
-	std::vector<std::string> target; // 귓말 받을 사람 모음
-
+	std::vector<std::string> target;
 	if (cmd.size() < 3)
 	{
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
@@ -462,7 +451,6 @@ void Command::quit(Client *client)
 	int socket = client->getClientSocket();
 	std::string real = client->getRealname();
 	std::string host = client->getHostname();
-	// quit 명령어를 내렸다는 것을 참가했던 모든 채널의 클라이언트에게 본인 제외하고 다 보내야함.
 	client->PushSendQueue("ERROR :Closing link: (" + real + "@" + host + ") [Quit: " + cmd[1].substr(1) + rn);
 	serv->SendMessageToAllJoinedChannel(socket, quit_msg);
 	serv->RemoveClientFromServer(socket);
@@ -574,12 +562,12 @@ void	Command::topic(Client *client)
 		return ;
 	}
 	if (cmd[2][0] != ':')
-		return;//:으로 시작안하니 무시
+		return;//:으로 시작 안하니 무시
 	if (client->getHostname().empty() || client->getPassword() == false)
 		return;
 	std::string channel = cmd[1];
 	if (serv->HasChannel(channel) == false)
-	{//채널이 음슴
+	{//채널이 없음
 		client->PushSendQueue(":irc.local 403 " + nickname + " " + channel + " :No such channel" + rn);
 	}
 	else if (serv->HasModeInChannel('t', channel) == false || serv->IsChannelOwner(socket, channel))
