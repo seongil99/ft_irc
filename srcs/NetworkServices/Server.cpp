@@ -360,7 +360,6 @@ void Server::SendMessageToOtherClient(int sender_socket,
         return;
 }
 
-// 채널 password, invite only 관련 함수 추가
 bool Server::HasChannelPassword(const std::string &channel_name) const {
     const_channels_iter it = channels_.find(channel_name);
     if (it != channels_.end()) {
@@ -572,7 +571,7 @@ Server::ClientsInChannelList(const std::string &channel_name) {
 int Server::getClientSocket(const std::string &nick_name) {
     clients_iter it = FindClientByNickname(nick_name);
     if (it == clients_.end())
-        return -1; // 애초에 없었음.
+        return -1;
     return it->first;
 }
 

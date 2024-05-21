@@ -86,27 +86,6 @@ std::string Client::getLine(void) {
 
 /**
  * @param message 해당 클라이언트가 입력한 메시지
- * @note \\n이 있을 때 앞에 \\r이 없으면 넣어주고 있으면 그대로 넘어가는게 맞는
-것인가? -> irc 클라이언트는 알아서 잘 넣어주고, nc명령어로 깜빡하고 잘못입력하면
-사용자 책임이라고 생각.
- * @note 아래 주석은 기껏만든 코드 버리기 아까워서 주석처리....ㅠㅠ
-* @note
-        // std::string parse("");
-        // for (size_t i = 0; i < message.size(); i++)
-        // {
-        // 	if (message[i] == '\n')
-        // 	{
-        // 		if (i == 0)//\n으로 시작하는 메시지면?
-        // 		{
-        // 			parse += "\r\n";
-        // 			continue;
-        // 		}
-        // 		else if (message[i - 1] != '\r')
-        // 			parse += '\r';
-        // 	}
-        // 	parse += message[i];
-        // }
-        // message_ += parse;
 */
 void Client::AppendMessage(const std::string &message) { message_ += message; }
 
