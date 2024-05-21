@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 17:59:41 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:20:46 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:11:58 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,7 @@ class Server {
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
     const std::string GetModeFromChannel(const std::string &channel_name);
-	void SetPasswordInChannel(const std::string &passwd,
+    void SetPasswordInChannel(const std::string &passwd,
                               const std::string &channel_name);
     void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
     bool IsChannelOwner(int client_socket,
@@ -141,7 +141,7 @@ class Server {
                          const std::string &nick_name);
     void RemoveInviteClient(const std::string &channel_name,
                             const std::string &nick_name);
-	std::string GetChannelStartedTime(const std::string &channel_name);
+    std::string GetChannelStartedTime(const std::string &channel_name);
 
     // 채널 Topic 관련 함수
     bool HasTopicInChannel(const std::string &channel_name);
@@ -157,11 +157,6 @@ class Server {
     void ActivateList(Client *client, const std::string &channel_name);
 
     const std::string getAllChannelName() const;
-    /**
-     * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
-     * 이걸 사용해야 하는 로직이 있다면 Server 메소드로 추가할 예정.
-     */
-    Channel *getChannel(const std::string &channel_name);
 
     /* Client functions */
 
