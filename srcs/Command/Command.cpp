@@ -644,8 +644,8 @@ void	Command::topic(Client *client)
 	else if (serv->HasModeInChannel('t', channel) == false || serv->IsChannelOwner(socket, channel))
 	{//채널에 t 모드가 없거나 권한이 있으니 topic 설정 가능
 		//127.000.000.001.52292-127.000.000.001.06667: TOPIC <channel> :<topic>
-		serv->SetTopicInChannel(channel, cmd[2].substr(1),  client->getRealname() + "@" + client->getHostname());
-		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg + rn));
+		serv->SetTopicInChannel(channel, cmd[2].substr(1),  nickname + "!" + client->getRealname() + "@" + client->getHostname());
+		serv->SendMessageToAllClientsInChannel(channel, irc_utils::getForm(client, private_msg));
 	}//잘되는 것으로 보인다. 야호!
 	else
 	{
