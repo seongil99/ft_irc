@@ -249,6 +249,9 @@ void Command::join(Client *client)
 		client->PushSendQueue(":irc.local 451 * JOIN :You have not registered." + rn);
 		return;
 	}
+	std::string hostname = client->getHostname();
+	if (hostname.empty())
+		return;
 	std::vector<std::string> channel, pw;
 	std::string hostname = client->getHostname();
 	if (hostname.empty() || client->getPassword() == false)
@@ -296,7 +299,7 @@ void Command::join(Client *client)
 								  hostname + " JOIN :" + channel[i] + rn);
 			if (serv->HasTopicInChannel(channel[i]))
 			{
-				client->PushSendQueue(":irc.local 332 " + nickname + " " + channel[i] + " :" + serv->GetTopicInChannel(channel[i]) + rn);
+				client->PushSendQueue(":irc.local 332 " + nickname + " " + channel[i] + " :" + serv->GetTopicInChannel(channel[i]));
 				client->PushSendQueue(":irc.local 333 " + nickname + " " + channel[i] + " " +
 									  serv->WhoDidTopicInChannel(channel[i]) + " :" + serv->WhatTimeChannelMade(channel[i]) + rn);
 			}
@@ -610,12 +613,12 @@ void Command::mode(Client *client)
 		client->PushSendQueue(get_reply_number(ERR_NEEDMOREPARAMS) + get_reply_str(ERR_NEEDMOREPARAMS, cmd[0]));
 		return ;
 	}
-	if (client->getHostname().empty() || client->getPassword() == false)
+	std::string hostname = client->getHostname();
+	if (hostname.empty() || client->getPassword())
 		return;
 	std::string channel = cmd[1];
 	std::string nickname = client->getNickname();
 	std::string realname = client->getRealname();
-	std::string hostname = client->getHostname();
 	int socket = client->getClientSocket();
 	std::string str = (":" + nickname + "!" + realname + "@" + hostname + " MODE " + channel + " ");
 	std::vector<std::string> args;
