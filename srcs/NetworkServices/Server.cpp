@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:10:28 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:46:34 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,9 +158,9 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     std::string temp(buf);
 
     //=================================================================
-	//debuging용 섹션
-	std::cout << "typed data is ";
-	irc_utils::show_string_r_and_n(temp);
+    // debuging용 섹션
+    std::cout << "typed data is ";
+    irc_utils::show_string_r_and_n(temp);
     //=================================================================
 
     clients_iter it = clients_.find(client_socket);
@@ -575,15 +575,20 @@ int Server::getClientSocket(const std::string &nick_name) {
  */
 void Server::AddInviteClient(const std::string &channel_name,
                              const std::string &nick_name) {
-    Channel *channel = &(channels_.find(channel_name)->second);
-
-    channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        Channel *channel = &(it->second);
+        channel->AddInvitedList(&(FindClientByNickname(nick_name)->second));
+    }
 }
 
 void Server::RemoveInviteClient(const std::string &channel_name,
                                 const std::string &nick_name) {
-    Channel *channel = &(channels_.find(channel_name)->second);
-    channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
+    channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end()) {
+        Channel *channel = &(it->second);
+        channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
+    }
 }
 
 /**
@@ -651,8 +656,10 @@ void Server::SetTopicInChannel(const std::string &channel_name,
                                const std::string &topic,
                                const std::string &who_did) {
     channels_iter it = channels_.find(channel_name);
-    Channel *channel = &(it->second);
-    channel->setTopic(topic, who_did);
+    if (it != channels_.end()) {
+        Channel *channel = &(it->second);
+        channel->setTopic(topic, who_did);
+    }
 }
 
 /**
