@@ -37,8 +37,7 @@ class Channel {
     std::string topic_;
     std::string topic_set_time_;
     std::string topic_who_did_;
-    // std::map<int, size_t> send_msgs_;
-    // std::map<int, size_t> recv_msgs_;
+	std::string	started_time_;
 
   public:
     Channel(void);
@@ -76,6 +75,7 @@ class Channel {
     const std::string &getTopic(void) const;
     const std::string &getTopicWhoDid(void) const;
     const std::string &getTopicSetTime(void) const;
+	const std::string &getStartedTime(void) const;
 
     /* Setter */
 

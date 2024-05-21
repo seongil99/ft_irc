@@ -425,6 +425,14 @@ void Server::RemoveModeFromChannel(const char mode,
         (*it).second.RemoveMode(mode);
 }
 
+const std::string Server::GetModeFromChannel(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.getModes();
+	return 0;
+}
+
+
 void Server::SetPasswordInChannel(const std::string &passwd,
                                   const std::string &channel_name) {
     channels_iter it = channels_.find(channel_name);
@@ -586,6 +594,13 @@ void Server::RemoveInviteClient(const std::string &channel_name,
                                 const std::string &nick_name) {
     Channel *channel = &(channels_.find(channel_name)->second);
     channel->RemoveInvitedList((FindClientByNickname(nick_name)->first));
+}
+
+std::string Server::GetChannelStartedTime(const std::string &channel_name) {
+	channels_iter it = channels_.find(channel_name);
+    if (it != channels_.end())
+        return (*it).second.getStartedTime();
+    return 0;
 }
 
 /**

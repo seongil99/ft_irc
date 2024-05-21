@@ -19,6 +19,9 @@ Channel::Channel(void) {
     passwd_ = "";
     users_limit_ = 0;
     mode_.insert('t');
+
+	std::time_t now = std::time(0);
+	started_time_ = std::to_string(now);
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -27,6 +30,10 @@ Channel::Channel(const std::string &channel_name) {
     this->channel_name_ = channel_name;
     passwd_ = "";
     users_limit_ = 0;
+	mode_.insert('t');
+
+	std::time_t now = std::time(0);
+	started_time_ = std::to_string(now);
 }
 
 Channel::~Channel(void) {}
@@ -36,9 +43,15 @@ Channel &Channel::operator=(const Channel &ref) {
         return *this;
     this->channel_name_ = ref.channel_name_;
     this->clients_ = ref.clients_;
+	this->owners_ = ref.owners_;
+	this->invited_clients_ = ref.invited_clients_;
+	this->passwd_ = ref.passwd_;
+	this->users_limit_ = ref.users_limit_;
     this->mode_ = ref.mode_;
-    this->owners_ = ref.owners_;
     this->topic_ = ref.topic_;
+	this->topic_set_time_ = ref.topic_set_time_;
+	this->topic_who_did_ = ref.topic_who_did_;
+	this->started_time_ = ref.started_time_;
     return *this;
 }
 
@@ -177,6 +190,8 @@ const std::string &Channel::getTopicSetTime(void) const {
 const std::string &Channel::getTopicWhoDid(void) const {
     return topic_who_did_;
 }
+
+const std::string &Channel::getStartedTime(void) const { return started_time_; }
 
 Client *Channel::getJoinedClient(const std::string &nickname) {
     std::map<int, Client *>::iterator it = clients_.begin();

@@ -676,18 +676,16 @@ void Command::mode(Client *client)
 	std::string str = (":" + nickname + "!" + realname + "@" + hostname + " MODE " + channel + " ");
 	std::vector<std::string> args;
 
-	// 사용자가 처음 서버에 진입할때 사용자 모드를 +i로 바꿔줌
-	if (cmd[1][0] != '#' && cmd[2] == "+i")
+	if (cmd.size() == 3 && cmd[1][0] != '#' && cmd[2] == "+i") //사용자가 서버에 입장할 때 사용자의 모드를 +i로 바꾸는 작업이 있음
 		client->PushSendQueue(":" + nickname + "!" + realname + "@" + hostname + " MODE " + nickname + " :+i" + rn);
-	else if (!serv->HasChannel(channel))
+	else if (cmd[1][0] == '#' && !serv->HasChannel(channel))
 		client->PushSendQueue(get_reply_number(ERR_NOSUCHCHANNEL) + get_reply_str(ERR_NOSUCHCHANNEL, nickname, channel));
+	else if (!serv->HasChannel(channel))
+			client->PushSendQueue(get_reply_number(ERR_NOSUCHNICK) + get_reply_str(ERR_NOSUCHNICK, nickname, channel));
 	else if (cmd.size() == 2)
 	{
-		std::time_t now = std::time(0);
-		std::string timestamp = std::to_string(now);
-		client->PushSendQueue(":irc.local 324 " + nickname + " " + channel + " :+nt" + rn);
-		client->PushSendQueue(":irc.local 329 " + nickname + " " + channel + " :" + timestamp + rn); // 시간 스탬프 값 필요
-		serv->SetModeToChannel('t', channel);
+		client->PushSendQueue(":irc.local 324 " + nickname + " " + channel + " :+" + serv->GetModeFromChannel(channel) + rn);
+		client->PushSendQueue(":irc.local 329 " + nickname + " " + channel + " :" + serv->GetChannelStartedTime(channel) + rn);
 	}
 	else if (cmd[2][0] == 'b')
 		client->PushSendQueue(":irc.local 368 " + nickname + " " + channel + " :End of channel ban list" + rn);

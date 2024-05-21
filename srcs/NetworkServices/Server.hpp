@@ -131,7 +131,8 @@ class Server {
     void SetModeToChannel(const char mode, const std::string &channel_name);
     void RemoveModeFromChannel(const char mode,
                                const std::string &channel_name);
-    void SetPasswordInChannel(const std::string &passwd,
+    const std::string GetModeFromChannel(const std::string &channel_name);
+	void SetPasswordInChannel(const std::string &passwd,
                               const std::string &channel_name);
     void SetUsersLimitInChannel(size_t limit, const std::string &channel_name);
     bool IsChannelOwner(int client_socket,
@@ -140,6 +141,7 @@ class Server {
                          const std::string &nick_name);
     void RemoveInviteClient(const std::string &channel_name,
                             const std::string &nick_name);
+	std::string GetChannelStartedTime(const std::string &channel_name);
 
     // 채널 Topic 관련 함수
     bool HasTopicInChannel(const std::string &channel_name);
