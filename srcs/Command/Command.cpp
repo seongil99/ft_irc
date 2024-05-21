@@ -149,17 +149,11 @@ void Command::nick(Client *client)
 		}
 		else// 닉네임 중복이 안되었으니 닉네임 변경
 		{
-			/*
-			127.000.000.001.54498-127.000.000.001.06667: NICK test
-
-			127.000.000.001.06667-127.000.000.001.54498: :upper!root@127.0.0.1 NICK :test
-			*/
 			if (!client->getRealname().empty())
 				client->PushSendQueue(":" + client->getNickname() + "!" + client->getRealname() + "@" + client->getHostname() + " NICK :" + cmd[1] + rn);
 			client->setNickname(cmd[1]);
 		}
 	}
-	// NICK aaa bbb ccc ddd 이런 식으로 여러개 쳤을때는 닉네임이 aaa로 바뀌고 다른 반응 없음
 }
 
 /**
@@ -733,14 +727,11 @@ void Command::mode(Client *client)
 					client->PushSendQueue(":irc.local 696 " + nickname + " " + channel + " o * :You must specify a parameter for the key mode. Syntax: <nick>." + rn);
 				else if (!serv->IsChannelOwner(client->getClientSocket(), channel))
 					client->PushSendQueue(":irc.local 482 " + nickname + " " + channel + " :You must be a channel op or higher to unset channel mode o (op)." + rn);
-				else if (!serv->HasClientInChannel(cmd[idx], channel)) {
+				else if (!serv->HasClientInChannel(cmd[idx], channel))
 					client->PushSendQueue(":irc.local 401 " + nickname + " " + cmd[idx] + " :No such nick" + rn);
-					return;
-				}
 				else
 				{
 					serv->AddChannelOwner(cmd[idx], channel);
-					options += "o";
 					args.push_back(cmd[idx]);
 					idx++;
 				}
