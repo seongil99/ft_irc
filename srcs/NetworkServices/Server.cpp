@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/18 16:14:59 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:10:28 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void Server::EventRead(struct kevent *curr_event) {
             if (errno == EWOULDBLOCK)
                 return;
             else if (n < 0)
-            	std::cerr << "client read error!" << std::endl;
+                std::cerr << "client read error!" << std::endl;
             RemoveClientFromServer(curr_event->ident);
         } else {
             buf[n] = '\0';
@@ -159,34 +159,33 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
 
     //=================================================================
 	//debuging용 섹션
-	// std::cout << "typed data is ";
-	// irc_utils::show_string_r_and_n(temp);
+	std::cout << "typed data is ";
+	irc_utils::show_string_r_and_n(temp);
     //=================================================================
 
     clients_iter it = clients_.find(client_socket);
-	Client *client = &(it->second);
+    Client *client = &(it->second);
     client->AppendMessage(temp);
 
-    if (client->IsCmdCompleted()) {
+    if (client->HasCmdrn()) {
         return;
     }
 
     // 서버 콘솔에 출력==================================================
     std::cout << "received data from " << client_socket << ": ";
     irc_utils::show_string_r_and_n(client->getMessage());
-	std::cout << std::endl;
-
+    std::cout << std::endl;
     //=================================================================
 
-    if (cmd.excute(client, client->getMessage()) == false) {
-    // if (cmd.excute(client, client->getLine()) == false) {
+    // if (cmd.excute(client, client->getMessage()) == false) {
+    if (cmd.excute(client, client->getLine()) == false) {
         std::cerr << "None cmd received!" << std::endl;
     }
 
     // execute 이후 client 지워질 수 있음
-    it = clients_.find(client_socket);
-    if (it != clients_.end())
-       client->setMessage(""); // 버퍼 초기화
+    // it = clients_.find(client_socket);
+    // if (it != clients_.end())
+    //     client->setMessage(""); // 버퍼 초기화
 }
 
 /**
@@ -525,7 +524,6 @@ void Server::RemoveClientFromServer(int client_socket) {
         if (!RemoveClientFromChannel(client_socket, channel_iter))
             channel_iter++;
     }
-    clients_.erase(client_socket);
     CloseClient(client_socket);
 }
 
