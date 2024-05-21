@@ -827,7 +827,6 @@ void Command::mode(Client *client)
 				else
 				{
 					serv->RemoveChannelOwner(cmd[idx], channel);
-					options += "o";
 					args.push_back(cmd[idx]);
 					idx++;
 				}
