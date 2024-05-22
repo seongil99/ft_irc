@@ -9,7 +9,6 @@ enum Reply
 	RPL_YOURHOST,
 	RPL_CREATED,
 	RPL_MYINFO,
-	RPL_5,//나중에 이게 뭔지 알면 추가할 것
 	RPL_AWAY = 301,
 	RPL_CHANNELMODEIS = 324,
 	RPL_NOTOPIC = 331,
@@ -49,10 +48,5 @@ std::string	get_reply_str(const Reply n, std::string s1);
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2);
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3);
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3, std::string s4);
-
-/*
-추가 안한 번호
-471, 473, 475 뒤에 있는건 뭐지?
-*/
 
 #endif

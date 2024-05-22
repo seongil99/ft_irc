@@ -137,6 +137,7 @@ void Channel::RemoveInvitedList(int client_socket) {
 void Channel::setChannelName(const std::string &channel_name) {
     this->channel_name_ = channel_name;
 }
+
 // return : true = that client joined this channel
 // return : false = that client didn't join this channe
 bool Channel::HasClient(int client_socket) const {
