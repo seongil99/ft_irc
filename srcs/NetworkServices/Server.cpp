@@ -154,7 +154,6 @@ void Server::EventWrite(struct kevent *curr_event) {
 
 void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
-    // 메시지 받고
     std::string temp(buf);
     clients_iter it = clients_.find(client_socket);
     Client *client = &(it->second);
@@ -490,11 +489,7 @@ const std::string Server::getAllChannelName() const {
  */
 void Server::RemoveClientFromServer(int client_socket) {
     std::map<std::string, Channel>::iterator channel_iter = channels_.begin();
-    // 들어가있는 모든 채널에서 없애야한다.
     while (channel_iter != channels_.end()) {
-        // 소켓 번호로 동일 인물로 판별. 지금 참가한 채널의 운영자임.
-        // 혼자 있었으면 채널도 없어져야됨 -> 주석 처리
-        // 새로운 관리자 -> 일단 Channel::clients_.begin()
         if (!RemoveClientFromChannel(client_socket, channel_iter))
             channel_iter++;
     }

@@ -63,10 +63,9 @@ std::string Client::getLine(void) {
     if (idx == std::string::npos) {
         return ""; // \r\n이 없으면 빈 문자열 반환
     }
-    // \r\n 까지 포함해서 리턴
     std::string ret = message_.substr(0, idx + KDelim.size());
     message_ = message_.substr(idx + KDelim.size());
-    return ret;
+    return ret; // \r\n 까지 포함해서 리턴
 }
 
 /**

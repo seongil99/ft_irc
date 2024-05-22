@@ -120,7 +120,6 @@ class Server {
     void SendMessageToAllJoinedChannel(int client_socket,
                                        const std::string &message);
 
-    // 채널 password, invite only 관련 함수 추가
     bool HasChannelPassword(const std::string &channel_name) const;
     bool CheckChannelPassword(const std::string &password_input,
                               const std::string &channel_name) const;
