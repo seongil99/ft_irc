@@ -1,5 +1,5 @@
 CXX				= c++
-CXXFLAGS		= -Wall -Wextra -Werror -MMD -MP -std=c++98 -g -fsanitize=address
+CXXFLAGS		= -Wall -Wextra -Werror -MMD -MP -std=c++98
 
 NAME			= ircserv
 
