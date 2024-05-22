@@ -6,6 +6,8 @@
 #include "Channel.hpp"
 #include "utils.hpp"
 #include <unistd.h>
+#include <ctime>
+#include <climits>
 
 Command::Command(Server *server) : serv(server), rn("\r\n")
 {
