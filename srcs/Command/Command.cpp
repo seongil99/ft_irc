@@ -1,9 +1,13 @@
+#include <sstream>
+
 #include "Command.hpp"
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "utils.hpp"
 #include <unistd.h>
+#include <ctime>
+#include <climits>
 
 Command::Command(Server *server) : serv(server), rn("\r\n")
 {
@@ -148,7 +152,7 @@ void Command::nick(Client *client)
 	{
 		// 닉네임 중복 여부 판단
 		if (serv->HasDuplicateNickname(cmd[1]))
-		{ 
+		{
 			if (client->getNickname().empty() && client->getHostname().empty())
 			{ //최초 접속시 중복된 닉네임을 원함.
 				client->PushSendQueue("ERROR :Closing link: (root@192.168.65.2) [Access denied by dup-Nickname issue]\nPlease access again with other nickname!" + rn);
@@ -306,7 +310,7 @@ void Command::join(Client *client)
 	}
 }
 
-/** 
+/**
  * @note PART {#channel} {leave msg for last channel}
  * @note 입장했던 채널에서 나가는 명령어
  * @note 채널에서 마지막 한 명이 나갈때 채널 삭제 필요
@@ -402,7 +406,7 @@ void Command::privmsg(Client *client)
  * @note LIST [<channel>{,<channel>}
 */
 void Command::list(Client *client)
-{ 
+{
 	std::string nickname = client->getNickname();
 	if (client->getHostname().empty() || client->getPassword() == false)
 		return;
@@ -602,7 +606,7 @@ void Command::mode(Client *client)
 		return ;
 	}
 	std::string hostname = client->getHostname();
-	if (hostname.empty() || client->getPassword())
+	if (hostname.empty() || !client->getPassword())
 		return;
 	std::string channel = cmd[1];
 	std::string nickname = client->getNickname();
@@ -686,12 +690,14 @@ void Command::mode(Client *client)
 				else if (!serv->HasModeInChannel('l', channel))
 				{
 					if (cmd[idx].size() > 9) {
-						client->PushSendQueue(":irc.local 696 "+ nickname + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>." + rn); 
+						client->PushSendQueue(":irc.local 696 "+ nickname + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>." + rn);
 						break;
 					}
-					int limit = std::stoi(cmd[idx]);
+					std::istringstream ss(cmd[idx]);
+					int limit;
+					ss >> limit;
 					if (limit < 0 || limit > INT_MAX)
-						client->PushSendQueue(":irc.local 696 "+ nickname + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>." + rn); 
+						client->PushSendQueue(":irc.local 696 "+ nickname + " " + channel + " l " + cmd[idx] + " :Invalid limit mode parameter. Syntax: <limit>." + rn);
 					else {
 						serv->SetModeToChannel('l', channel);
 						serv->SetUsersLimitInChannel(static_cast<size_t>(limit), channel);
@@ -708,7 +714,7 @@ void Command::mode(Client *client)
 		}
 		if (idx == 3)
 			str += ":";
-		if (options.length() > 0) 
+		if (options.length() > 0)
 			str += "+";
 		str += options + " ";
 		for (size_t i = 3; i < idx; i++)
@@ -790,7 +796,7 @@ void Command::mode(Client *client)
 		}
 		if (idx == 3)
 			str += ":";
-		if (options.length() > 0) 
+		if (options.length() > 0)
 			str += "-";
 		str += options + " ";
 		for (size_t i = 3; i < idx; i++)

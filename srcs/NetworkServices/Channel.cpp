@@ -6,12 +6,13 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 19:12:11 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/22 13:47:47 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
+#include <ctime>
 
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -22,9 +23,10 @@ Channel::Channel(void) {
     mode_.insert('t');
 
     std::time_t now = std::time(0);
-	std::istringstream ss(now);
-	ss >> started_time_;
-	std::cout << started_time_ << std::endl;
+    std::stringstream ss;
+    ss << now;
+    started_time_ = ss.str();
+    std::cout << started_time_ << std::endl;
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -36,9 +38,10 @@ Channel::Channel(const std::string &channel_name) {
     mode_.insert('t');
 
     std::time_t now = std::time(0);
-	std::istringstream ss(now);
-	ss >> started_time_;
-	std::cout << started_time_ << std::endl;
+    std::stringstream ss;
+    ss << now;
+    started_time_ = ss.str();
+    std::cout << started_time_ << std::endl;
 }
 
 Channel::~Channel(void) {}
