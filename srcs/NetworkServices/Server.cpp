@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 18:03:26 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:46:34 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:18:21 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,36 +156,20 @@ void Server::ProcessReceivedData(int client_socket, char buf[BUF_SIZE], int n) {
     (void)n;
     // 메시지 받고
     std::string temp(buf);
-
-    //=================================================================
-    // debuging용 섹션
-    std::cout << "typed data is ";
-    irc_utils::show_string_r_and_n(temp);
-    //=================================================================
-
     clients_iter it = clients_.find(client_socket);
     Client *client = &(it->second);
     client->AppendMessage(temp);
-
     if (client->HasCmdrn()) {
         return;
     }
-
     // 서버 콘솔에 출력==================================================
     std::cout << "received data from " << client_socket << ": ";
     irc_utils::show_string_r_and_n(client->getMessage());
     std::cout << std::endl;
     //=================================================================
-
-    // if (cmd.excute(client, client->getMessage()) == false) {
     if (cmd.excute(client, client->getLine()) == false) {
         std::cerr << "None cmd received!" << std::endl;
     }
-
-    // execute 이후 client 지워질 수 있음
-    // it = clients_.find(client_socket);
-    // if (it != clients_.end())
-    //     client->setMessage(""); // 버퍼 초기화
 }
 
 /**
@@ -424,12 +408,11 @@ void Server::RemoveModeFromChannel(const char mode,
 }
 
 const std::string Server::GetModeFromChannel(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.getModes();
-	return 0;
+    return 0;
 }
-
 
 void Server::SetPasswordInChannel(const std::string &passwd,
                                   const std::string &channel_name) {
@@ -498,14 +481,6 @@ const std::string Server::getAllChannelName() const {
             ret += ",";
     }
     return ret;
-}
-
-// return 0 = there is no channel in this server
-Channel *Server::getChannel(const std::string &channel_name) {
-    channels_iter it = channels_.find(channel_name);
-    if (it == channels_.end())
-        return NULL;
-    return &(it->second);
 }
 
 /**
@@ -599,7 +574,7 @@ void Server::RemoveInviteClient(const std::string &channel_name,
 }
 
 std::string Server::GetChannelStartedTime(const std::string &channel_name) {
-	channels_iter it = channels_.find(channel_name);
+    channels_iter it = channels_.find(channel_name);
     if (it != channels_.end())
         return (*it).second.getStartedTime();
     return 0;

@@ -6,14 +6,11 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:21:04 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:37:24 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
-
-#include <iostream>
-#include <sstream>
 
 static const std::string KDelim = "\r\n";
 
@@ -58,18 +55,6 @@ std::string Client::PopSendQueue(void) {
         return "";
     std::string ret = send_q_.front();
     send_q_.pop();
-    return ret;
-}
-
-void Client::PushRecvQueue(const std::string &message) {
-    recv_q_.push(message);
-}
-
-std::string Client::PopRecvQueue(void) {
-    if (!recv_q_.size())
-        return "";
-    std::string ret = recv_q_.front();
-    recv_q_.pop();
     return ret;
 }
 

@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:29 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:21:01 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:37:39 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,6 @@ class Client {
 
     void PushSendQueue(const std::string &message);
     std::string PopSendQueue(void);
-    void PushRecvQueue(const std::string &message);
-    std::string PopRecvQueue(void);
 
     std::string getLine(void);
 

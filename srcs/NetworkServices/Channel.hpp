@@ -6,7 +6,7 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:16 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 15:21:09 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:17:16 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,6 @@
 #include <set>
 #include <string>
 
-#include <iostream>
-
 class Client;
 
 const std::string kChannelModes = "itkol";
@@ -27,9 +25,7 @@ class Channel {
   private:
     std::string channel_name_;
     std::map<int, Client *> clients_;
-    // 한 채널에 운영자가 여러명 있을 수 있어 map으로 바꿔야 할 듯
     std::map<int, Client *> owners_;
-    // 운영자가 초대 -> 초대받은 사람이 join으로 가입
     std::map<int, Client *> invited_clients_;
     std::string passwd_;
     size_t users_limit_;
@@ -37,7 +33,7 @@ class Channel {
     std::string topic_;
     std::string topic_set_time_;
     std::string topic_who_did_;
-	std::string	started_time_;
+    std::string started_time_;
 
   public:
     Channel(void);
@@ -75,7 +71,7 @@ class Channel {
     const std::string &getTopic(void) const;
     const std::string &getTopicWhoDid(void) const;
     const std::string &getTopicSetTime(void) const;
-	const std::string &getStartedTime(void) const;
+    const std::string &getStartedTime(void) const;
 
     /* Setter */
 
@@ -84,12 +80,6 @@ class Channel {
     void setTopic(const std::string &topic, const std::string &who_did);
     void setPassword(const std::string &passwd);
     bool CheckPassword(const std::string &passwd) const;
-
-    /**
-     * 사이드이펙트 발생 가능성이 있어서 사용하지 않는 것이 좋아보임.
-     * 이걸 사용해야 하는 로직이 있다면 Server 메소드로 추가할 예정.
-     */
-    Client *getJoinedClient(const std::string &nickname);
 
     // channel mode 확인 관련 함수
     size_t getUsersLimit() const;
