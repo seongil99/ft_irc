@@ -1,6 +1,23 @@
 #include "reply.hpp"
+#include <sstream>
 
-//4 RPL_MYINFO : servername, version, available user mode, available channel mode
+//if Reply number is 1 then return would be ":irc.local 001 "
+//if Reply number is 10 then return would be ":irc.local 010 "
+//if Reply number is 100 then return would be ":irc.local 100 "
+std::string get_reply_number(const Reply n)
+{
+	std::string ret(":irc.local ");
+	std::stringstream	iss;
+	iss << n;
+	std::string temp = iss.str();
+	if (temp.size() == 1)
+		ret += "00";
+	else if (temp.size() == 2)
+		ret += "0";
+	return ret + temp + " ";
+}
+
+//004 RPL_MYINFO : servername, version, available user mode, available channel mode
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3, std::string s4)
 {
 	std::string	ret;
@@ -14,9 +31,9 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
-//1 RPL_WELCOME : nick, user, host
+//001 RPL_WELCOME : nick, user, host
 //324 RPL_CHANNELMODEIS : channel, mode, mode parameter
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::string s3)
 {
@@ -24,7 +41,7 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 	switch (n)
 	{
 	case RPL_WELCOME://
-		ret = "Welcome to the Internet Relay Network " + s1 + "!" + s2 + "@" + s3;
+		ret = " :Welcome to our ft_irc project s.t. Internet Relay Network " + s1 + "!" + s2 + "@" + s3;
 		break;
 	case RPL_CHANNELMODEIS://s1 is channel s2 is mode s3 is mode parameter
 		ret = s1 + " " + s2 + " " + s3;
@@ -33,21 +50,25 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2, std::st
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
-//2 RPL_YOURHOST : server name, version
+//002 RPL_YOURHOST : server name, version
 //301 RPL_AWAY : nickname, away message
 //332 RPL_TOPIC : channel, topic
 //341 RPL_INVITING : channel, nick
+//401 ERR_NOSUCHNICK: nickname, target
+//403 ERR_NOSUCHCHANNEL: nick, channel
+// 442 ERR_NOTONCHANNEL: channel name
 //443 ERR_USERONCHANNEL : user, channel
+//482 ERR_CHANOPRIVSNEEDED: nick, channel
 std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 {
 	std::string	ret;
 	switch (n)
 	{
 	case RPL_YOURHOST://s1 is servername, s2 is version
-		ret = "Your host is " + s1 + ", running version " + s2;
+		ret = " :Your host is " + s1 + ", running version " + s2;
 		break;
 	case RPL_AWAY://si is nickname s2 is away message
 		ret = s1 + " :" + s2;
@@ -61,18 +82,28 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 	case ERR_USERONCHANNEL://s1 is user, s2 is channel
 		ret = s1 + " " + s2 + " :is already on channel";
 		break;
+	case ERR_CHANOPRIVSNEEDED:
+		ret = s1 + " " + s2 + " :You must be a channel op or higher to change the topic.";
+		break;
+	case ERR_NOSUCHNICK://s1 is nickname
+		ret = s1 + " " + s2 + " :No such nick/channel";
+		break;
+	case ERR_NOSUCHCHANNEL://s1 is nickname s2 is channel name
+		ret = s1 + " " + s2 + " :No such channel";
+		break;
+	case ERR_NOTONCHANNEL://s1 is channel name
+		ret = s1 + " :You're not on that channel";
+		break;
 	default:
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
 /*
-3 RPL_CREATED:  data
+003 RPL_CREATED:  data
 331 RPL_NOTOPIC: channel name
-401 ERR_NOSUCHNICK: nickname
-403 ERR_NOSUCHCHANNEL: channel name
 404 ERR_CANNOTSENDTOCHAN: channel name
 405 ERR_TOOMANYCHANNELS: channel name
 407 ERR_TOOMANYTARGETS: target....??
@@ -81,11 +112,9 @@ std::string	get_reply_str(const Reply n, std::string s1, std::string s2)
 414 ERR_WILDTOPLEVEL: mask
 432 ERR_ERRONEUSNICKNAME: nickname
 433 ERR_NICKNAMEINUSE: nickname
-442 ERR_NOTONCHANNEL: channel name
 461 ERR_NEEDMOREPARAMS: command
 472 ERR_UNKNOWNMODE: char
 476 ERR_BADCHANMASK: channel
-482 ERR_CHANOPRIVSNEEDED: channel
 */
 std::string	get_reply_str(const Reply n, std::string s1)
 {
@@ -93,19 +122,13 @@ std::string	get_reply_str(const Reply n, std::string s1)
 	switch (n)
 	{
 	case RPL_CREATED://s1 is data
-		ret = "This server was created " + s1;
+		ret = " :This server was created " + s1;
 		break;
 	case RPL_NOTOPIC://s1 is channel name
 		ret = s1 + " :No topic is set";
 		break;
-	case ERR_NOSUCHNICK://s1 is nickname
-		ret = s1 + " :No such nick/channel";
-		break;
-	case ERR_NOSUCHCHANNEL://s1 is channel name
-		ret = s1 + " :No such channel";
-		break;
 	case ERR_CANNOTSENDTOCHAN://s1 is channel name
-		ret = s1 + " :Cannot send to channel";
+		ret = s1 + " :You cannot send to channel";
 		break;
 	case ERR_TOOMANYCHANNELS://s1 is channel name
 		ret = s1 + " :You have joined too many channels";
@@ -126,10 +149,7 @@ std::string	get_reply_str(const Reply n, std::string s1)
 		ret = s1 + " :Erroneus nickname";
 		break;
 	case ERR_NICKNAMEINUSE://s1 is nickname
-		ret = s1 + " :Nickname is already in use";
-		break;
-	case ERR_NOTONCHANNEL://s1 is channel name
-		ret = s1 + " :You're not on that channel";
+		ret = "* " + s1 + " :Nickname is already in use";
 		break;
 	case ERR_NEEDMOREPARAMS://s1 is command
 		ret = s1 + " :Not enough parameters";
@@ -140,13 +160,10 @@ std::string	get_reply_str(const Reply n, std::string s1)
 	case ERR_BADCHANMASK://s1 is channel
 		ret = s1 + " :Bad Channel Mask";
 		break;
-	case ERR_CHANOPRIVSNEEDED: //s1 is channel
-		ret = s1 + " :You're not channel operator";
-		break;
 	default:
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }
 
 //381 RPL_YOUREOPER
@@ -168,6 +185,7 @@ std::string	get_reply_str(const Reply n)
 		break;
 	case ERR_NONICKNAMEGIVEN:
 		ret = ":No nickname given";
+		break;
 	case ERR_ALREADYREGISTRED:
 		ret = ":You may not reregister";
 		break;
@@ -181,5 +199,5 @@ std::string	get_reply_str(const Reply n)
 		ret = "";
 		break;
 	}
-	return ret;
+	return ret + "\r\n";
 }

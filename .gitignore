@@ -1,4 +1,12 @@
 .vscode
+.DS_store
+.gitignore
 *.d
 *.o
 ircserv
+test
+testclass.cpp
+testclass.hpp
+test.cpp
+*.out
+client

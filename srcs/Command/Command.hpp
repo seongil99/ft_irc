@@ -5,11 +5,11 @@
 # include <iostream>
 # include <string>
 # include <vector>
+# include <sstream>
+# include <map>
 
 class Client;
 class Server;
-// class Protocol;
-// class Client;
 
 class Command
 {
@@ -19,13 +19,12 @@ private :
 	Command(const Command &origin);
 	Command	&operator=(const Command &origin);
 	//[OCCF]===================================
-	std::vector<std::string>	cmd_list;
 	std::vector<std::string>	cmd;
 	std::string	private_msg;
-	typedef void (Command::*cmd_ft_arr)(Client*);
-	cmd_ft_arr cmd_ft[15];
-	void	clean_cmd();
+	typedef void (Command::*cmd_fts)(Client*);
+	std::map<std::string, cmd_fts> cmd_ft;
 	Server *serv;
+	std::string rn;
 	//cmd=======================================
 	void	pass(Client *client);
 	void	nick(Client *client);
@@ -33,7 +32,6 @@ private :
 	void	join(Client *client);
 	void	part(Client *client);
 	void	privmsg(Client *client);
-	void	oper(Client *client);
 	void	list(Client *client);
 	void	ping(Client *client);
 	void	quit(Client *client);
@@ -41,17 +39,15 @@ private :
 	void	invite(Client *client);
 	void	topic(Client *client);
 	void	mode(Client *client);
-	void	notice(Client *client);
+	void	who(Client *client);
+	void	cap(Client *client);
 	//cmd=======================================
+	void	DebugFtForCmdParssing();
 
 public :
 	Command(Server *server);
 	~Command();
 	bool	excute(Client *client, std::string str);
-
-	//cmd=======================================
-	void	pong(Client *client);
-	//cmd=======================================
 };
 
 #endif
