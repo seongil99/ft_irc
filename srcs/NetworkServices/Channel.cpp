@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include <sstream>
+#include <iostream>
 
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -21,7 +22,9 @@ Channel::Channel(void) {
     mode_.insert('t');
 
     std::time_t now = std::time(0);
-    started_time_ = std::to_string(now);
+	std::istringstream ss(now);
+	ss >> started_time_;
+	std::cout << started_time_ << std::endl;
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -33,7 +36,9 @@ Channel::Channel(const std::string &channel_name) {
     mode_.insert('t');
 
     std::time_t now = std::time(0);
-    started_time_ = std::to_string(now);
+	std::istringstream ss(now);
+	ss >> started_time_;
+	std::cout << started_time_ << std::endl;
 }
 
 Channel::~Channel(void) {}
