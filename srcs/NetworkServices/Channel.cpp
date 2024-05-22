@@ -6,12 +6,13 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:05:12 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/22 13:18:27 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/22 13:47:47 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 #include "Channel.hpp"
 #include "Client.hpp"

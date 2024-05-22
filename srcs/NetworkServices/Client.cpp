@@ -6,9 +6,11 @@
 /*   By: seonyoon <seonyoon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 16:20:37 by seonyoon          #+#    #+#             */
-/*   Updated: 2024/05/21 19:37:24 by seonyoon         ###   ########.fr       */
+/*   Updated: 2024/05/22 13:48:31 by seonyoon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include <algorithm>
 
 #include "Client.hpp"
 
