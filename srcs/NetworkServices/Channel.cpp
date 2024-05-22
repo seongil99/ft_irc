@@ -10,7 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
 #include <sstream>
 #include <ctime>
 
@@ -26,7 +25,6 @@ Channel::Channel(void) {
     std::stringstream ss;
     ss << now;
     started_time_ = ss.str();
-    std::cout << started_time_ << std::endl;
 }
 
 Channel::Channel(const Channel &ref) { *this = ref; }
@@ -41,7 +39,6 @@ Channel::Channel(const std::string &channel_name) {
     std::stringstream ss;
     ss << now;
     started_time_ = ss.str();
-    std::cout << started_time_ << std::endl;
 }
 
 Channel::~Channel(void) {}

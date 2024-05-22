@@ -86,7 +86,7 @@ bool Command::excute(Client *client, std::string str)
 						else if (cmd.size())
 							client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
 					}
-					DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+					// DebugFtForCmdParssing();//주석 처리할 거면 할 것!
 					temp.clear();
 					cmd.clear();
 					prevented_idx = i + 1;
@@ -112,7 +112,7 @@ bool Command::excute(Client *client, std::string str)
 	else if (cmd.size() && client->getHostname().empty() == false)
 		client->PushSendQueue(":irc.local 421 " + client->getNickname() + " " + irc_utils::ft_uppercase(cmd[0]) + " :Unknown command" + rn);
 	//==========================================================
-	DebugFtForCmdParssing();//주석 처리할 거면 할 것!
+	// DebugFtForCmdParssing();//주석 처리할 거면 할 것!
 	// client 삭제를 대비해서 밑에 그 어느것도 있으면 안됨!!
 	cmd.clear();
 	return ret;
@@ -606,7 +606,7 @@ void Command::mode(Client *client)
 		return ;
 	}
 	std::string hostname = client->getHostname();
-	if (hostname.empty() || !client->getPassword())
+	if (hostname.empty() || client->getPassword() == false)
 		return;
 	std::string channel = cmd[1];
 	std::string nickname = client->getNickname();
